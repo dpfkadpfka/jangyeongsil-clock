@@ -87,6 +87,9 @@ function doPost(e) {
       case 'img': return json_(img_(q));
       case 'like': return json_(like_(q));
       case 'comment': return json_(comment_(q));
+      case 'teacher': return json_({ ok: pinOk_(q.pin) });
+      case 'hide': return json_(hide_(q));
+      case 'delcomment': return json_(delComment_(q));
       default: return json_({ ok: false, error: '알 수 없는 요청이에요.' });
     }
   } catch (err) {
@@ -289,4 +292,34 @@ function comment_(q) {
   if (!id || !name || !text) return { ok: false, error: '이름과 댓글을 모두 써 주세요.' };
   store_().ss.getSheetByName('comments').appendRow([id, name, text, new Date(), str_(q.dev, 40)]);
   return { ok: true };
+}
+
+/* ---------- 5) 선생님만: 작품·댓글 지우기 ----------
+   [스크립트 속성]에 TEACHER_PIN = 선생님 비밀번호(숫자 4자리 이상 권장)를 넣어요. */
+function pinOk_(pin) {
+  const real = PropertiesService.getScriptProperties().getProperty('TEACHER_PIN') || '';
+  if (!real) return false;
+  const cache = CacheService.getScriptCache(), n = Number(cache.get('pinfail') || 0);
+  if (n >= 20) return false;                       // 10분에 20번 넘게 틀리면 잠깐 잠금
+  if (String(pin || '') === real) return true;
+  cache.put('pinfail', String(n + 1), 600);
+  return false;
+}
+
+function hide_(q) {
+  if (!pinOk_(q.pin)) return { ok: false, error: '선생님 비밀번호가 맞지 않아요.' };
+  const sh = store_().ss.getSheetByName('clocks'), v = sh.getDataRange().getValues();
+  for (let i = 1; i < v.length; i++) if (v[i][0] === q.id) { sh.getRange(i + 1, 14).setValue('Y'); return { ok: true }; }
+  return { ok: false, error: '작품을 찾지 못했어요.' };
+}
+
+function delComment_(q) {
+  if (!pinOk_(q.pin)) return { ok: false, error: '선생님 비밀번호가 맞지 않아요.' };
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    const sh = store_().ss.getSheetByName('comments'), v = sh.getDataRange().getValues();
+    for (let i = v.length - 1; i >= 1; i--)
+      if (v[i][0] === q.id && new Date(v[i][3]).getTime() === Number(q.time)) { sh.deleteRow(i + 1); return { ok: true }; }
+    return { ok: false, error: '댓글을 찾지 못했어요.' };
+  } finally { lock.releaseLock(); }
 }
