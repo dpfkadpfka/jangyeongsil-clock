@@ -126,7 +126,7 @@ button:focus-visible,label:focus-visible,input:focus-visible,textarea:focus-visi
 .ph{display:grid;justify-items:center;gap:10px;color:var(--muted);text-align:center;font-size:16px;font-weight:700;padding:16px}
 .ph svg{width:64px;height:64px;color:#c3dff5}
 .wait{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:12px;background:rgba(255,255,255,.96);text-align:center}
-.wait img{width:110px;height:110px;animation:bob 1s ease-in-out infinite}
+.wait img{width:140px;height:140px;object-fit:contain;animation:bob 1s ease-in-out infinite}
 .wait strong{font-weight:800;font-size:22px;color:var(--ink)}
 .bar{width:220px;height:12px;border-radius:12px;background:var(--brand-soft);overflow:hidden}
 .bar i{display:block;height:100%;width:40%;border-radius:12px;background:var(--brand);animation:load 1.3s ease-in-out infinite}
@@ -253,7 +253,13 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 .gitem.solo{background:var(--c-y);cursor:default}.gitem.solo:hover{transform:none}
 .galtop{display:flex;align-items:center;gap:14px;margin:26px 0 6px}
 .galtop h2{font-family:var(--title);font-weight:700;font-size:34px;margin-right:auto}
-.solo-feat{margin:4px 8px 8px;background:rgba(255,255,255,.7)}.galsub{margin:0 0 18px;color:var(--muted);font-weight:700}
+.solo-feat{margin:4px 8px 8px;background:rgba(255,255,255,.7)}.card-h .ico{width:54px;height:54px;margin:-10px 0 -10px auto;object-fit:contain;filter:drop-shadow(0 3px 0 rgba(0,0,0,.08))}
+.ico.big{width:72px;height:72px;object-fit:contain}
+.final-ico{width:120px;height:120px;object-fit:contain;justify-self:center;animation:bob 2.4s ease-in-out infinite}
+.bico{width:38px;height:38px;object-fit:contain;margin:-8px 0}
+.hero-art{width:200px;height:200px}
+.mascot img{transition:transform .2s}
+.galsub{margin:0 0 18px;color:var(--muted);font-weight:700}
 @media (max-width:900px){.split,.final{grid-template-columns:1fr}.preview{max-width:420px;width:100%;margin:0 auto}}
 @media (max-width:640px){.me .f select{font-size:20px;padding-left:10px;padding-right:30px;background-position:right 8px center}.prog em{font-size:12px}.prog .n{width:38px;height:38px}.kinds.big{grid-template-columns:1fr}.kinds.big .kind svg{width:100px;height:100px}.who{display:none}.stepnav .btn{min-width:0;flex:1}}
 </style>
@@ -271,7 +277,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
   <!-- 첫 화면 -->
   <section class="view" id="v-start">
     <div class="hero">
-      <div class="hero-art"><img src="logo.png" alt="시계 발명 도우미"></div>
+      <div class="hero-art"><img src="img/mascot-hello.webp" alt="시계 발명 도우미"></div>
       <h1>나도 장영실!<br><b>시계 발명가</b></h1>
       <p>내가 그린 시계를 AI가 진짜 시계처럼 만들어 줘요.</p>
       <form class="me" id="meForm" autocomplete="off">
@@ -284,7 +290,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
         <button class="btn primary lg block now" type="submit">시작하기 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
         <div class="msg no" id="meMsg" hidden></div>
       </form>
-      <button class="btn ghost" id="b-gal1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>친구 작품 구경하기</button>
+      <button class="btn ghost" id="b-gal1"><img class="bico" src="img/step-friends.webp" alt="">친구 작품 구경하기</button>
     </div>
   </section>
 
@@ -294,7 +300,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
       <li><span class="n">1</span><em>시계 종류</em></li><li><span class="n">2</span><em>AI 시계</em></li><li><span class="n">3</span><em>꾸미기</em></li><li><span class="n">4</span><em>소개하기</em></li><li><span class="n">5</span><em>올리기</em></li>
     </ol>
     <div class="guide">
-      <div class="mascot"><img src="logo.png" alt=""></div>
+      <div class="mascot"><img id="mascotImg" src="img/mascot-point.webp" alt=""></div>
       <div class="bubble"><small id="gStep">1단계</small><p id="gText"></p></div>
     </div>
 
@@ -302,8 +308,8 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
     <div class="step" data-s="1">
       <div class="card k"><div class="card-h"><span class="no">1단계</span><h2>어떤 시계를 발명할까?</h2></div>
         <div class="card-b kinds big">
-          <button class="kind" data-k="analog" aria-pressed="false"><img class="kimg" src="img/kind-analog.png" alt="" onload="this.nextElementSibling.remove()" onerror="this.remove()"><svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="38" fill="#fff2c2" stroke="#ffb020" stroke-width="5"/><g stroke="#4a3300" stroke-width="3.5" stroke-linecap="round"><path d="M42 10v6M42 68v6M10 42h6M68 42h6"/></g><path d="M42 42V22M42 42l13 8" stroke="#23314d" stroke-width="5" stroke-linecap="round" fill="none"/><circle cx="42" cy="42" r="4.5" fill="#e5484d"/></svg><div><b>바늘시계</b><span>바늘이 빙글빙글 돌며 시각을 알려 줘요</span></div></button>
-          <button class="kind" data-k="digital" aria-pressed="false"><img class="kimg" src="img/kind-digital.png" alt="" onload="this.nextElementSibling.remove()" onerror="this.remove()"><svg viewBox="0 0 84 84" aria-hidden="true"><rect x="4" y="18" width="76" height="48" rx="12" fill="#dff3ff" stroke="#2ea3f2" stroke-width="5"/><rect x="13" y="27" width="58" height="30" rx="6" fill="#23314d"/><text x="42" y="49" text-anchor="middle" font-family="Freesentation,sans-serif" font-weight="800" font-size="19" fill="#ff5c5c">12:30</text></svg><div><b>디지털시계</b><span>숫자로 시각을 보여 줘요</span></div></button>
+          <button class="kind" data-k="analog" aria-pressed="false"><img class="kimg" src="img/kind-analog.webp" alt=""><div><b>바늘시계</b><span>바늘이 빙글빙글 돌며 시각을 알려 줘요</span></div></button>
+          <button class="kind" data-k="digital" aria-pressed="false"><img class="kimg" src="img/kind-digital.webp" alt=""><div><b>디지털시계</b><span>숫자로 시각을 보여 줘요</span></div></button>
         </div>
       </div>
     </div>
@@ -333,7 +339,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
             <div class="frame" id="clockFrame">
               <div class="ph" id="clockPh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2.5"/></svg>여기에 AI가 그린 내 시계가 나와요</div>
               <div class="clockstage live" id="clockStage" hidden></div>
-              <div class="wait" id="loading" hidden><img src="logo.png" alt=""><strong>AI가 시계를 그리고 있어요</strong><div class="bar"><i></i></div><span>30초쯤 걸려요</span></div>
+              <div class="wait" id="loading" hidden><img src="img/mascot-think.webp" alt=""><strong>AI가 시계를 그리고 있어요</strong><div class="bar"><i></i></div><span>30초쯤 걸려요</span></div>
             </div>
             <div class="cta"><button class="btn sky lg block" id="b-make" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="makeLabel">AI 시계 만들기</span></button><small id="magicHint">그림을 넣으면 누를 수 있어요</small></div>
           </div>
@@ -344,7 +350,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 
     <!-- 3 -->
     <div class="step" data-s="3" hidden>
-      <div class="card m"><div class="card-h"><span class="no">3단계</span><h2>바늘 색 바꾸기</h2></div>
+      <div class="card m"><div class="card-h"><span class="no">3단계</span><h2>바늘 색 바꾸기</h2><img class="ico" src="img/step-palette.webp" alt=""></div>
         <div class="card-b split">
           <div class="preview live"></div>
           <div>
@@ -356,7 +362,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 
     <!-- 4 -->
     <div class="step" data-s="4" hidden>
-      <div class="card p"><div class="card-h"><span class="no">4단계</span><h2>내 발명품 소개하기</h2></div>
+      <div class="card p"><div class="card-h"><span class="no">4단계</span><h2>내 발명품 소개하기</h2><img class="ico" src="img/step-pencil.webp" alt=""></div>
         <div class="card-b split">
           <div class="preview live"></div>
           <div>
@@ -373,7 +379,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
       <div class="final">
         <article class="gitem solo" id="finalCard"></article>
         <div class="final-side">
-          <button class="btn mint lg block now" id="b-save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>친구 작품에 올리기</button>
+          <img class="final-ico" src="img/step-upload.webp" alt=""><button class="btn mint lg block now" id="b-save">친구 작품에 올리기</button>
           <div class="msg" id="saveMsg" hidden></div>
           <div class="done" id="doneBox" hidden>
             <button class="btn primary lg block" id="b-gal2">친구 작품 보러 가기</button>
@@ -393,7 +399,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
   <section class="view" id="v-gal" hidden>
     <div class="galtop">
       <button class="btn" id="b-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>돌아가기</button>
-      <h2>친구 작품</h2>
+      <img class="ico big" src="img/step-friends.webp" alt=""><h2>친구 작품</h2>
       <button class="btn" id="b-refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>새로 보기</button>
     </div>
     <p class="galsub" id="galSub">그림이나 시계를 누르면 크게 볼 수 있어요.</p>
@@ -500,7 +506,7 @@ const GUIDE={1:'안녕! 어떤 <em>시계</em>를 발명할지 골라 줘.',
   2:{a:'내가 그린 <em>시계 그림</em>을 넣어 줘.',b:'좋아! 파란 <em>AI 시계 만들기</em> 버튼을 눌러 봐.',c:'멋진 시계가 생겼어! <em>다음</em>을 눌러 줘.',w:'AI가 내 그림을 보고 <em>시계</em>를 그리는 중이야.'},
   3:'시계 바늘이나 숫자의 <em>색</em>을 골라 봐.',4:'내 시계의 <em>이름</em>과 <em>좋은 점</em>을 알려 줘.',
   5:{a:'다 됐어! <em>친구 작품에 올리기</em>를 눌러 줘.',b:'짝짝짝! 친구들 시계도 <em>구경</em>해 봐.'}};
-function say(t){$('gStep').textContent=step+'단계';$('gText').innerHTML=t;}
+function say(t,pose){$('gStep').textContent=step+'단계';$('gText').innerHTML=t;const im=$('mascotImg'),src='img/mascot-'+(pose||'point')+'.webp';if(im&&!im.src.endsWith(src))im.src=src;}
 function canNext(){return step===1?!!kind:step===2?!!clock:step===3?true:step===4?!!$('f-name').value.trim():false;}
 function refresh(){
   document.querySelectorAll('#prog li').forEach((li,i)=>li.className=i+1<step||(step===5&&saved)?'done':i+1===step?'on':'');
@@ -512,7 +518,7 @@ function refresh(){
   else if(step===5){g=saved?g.b:g.a;if(!saved)$('b-save').classList.add('now');}
   else if(step===4&&!canNext()){$('f-name').classList.add('now');}
   else if(canNext())N.classList.add('now');
-  say(g);}
+  say(g,step===2&&!$('loading').hidden?'think':step===5&&saved?'cheer':step===1?'hello':'point');}
 function go(n){step=n;document.querySelectorAll('.step').forEach(el=>el.hidden=+el.dataset.s!==n);
   if(n===3)drawSwatches();if(n===5)drawFinal();drawClock();refresh();window.scrollTo({top:0,behavior:'smooth'});}
 $('b-next').onclick=()=>{if(canNext())go(step+1);};
