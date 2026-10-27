@@ -107,7 +107,7 @@ function make_(q) {
 
   const digital = q.kind === 'digital';
   const out = genImage_(q.image, q.mime || 'image/jpeg', digital ? DIGITAL_PROMPT : CLOCK_PROMPT);
-  if (!out) return { ok: false, error: '시계를 만들지 못했어요. 한 번 더 눌러 주세요.' };
+  if (!out) return { ok: false, error: '시계를 만들지 못했어요. 한 번 더 눌러 주세요.', detail: LAST_ERR };
   const dial = digital ? findScreen_(out.data, out.mime) : findDial_(out.data, out.mime);
   return { ok: true, image: out.data, mime: out.mime, dial: dial };
 }
@@ -124,6 +124,7 @@ function countToday_() {
   } finally { lock.releaseLock(); }
 }
 
+let LAST_ERR = '';
 function genImage_(b64, mime, prompt) {
   // 공식 문서 방식(Interactions API)으로 먼저, 안 되면 generateContent로 한 번 더
   const base = 'https://generativelanguage.googleapis.com/v1beta/';
@@ -135,6 +136,7 @@ function genImage_(b64, mime, prompt) {
       { type: 'image', mime_type: mime, data: b64 }] })
   });
   let img = r.getResponseCode() === 200 ? findImage_(JSON.parse(r.getContentText())) : null;
+  if (!img) LAST_ERR = 'interactions ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 300);
   if (!img) {
     r = UrlFetchApp.fetch(base + 'models/' + IMAGE_MODEL + ':generateContent', {
       method: 'post', contentType: 'application/json', headers: head, muteHttpExceptions: true,
@@ -143,7 +145,7 @@ function genImage_(b64, mime, prompt) {
         generationConfig: { responseModalities: ['TEXT', 'IMAGE'] } })
     });
     if (r.getResponseCode() === 200) img = findImage_(JSON.parse(r.getContentText()));
-    else Logger.log('이미지 생성 실패 ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 500));
+    if (!img) { LAST_ERR += ' | generateContent ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 300); Logger.log(LAST_ERR); }
   }
   return img;
 }
