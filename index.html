@@ -217,10 +217,11 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 .hero h1 b{color:var(--brand)}
 .hero>p{margin:0 0 6px;font-size:20px;font-weight:700;color:var(--muted)}
 .me{width:100%;background:var(--c-y);border-radius:32px;padding:20px;display:grid;gap:16px;text-align:left}
-.me-row{display:grid;grid-template-columns:96px 96px minmax(0,1fr);gap:12px}
+.me-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.me .f select{font:inherit;font-size:24px;font-weight:800;padding:12px 40px 12px 18px;border-radius:18px;border:2px solid #fff;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23353535' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center/20px;color:var(--ink);width:100%;-webkit-appearance:none;appearance:none;text-align:center;text-align-last:center}
+.me .f select:focus{border-color:var(--orange);outline:none}
 .me .f{margin:0}.me .f span{color:#4a3300}
-.me .f input{background:#fff;border-color:#fff;text-align:center;font-size:24px}
-.me .f.grow input{text-align:left}
+.me .f input{background:#fff;border-color:#fff;font-size:24px}
 .btn.ghost{border-color:var(--line);color:var(--ink)}
 .prog{display:flex;list-style:none;margin:24px 0 0;padding:0;gap:0;counter-reset:s}
 .prog li{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;font-weight:800;font-size:15px;color:#b3bac7}
@@ -236,6 +237,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 .kinds.big{gap:20px;padding:22px}
 .kinds.big .kind{flex-direction:column;text-align:center;padding:34px 20px;gap:14px}
 .kinds.big .kind svg{width:150px;height:150px}
+.kinds.big .kind .kimg{width:190px;height:190px;object-fit:contain}
 .kinds.big .kind b{font-size:36px}
 .kinds.big .kind span{font-size:18px}
 .kind:hover{border-color:#ffb3cb}
@@ -253,7 +255,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 .galtop h2{font-family:var(--title);font-weight:700;font-size:34px;margin-right:auto}
 .solo-feat{margin:4px 8px 8px;background:rgba(255,255,255,.7)}.galsub{margin:0 0 18px;color:var(--muted);font-weight:700}
 @media (max-width:900px){.split,.final{grid-template-columns:1fr}.preview{max-width:420px;width:100%;margin:0 auto}}
-@media (max-width:640px){.me-row{grid-template-columns:1fr 1fr}.me-row .grow{grid-column:1/-1}.prog em{font-size:12px}.prog .n{width:38px;height:38px}.kinds.big{grid-template-columns:1fr}.kinds.big .kind svg{width:100px;height:100px}.who{display:none}.stepnav .btn{min-width:0;flex:1}}
+@media (max-width:640px){.me .f select{font-size:20px;padding-left:10px;padding-right:30px;background-position:right 8px center}.prog em{font-size:12px}.prog .n{width:38px;height:38px}.kinds.big{grid-template-columns:1fr}.kinds.big .kind svg{width:100px;height:100px}.who{display:none}.stepnav .btn{min-width:0;flex:1}}
 </style>
 </head>
 <body>
@@ -274,10 +276,11 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
       <p>내가 그린 시계를 AI가 진짜 시계처럼 만들어 줘요.</p>
       <form class="me" id="meForm" autocomplete="off">
         <div class="me-row">
-          <label class="f sm"><span>반</span><input id="f-ban" inputmode="numeric" maxlength="2" placeholder="3"></label>
-          <label class="f sm"><span>번호</span><input id="f-num" inputmode="numeric" maxlength="2" placeholder="12"></label>
-          <label class="f grow"><span>이름</span><input id="f-maker" maxlength="10" placeholder="내 이름"></label>
+          <label class="f"><span>학년</span><select id="f-grade"><option value="">고르기</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
+          <label class="f"><span>반</span><select id="f-ban"><option value="">고르기</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option></select></label>
+          <label class="f"><span>번호</span><select id="f-num"><option value="">고르기</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option></select></label>
         </div>
+        <label class="f"><span>이름</span><input id="f-maker" maxlength="10" placeholder="내 이름을 써요"></label>
         <button class="btn primary lg block now" type="submit">시작하기 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
         <div class="msg no" id="meMsg" hidden></div>
       </form>
@@ -299,8 +302,8 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
     <div class="step" data-s="1">
       <div class="card k"><div class="card-h"><span class="no">1단계</span><h2>어떤 시계를 발명할까?</h2></div>
         <div class="card-b kinds big">
-          <button class="kind" data-k="analog" aria-pressed="false"><svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="38" fill="#fff2c2" stroke="#ffb020" stroke-width="5"/><g stroke="#4a3300" stroke-width="3.5" stroke-linecap="round"><path d="M42 10v6M42 68v6M10 42h6M68 42h6"/></g><path d="M42 42V22M42 42l13 8" stroke="#23314d" stroke-width="5" stroke-linecap="round" fill="none"/><circle cx="42" cy="42" r="4.5" fill="#e5484d"/></svg><div><b>바늘시계</b><span>바늘이 빙글빙글 돌며 시각을 알려 줘요</span></div></button>
-          <button class="kind" data-k="digital" aria-pressed="false"><svg viewBox="0 0 84 84" aria-hidden="true"><rect x="4" y="18" width="76" height="48" rx="12" fill="#dff3ff" stroke="#2ea3f2" stroke-width="5"/><rect x="13" y="27" width="58" height="30" rx="6" fill="#23314d"/><text x="42" y="49" text-anchor="middle" font-family="Freesentation,sans-serif" font-weight="800" font-size="19" fill="#ff5c5c">12:30</text></svg><div><b>디지털시계</b><span>숫자로 시각을 보여 줘요</span></div></button>
+          <button class="kind" data-k="analog" aria-pressed="false"><img class="kimg" src="img/kind-analog.png" alt="" onload="this.nextElementSibling.remove()" onerror="this.remove()"><svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="38" fill="#fff2c2" stroke="#ffb020" stroke-width="5"/><g stroke="#4a3300" stroke-width="3.5" stroke-linecap="round"><path d="M42 10v6M42 68v6M10 42h6M68 42h6"/></g><path d="M42 42V22M42 42l13 8" stroke="#23314d" stroke-width="5" stroke-linecap="round" fill="none"/><circle cx="42" cy="42" r="4.5" fill="#e5484d"/></svg><div><b>바늘시계</b><span>바늘이 빙글빙글 돌며 시각을 알려 줘요</span></div></button>
+          <button class="kind" data-k="digital" aria-pressed="false"><img class="kimg" src="img/kind-digital.png" alt="" onload="this.nextElementSibling.remove()" onerror="this.remove()"><svg viewBox="0 0 84 84" aria-hidden="true"><rect x="4" y="18" width="76" height="48" rx="12" fill="#dff3ff" stroke="#2ea3f2" stroke-width="5"/><rect x="13" y="27" width="58" height="30" rx="6" fill="#23314d"/><text x="42" y="49" text-anchor="middle" font-family="Freesentation,sans-serif" font-weight="800" font-size="19" fill="#ff5c5c">12:30</text></svg><div><b>디지털시계</b><span>숫자로 시각을 보여 줘요</span></div></button>
         </div>
       </div>
     </div>
@@ -478,17 +481,17 @@ let me=null,drawing=null,clock=null,kind=null,step=1,saved=false,from='start';
 
 /* 화면 전환 */
 function view(v){['start','make','gal'].forEach(k=>$('v-'+k).hidden=k!==v);window.scrollTo(0,0);if(v==='gal')loadGallery();}
-function showWho(){const w=$('who');if(me){w.hidden=false;w.textContent=`${me.ban}반 ${me.num}번 ${me.name}`;}else w.hidden=true;}
+function showWho(){const w=$('who');if(me){w.hidden=false;w.textContent=`${me.grade}학년 ${me.ban}반 ${me.num}번 ${me.name}`;}else w.hidden=true;}
 
 /* 첫 화면: 반·번호·이름 */
-try{const m=JSON.parse(ls.get('gc-me','null'));if(m){$('f-ban').value=m.ban;$('f-num').value=m.num;$('f-maker').value=m.name;}}catch(e){}
-['f-ban','f-num'].forEach(id=>$(id).addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'');}));
+try{const m=JSON.parse(ls.get('gc-me','null'));if(m){$('f-grade').value=m.grade||'';$('f-ban').value=m.ban;$('f-num').value=m.num;$('f-maker').value=m.name;}}catch(e){}
 $('meForm').addEventListener('submit',e=>{e.preventDefault();
-  const ban=$('f-ban').value.trim(),num=$('f-num').value.trim(),name=$('f-maker').value.trim();
-  if(!ban){showMsg('meMsg','몇 반인지 써 주세요.');$('f-ban').focus();return;}
-  if(!num){showMsg('meMsg','번호를 써 주세요.');$('f-num').focus();return;}
+  const grade=$('f-grade').value,ban=$('f-ban').value,num=$('f-num').value,name=$('f-maker').value.trim();
+  if(!grade){showMsg('meMsg','몇 학년인지 골라 주세요.');$('f-grade').focus();return;}
+  if(!ban){showMsg('meMsg','몇 반인지 골라 주세요.');$('f-ban').focus();return;}
+  if(!num){showMsg('meMsg','번호를 골라 주세요.');$('f-num').focus();return;}
   if(!name){showMsg('meMsg','이름을 써 주세요.');$('f-maker').focus();return;}
-  hideMsg('meMsg');me={ban,num,name};ls.set('gc-me',JSON.stringify(me));showWho();view('make');go(1);});
+  hideMsg('meMsg');me={grade,ban,num,name};ls.set('gc-me',JSON.stringify(me));showWho();view('make');go(1);});
 $('b-gal1').onclick=()=>{from='start';view('gal');};
 $('b-back').onclick=()=>view(from);
 
@@ -568,11 +571,11 @@ function drawSwatches(){if(!clock)return;
 function drawFinal(){const name=$('f-name').value.trim(),feat=$('f-feat').value.trim();
   $('finalCard').innerHTML=`<div class="gpair"><div class="gcell"><div class="gimg"><img src="${drawing}" alt="내 그림"></div><span class="gtag">그림</span></div>
     <div class="gcell"><div class="gimg" data-live-final></div><span class="gtag">시계</span></div></div>
-    <div class="ginfo"><div><b>${esc(name)}</b><span>${esc(me.ban)}반 ${esc(me.num)}번 ${esc(me.name)}</span></div></div>${feat?`<div class="feat solo-feat">${esc(feat)}</div>`:''}`;}
+    <div class="ginfo"><div><b>${esc(name)}</b><span>${esc(me.grade)}학년 ${esc(me.ban)}반 ${esc(me.num)}번 ${esc(me.name)}</span></div></div>${feat?`<div class="feat solo-feat">${esc(feat)}</div>`:''}`;}
 $('b-save').onclick=async()=>{if(!clock||!me)return;const name=$('f-name').value.trim(),feature=$('f-feat').value.trim();
   const b=$('b-save');b.disabled=true;b.lastChild.textContent='보내는 중…';
   try{const small=await shrinkData(drawing,800);
-    await api({action:'save',drawing:small.split(',')[1],clock:clock.src.split(',')[1],maker:me.name,ban:me.ban,num:me.num,name,feature,
+    await api({action:'save',drawing:small.split(',')[1],clock:clock.src.split(',')[1],maker:me.name,grade:me.grade,ban:me.ban,num:me.num,name,feature,
       kind:clock.kind,cx:clock.cx,cy:clock.cy,r:clock.r,bx:clock.bx,by:clock.by,bw:clock.bw,bh:clock.bh,hand:clock.hand,bg:clock.bg});
     saved=true;b.hidden=true;hideMsg('saveMsg');$('doneBox').hidden=false;refresh();}
   catch(err){showMsg('saveMsg',esc(err.message));}
@@ -596,7 +599,7 @@ function drawGallery(){const G=$('glist');
     return `<article class="gitem"><div class="gpair">
       <button class="gcell" data-draw="${esc(it.id)}"><div class="gimg">${d?`<img src="${d.src}" alt="${esc(it.maker)}의 그림">`:'<div class="dots"></div>'}</div><span class="gtag">그림</span></button>
       <button class="gcell" data-clock="${esc(it.id)}"><div class="gimg" data-live="${esc(it.id)}">${c?clockSVG(c):'<div class="dots"></div>'}</div><span class="gtag">시계</span></button></div>
-      <div class="ginfo"><div><b>${esc(it.name||'이름 없는 시계')}</b><span>${it.ban?esc(it.ban)+'반 '+esc(it.num)+'번 ':''}${esc(it.maker)}</span></div><div class="gstat"><span class="heart${it.liked?' on':''}">♥ ${it.likes}</span><span>댓글 ${it.comments.length}</span></div></div></article>`;}).join('');
+      <div class="ginfo"><div><b>${esc(it.name||'이름 없는 시계')}</b><span>${it.grade?esc(it.grade)+'학년 ':''}${it.ban?esc(it.ban)+'반 '+esc(it.num)+'번 ':''}${esc(it.maker)}</span></div><div class="gstat"><span class="heart${it.liked?' on':''}">♥ ${it.likes}</span><span>댓글 ${it.comments.length}</span></div></div></article>`;}).join('');
   G.querySelectorAll('[data-draw]').forEach(b=>b.onclick=()=>openItem(b.dataset.draw,'drawing'));
   G.querySelectorAll('[data-clock]').forEach(b=>b.onclick=()=>openItem(b.dataset.clock,'clock'));}
 async function fetchImages(){const need=[];items.forEach(it=>[it.drawingId,it.clockId].forEach(id=>{if(id&&!imgCache[id]&&!need.includes(id))need.push(id);}));
@@ -616,7 +619,7 @@ function renderModal(){const it=openIt;if(!it)return;const M=$('modal');M.hidden
     <div class="mleft"><div class="mseg"><button id="m-c" aria-pressed="${mode==='clock'}">시계</button><button id="m-d" aria-pressed="${mode!=='clock'}">그림</button></div>
       <div class="mstage" id="m-stage">${mode==='clock'?(c?clockSVG(c):''):(d?`<img src="${d.src}" alt="친구 그림">`:'')}</div></div>
     <div class="mright">
-      <div class="mtop"><div><h3>${esc(it.name||'이름 없는 시계')}</h3><p>발명한 사람 ${it.ban?esc(it.ban)+'반 '+esc(it.num)+'번 ':''}${esc(it.maker)}</p></div><button class="xbtn" id="m-close" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="mtop"><div><h3>${esc(it.name||'이름 없는 시계')}</h3><p>발명한 사람 ${it.grade?esc(it.grade)+'학년 ':''}${it.ban?esc(it.ban)+'반 '+esc(it.num)+'번 ':''}${esc(it.maker)}</p></div><button class="xbtn" id="m-close" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       ${it.feature?`<div class="feat"><small>이런 점이 좋아요</small>${esc(it.feature)}</div>`:''}
       <div><button class="btn like" id="m-like" aria-pressed="${it.liked}">♥ 좋아요 ${it.likes}</button></div>
       <div><div class="lab">댓글 ${it.comments.length}</div><div class="cms">${it.comments.length?it.comments.map(x=>`<div class="cm"><b>${esc(x.name)}</b>${esc(x.text)}</div>`).join(''):'<div class="cm" style="color:var(--muted)">첫 댓글을 남겨 보세요.</div>'}</div></div>
