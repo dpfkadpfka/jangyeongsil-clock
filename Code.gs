@@ -101,7 +101,7 @@ const b64ok_ = s => typeof s === 'string' && s.length < 3500000 && /^[A-Za-z0-9+
 
 /* ---------- 1) 그림 → 시계 사진 ---------- */
 function make_(q) {
-  if (!key_()) return { ok: false, error: '선생님: 스크립트 속성에 GEMINI_API_KEY를 넣어 주세요.' };
+  if (!key_() && !sa_()) return { ok: false, error: '선생님: 스크립트 속성에 VERTEX_SA(또는 GEMINI_API_KEY)를 넣어 주세요.' };
   if (!b64ok_(q.image)) return { ok: false, error: '그림을 다시 올려 주세요.' };
   if (!countToday_()) return { ok: false, error: '오늘 만들 수 있는 시계를 다 만들었어요. 내일 다시 해요.' };
 
@@ -125,29 +125,67 @@ function countToday_() {
 }
 
 let LAST_ERR = '';
-function genImage_(b64, mime, prompt) {
-  // 공식 문서 방식(Interactions API)으로 먼저, 안 되면 generateContent로 한 번 더
-  const base = 'https://generativelanguage.googleapis.com/v1beta/';
-  const head = { 'x-goog-api-key': key_() };
-  let r = UrlFetchApp.fetch(base + 'interactions', {
-    method: 'post', contentType: 'application/json', headers: head, muteHttpExceptions: true,
-    payload: JSON.stringify({ model: IMAGE_MODEL, input: [
-      { type: 'text', text: prompt },
-      { type: 'image', mime_type: mime, data: b64 }] })
-  });
-  let img = r.getResponseCode() === 200 ? findImage_(JSON.parse(r.getContentText())) : null;
-  if (!img) LAST_ERR = 'interactions ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 300);
-  if (!img) {
-    r = UrlFetchApp.fetch(base + 'models/' + IMAGE_MODEL + ':generateContent', {
-      method: 'post', contentType: 'application/json', headers: head, muteHttpExceptions: true,
-      payload: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: mime, data: b64 } }] }],
-        generationConfig: { responseModalities: ['TEXT', 'IMAGE'] } })
-    });
-    if (r.getResponseCode() === 200) img = findImage_(JSON.parse(r.getContentText()));
-    if (!img) { LAST_ERR += ' | generateContent ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 300); Logger.log(LAST_ERR); }
+const VERTEX_IMAGE_MODELS = ['gemini-nano-banana-2.1', 'gemini-3.1-flash-image', 'gemini-2.5-flash-image'];
+const VERTEX_TEXT_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3-flash-preview'];
+
+// ▼ 구글 클라우드 크레딧(버텍스 AI)을 쓰려면 [스크립트 속성]에 VERTEX_SA = 서비스 계정 키(JSON 전체)를 넣어요.
+//   없으면 GEMINI_API_KEY(AI 스튜디오)로 해요.
+function sa_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('VERTEX_SA') || ''); } catch (e) { return null; } }
+
+function vertexToken_(sa) {
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get('vtok');
+  if (hit) return hit;
+  const now = Math.floor(Date.now() / 1000);
+  const b64u = x => Utilities.base64EncodeWebSafe(x).replace(/=+$/, '');
+  const head = b64u(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+  const claim = b64u(JSON.stringify({ iss: sa.client_email, scope: 'https://www.googleapis.com/auth/cloud-platform', aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600 }));
+  const sig = b64u(Utilities.computeRsaSha256Signature(head + '.' + claim, sa.private_key));
+  const r = UrlFetchApp.fetch('https://oauth2.googleapis.com/token', { method: 'post', muteHttpExceptions: true,
+    payload: { grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: head + '.' + claim + '.' + sig } });
+  const d = JSON.parse(r.getContentText());
+  if (!d.access_token) throw new Error('토큰 실패 ' + r.getContentText().slice(0, 200));
+  cache.put('vtok', d.access_token, 3000);
+  return d.access_token;
+}
+
+// 버텍스 AI 또는 AI 스튜디오에 generateContent 요청 (모델 여러 개를 차례로 시도)
+function gen_(parts, image, models, studioModels) {
+  const body = { contents: [{ role: 'user', parts: parts }] };
+  if (image) body.generationConfig = { responseModalities: ['TEXT', 'IMAGE'], imageConfig: { aspectRatio: '1:1' } };
+  else body.generationConfig = { responseMimeType: 'application/json' };
+  const sa = sa_(), errs = [];
+  if (sa) {
+    let tok = '';
+    try { tok = vertexToken_(sa); } catch (e) { errs.push(String(e.message || e)); }
+    if (tok) for (const m of models) {
+      const r = UrlFetchApp.fetch('https://aiplatform.googleapis.com/v1/projects/' + sa.project_id + '/locations/global/publishers/google/models/' + m + ':generateContent', {
+        method: 'post', contentType: 'application/json', headers: { Authorization: 'Bearer ' + tok }, muteHttpExceptions: true, payload: JSON.stringify(body) });
+      if (r.getResponseCode() === 200) { const j = JSON.parse(r.getContentText()); if (!image || findImage_(j)) return j; errs.push(m + ' 그림 없음'); }
+      else errs.push(m + ' ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 200));
+    }
   }
-  return img;
+  if (key_()) for (const m of studioModels) {
+    const r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + m + ':generateContent', {
+      method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key_() }, muteHttpExceptions: true, payload: JSON.stringify(body) });
+    if (r.getResponseCode() === 200) { const j = JSON.parse(r.getContentText()); if (!image || findImage_(j)) return j; errs.push(m + ' 그림 없음'); }
+    else errs.push('studio ' + m + ' ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 200));
+  }
+  LAST_ERR = errs.join(' | ');
+  Logger.log(LAST_ERR);
+  return null;
+}
+
+function genImage_(b64, mime, prompt) {
+  const j = gen_([{ text: prompt }, { inlineData: { mimeType: mime, data: b64 } }], true, VERTEX_IMAGE_MODELS, [IMAGE_MODEL]);
+  return j ? findImage_(j) : null;
+}
+
+function askJson_(prompt, b64, mime) {
+  const j = gen_([{ text: prompt }, { inlineData: { mimeType: mime, data: b64 } }], false, VERTEX_TEXT_MODELS, [TEXT_MODEL]);
+  if (!j) return null;
+  const t = j.candidates[0].content.parts.map(p => p.text || '').join('');
+  return JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1));
 }
 
 // 응답 안에서 마지막 이미지(base64)를 찾아요 — 응답 모양이 바뀌어도 동작하게
@@ -164,18 +202,6 @@ function findImage_(o) {
   return found;
 }
 
-function askJson_(prompt, b64, mime) {
-  const r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + TEXT_MODEL + ':generateContent', {
-    method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key_() }, muteHttpExceptions: true,
-    payload: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: mime, data: b64 } }] }],
-      generationConfig: { responseMimeType: 'application/json' } })
-  });
-  if (r.getResponseCode() !== 200) return null;
-  const t = JSON.parse(r.getContentText()).candidates[0].content.parts.map(p => p.text || '').join('');
-  return JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1));
-}
-
 function findScreen_(b64, mime) {
   const fallback = { bx: 0.25, by: 0.38, bw: 0.5, bh: 0.24, auto: false };
   try {
@@ -189,16 +215,8 @@ function findScreen_(b64, mime) {
 function findDial_(b64, mime) {
   const fallback = { cx: 0.5, cy: 0.5, r: 0.3, auto: false };
   try {
-    const r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + TEXT_MODEL + ':generateContent', {
-      method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key_() }, muteHttpExceptions: true,
-      payload: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: DIAL_PROMPT }, { inline_data: { mime_type: mime, data: b64 } }] }],
-        generationConfig: { responseMimeType: 'application/json' } })
-    });
-    if (r.getResponseCode() !== 200) return fallback;
-    const j = JSON.parse(r.getContentText());
-    const t = j.candidates[0].content.parts.map(p => p.text || '').join('');
-    const d = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1));
+    const d = askJson_(DIAL_PROMPT, b64, mime);
+    if (!d) return fallback;
     return { cx: num_(d.cx, 0, 1, 0.5), cy: num_(d.cy, 0, 1, 0.5), r: num_(d.r, 0.05, 0.5, 0.3), auto: true };
   } catch (e) { return fallback; }
 }
