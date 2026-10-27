@@ -208,102 +208,193 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 @media (max-width:900px){.work,.lower{grid-template-columns:1fr}.mbox{grid-template-columns:1fr}}
 @media (max-width:640px){.kinds{grid-template-columns:1fr}.kind svg{width:64px;height:64px}.appbar .in{gap:10px;height:68px}.brand-name{display:none}.tab{padding:8px 14px;font-size:16px}.tab svg{display:none}.mascot{width:84px;height:84px}.cform{grid-template-columns:1fr}.glist{grid-template-columns:1fr}.yr{width:46px;height:46px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* 한 화면에 한 단계 */
+.appbar .in{justify-content:space-between}
+.who{margin-left:auto;margin-right:14px;background:var(--bg2);border-radius:999px;padding:7px 16px;font-weight:800;font-size:16px;color:var(--ink)}
+.hero{max-width:640px;margin:34px auto 0;text-align:center;display:grid;gap:14px;justify-items:center}
+.hero-art{width:170px;height:170px;animation:bob 3s ease-in-out infinite}.hero-art img{width:100%;height:100%;object-fit:contain}
+.hero h1{font-family:var(--title);font-weight:700;font-size:clamp(38px,5vw,54px);line-height:1.15}
+.hero h1 b{color:var(--brand)}
+.hero>p{margin:0 0 6px;font-size:20px;font-weight:700;color:var(--muted)}
+.me{width:100%;background:var(--c-y);border-radius:32px;padding:20px;display:grid;gap:16px;text-align:left}
+.me-row{display:grid;grid-template-columns:96px 96px minmax(0,1fr);gap:12px}
+.me .f{margin:0}.me .f span{color:#4a3300}
+.me .f input{background:#fff;border-color:#fff;text-align:center;font-size:24px}
+.me .f.grow input{text-align:left}
+.btn.ghost{border-color:var(--line);color:var(--ink)}
+.prog{display:flex;list-style:none;margin:24px 0 0;padding:0;gap:0;counter-reset:s}
+.prog li{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;font-weight:800;font-size:15px;color:#b3bac7}
+.prog li::before{content:"";position:absolute;top:22px;left:-50%;width:100%;height:6px;background:var(--bg2);z-index:-1}
+.prog li:first-child::before{display:none}
+.prog .n{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--bg2);color:#b3bac7;font-size:20px;transition:transform .2s}
+.prog em{font-style:normal}
+.prog li.done .n{background:var(--c-m);color:#fff}.prog li.done::before,.prog li.on::before{background:var(--c-m)}
+.prog li.done{color:var(--muted)}
+.prog li.on{color:var(--ink)}.prog li.on .n{background:var(--orange);color:#fff;transform:scale(1.18);box-shadow:0 8px 16px -6px rgba(255,122,26,.7)}
+.guide{grid-template-columns:auto minmax(0,1fr);padding:18px 0 18px}
+.mascot{width:104px;height:104px}
+.kinds.big{gap:20px;padding:22px}
+.kinds.big .kind{flex-direction:column;text-align:center;padding:34px 20px;gap:14px}
+.kinds.big .kind svg{width:150px;height:150px}
+.kinds.big .kind b{font-size:36px}
+.kinds.big .kind span{font-size:18px}
+.kind:hover{border-color:#ffb3cb}
+.split{display:grid;grid-template-columns:auto minmax(0,1fr);gap:24px;align-items:start}
+.preview{width:min(400px,42vw);justify-self:center;aspect-ratio:1;border-radius:20px;overflow:hidden;background:var(--bg2)}
+.preview svg{width:100%;height:100%;display:block}
+.stepnav{position:sticky;bottom:0;z-index:15;display:flex;justify-content:space-between;gap:12px;padding:16px 0 calc(16px + env(safe-area-inset-bottom,0px));margin-top:22px;background:linear-gradient(rgba(255,255,255,0),#fff 30%)}
+.stepnav .btn{min-width:160px}
+.stepnav .btn[hidden]{display:inline-flex!important;visibility:hidden}
+.final{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:center}
+.final-side{display:grid;gap:14px}
+.done{display:grid;gap:12px}
+.gitem.solo{background:var(--c-y);cursor:default}.gitem.solo:hover{transform:none}
+.galtop{display:flex;align-items:center;gap:14px;margin:26px 0 6px}
+.galtop h2{font-family:var(--title);font-weight:700;font-size:34px;margin-right:auto}
+.solo-feat{margin:4px 8px 8px;background:rgba(255,255,255,.7)}.galsub{margin:0 0 18px;color:var(--muted);font-weight:700}
+@media (max-width:900px){.split,.final{grid-template-columns:1fr}.preview{max-width:420px;width:100%;margin:0 auto}}
+@media (max-width:640px){.me-row{grid-template-columns:1fr 1fr}.me-row .grow{grid-column:1/-1}.prog em{font-size:12px}.prog .n{width:38px;height:38px}.kinds.big{grid-template-columns:1fr}.kinds.big .kind svg{width:100px;height:100px}.who{display:none}.stepnav .btn{min-width:0;flex:1}}
 </style>
 </head>
 <body>
-<div class="world" aria-hidden="true"><div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div></div>
 <header class="appbar">
   <div class="in">
-    <div class="brand"><div class="logo" id="logo"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20" fill="#2ea3f2"/><circle cx="24" cy="24" r="14" fill="#fff"/><path d="M24 14v10l7 5" stroke="#27303f" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>
-      <div class="brand-name">나도 장영실! <b>시계 발명가</b></div></div>
-    <nav class="nav" role="tablist">
-      <button class="tab" role="tab" id="t-make" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>시계 만들기</button>
-      <button class="tab" role="tab" id="t-gal" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>친구 작품</button>
-    </nav>
+    <div class="brand"><div class="logo"><img src="logo.png" alt=""></div><div class="brand-name">나도 장영실! <b>시계 발명가</b></div></div>
+    <div class="who" id="who" hidden></div>
     <span class="yr" title="만든 사람 예람쌤"><img src="yeram-logo.png" alt="예람쌤"></span>
   </div>
 </header>
 
 <main class="in">
-  <section id="v-make">
-    <div class="guide">
-      <div class="mascot"><img src="logo.png" alt="시계 발명 도우미"></div>
-      <div class="bubble"><small id="gStep">1단계</small><p id="gText">안녕! 어떤 <em>시계</em>를 발명할지 먼저 골라 줘.</p></div>
-      <ol class="steps" id="steps"><li class="on"><span class="n">1</span>시계 종류</li><li><span class="n">2</span>그림 넣기</li><li><span class="n">3</span>AI 시계</li><li><span class="n">4</span>꾸미기</li><li><span class="n">5</span>올리기</li></ol>
-    </div>
-
-    <div class="card k">
-      <div class="card-h"><span class="no">1단계</span><h2>어떤 시계를 발명할까?</h2></div>
-      <div class="card-b kinds">
-        <button class="kind now" id="k-analog" data-k="analog" aria-pressed="false"><svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="38" fill="#fff2c2" stroke="#ffb020" stroke-width="5"/><g stroke="#4a3300" stroke-width="3.5" stroke-linecap="round"><path d="M42 10v6M42 68v6M10 42h6M68 42h6"/></g><path d="M42 42V22M42 42l13 8" stroke="#23314d" stroke-width="5" stroke-linecap="round" fill="none"/><circle cx="42" cy="42" r="4.5" fill="#e5484d"/></svg><div><b>바늘시계</b><span>바늘이 빙글빙글 돌며 시각을 알려 줘요</span></div></button>
-        <button class="kind" id="k-digital" data-k="digital" aria-pressed="false"><svg viewBox="0 0 84 84" aria-hidden="true"><rect x="4" y="18" width="76" height="48" rx="12" fill="#dff3ff" stroke="#2ea3f2" stroke-width="5"/><rect x="13" y="27" width="58" height="30" rx="6" fill="#23314d"/><text x="42" y="49" text-anchor="middle" font-family="Freesentation,sans-serif" font-weight="800" font-size="19" fill="#ff5c5c">12:30</text></svg><div><b>디지털시계</b><span>숫자로 시각을 보여 줘요</span></div></button>
-      </div>
-    </div>
-
-    <div class="work">
-      <div class="card y">
-        <div class="card-h"><span class="no">2단계</span><h2>내 그림</h2><small>내가 설계한 시계</small></div>
-        <div class="card-b">
-          <div class="frame" id="drawFrame">
-            <div class="pick" id="pick">
-              <div class="row">
-                <label class="btn primary" for="f-cam" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/></svg>사진 찍기</label>
-                <label class="btn" for="f-pick" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 9"/></svg>사진 고르기</label>
-              </div>
-              <span>그림 파일을 여기로 끌어다 놓아도 돼요</span>
-            </div>
-          </div>
-          <input type="file" id="f-cam" accept="image/*" capture="environment" hidden>
-          <input type="file" id="f-pick" accept="image/*" hidden>
-          <div class="cta"><button class="btn sky lg block" id="b-make" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>AI 시계 만들기</button><small id="magicHint">시계 종류를 고르고 그림을 넣으면 누를 수 있어요</small></div>
+  <!-- 첫 화면 -->
+  <section class="view" id="v-start">
+    <div class="hero">
+      <div class="hero-art"><img src="logo.png" alt="시계 발명 도우미"></div>
+      <h1>나도 장영실!<br><b>시계 발명가</b></h1>
+      <p>내가 그린 시계를 AI가 진짜 시계처럼 만들어 줘요.</p>
+      <form class="me" id="meForm" autocomplete="off">
+        <div class="me-row">
+          <label class="f sm"><span>반</span><input id="f-ban" inputmode="numeric" maxlength="2" placeholder="3"></label>
+          <label class="f sm"><span>번호</span><input id="f-num" inputmode="numeric" maxlength="2" placeholder="12"></label>
+          <label class="f grow"><span>이름</span><input id="f-maker" maxlength="10" placeholder="내 이름"></label>
         </div>
-      </div>
-
-      <div class="card s">
-        <div class="card-h"><span class="no">3단계</span><h2>AI 시계</h2><small id="clockTip">지금 시각을 보여 줘요</small></div>
-        <div class="card-b">
-          <div class="frame" id="clockFrame">
-            <div class="ph" id="clockPh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2.5"/></svg>여기에 AI가 그린 내 시계가 나와요</div>
-            <div class="clockstage" id="clockStage" hidden></div>
-            <div class="wait" id="loading" hidden><img src="logo.png" alt="" onerror="this.remove()"><strong>AI가 시계를 그리고 있어요</strong><div class="bar"><i></i></div><span>30초쯤 걸려요</span></div>
-          </div>
-          <div class="foot-row">
-            <div class="note" id="clockNote" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>내 그림을 보고 AI가 그린 그림이에요.</div>
-            <button class="btn sm" id="b-again" hidden>다시 그리기</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="msg no" id="makeMsg" hidden></div>
-
-    <div class="lower" id="afterMake" hidden>
-      <div class="card m">
-        <div class="card-h"><span class="no">4단계</span><h2>색 바꾸기</h2></div>
-        <div class="card-b">
-          <div class="lab" id="handLab">바늘 색</div><div class="sws" id="handSw"></div>
-          <div class="lab">배경 색</div><div class="sws" id="bgSw"></div>
-        </div>
-      </div>
-      <div class="card p">
-        <div class="card-h"><span class="no">5단계</span><h2>내 발명품 소개</h2></div>
-        <div class="card-b">
-          <div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>글자 치기가 어려우면 키보드의 마이크를 누르고 말해요.</div>
-          <label class="f"><span>발명한 사람</span><input id="f-maker" maxlength="12" autocomplete="off" placeholder="내 이름"></label>
-          <label class="f"><span>시계 이름</span><input id="f-name" maxlength="20" autocomplete="off" placeholder="예) 꿈나라 시계"></label>
-          <label class="f"><span>이런 점이 좋아요</span><textarea id="f-feat" maxlength="80" placeholder="예) 9시가 되면 자라고 알려 줘요"></textarea></label>
-          <button class="btn mint lg block" id="b-save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>친구 작품에 올리기</button>
-          <div class="msg" id="saveMsg" hidden></div>
-        </div>
-      </div>
+        <button class="btn primary lg block now" type="submit">시작하기 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <div class="msg no" id="meMsg" hidden></div>
+      </form>
+      <button class="btn ghost" id="b-gal1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>친구 작품 구경하기</button>
     </div>
   </section>
 
-  <section id="v-gal" hidden>
+  <!-- 만들기 단계 -->
+  <section class="view" id="v-make" hidden>
+    <ol class="prog" id="prog">
+      <li><span class="n">1</span><em>시계 종류</em></li><li><span class="n">2</span><em>AI 시계</em></li><li><span class="n">3</span><em>꾸미기</em></li><li><span class="n">4</span><em>소개하기</em></li><li><span class="n">5</span><em>올리기</em></li>
+    </ol>
     <div class="guide">
       <div class="mascot"><img src="logo.png" alt=""></div>
-      <div class="bubble"><small>친구 작품</small><p id="galSub">친구들이 발명한 시계를 구경해 봐! <em>그림</em>이나 <em>시계</em>를 누르면 크게 보여.</p></div>
+      <div class="bubble"><small id="gStep">1단계</small><p id="gText"></p></div>
+    </div>
+
+    <!-- 1 -->
+    <div class="step" data-s="1">
+      <div class="card k"><div class="card-h"><span class="no">1단계</span><h2>어떤 시계를 발명할까?</h2></div>
+        <div class="card-b kinds big">
+          <button class="kind" data-k="analog" aria-pressed="false"><svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="38" fill="#fff2c2" stroke="#ffb020" stroke-width="5"/><g stroke="#4a3300" stroke-width="3.5" stroke-linecap="round"><path d="M42 10v6M42 68v6M10 42h6M68 42h6"/></g><path d="M42 42V22M42 42l13 8" stroke="#23314d" stroke-width="5" stroke-linecap="round" fill="none"/><circle cx="42" cy="42" r="4.5" fill="#e5484d"/></svg><div><b>바늘시계</b><span>바늘이 빙글빙글 돌며 시각을 알려 줘요</span></div></button>
+          <button class="kind" data-k="digital" aria-pressed="false"><svg viewBox="0 0 84 84" aria-hidden="true"><rect x="4" y="18" width="76" height="48" rx="12" fill="#dff3ff" stroke="#2ea3f2" stroke-width="5"/><rect x="13" y="27" width="58" height="30" rx="6" fill="#23314d"/><text x="42" y="49" text-anchor="middle" font-family="Freesentation,sans-serif" font-weight="800" font-size="19" fill="#ff5c5c">12:30</text></svg><div><b>디지털시계</b><span>숫자로 시각을 보여 줘요</span></div></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="step" data-s="2" hidden>
+      <div class="work">
+        <div class="card y">
+          <div class="card-h"><span class="no">①</span><h2>내 그림 넣기</h2></div>
+          <div class="card-b">
+            <div class="frame" id="drawFrame">
+              <div class="pick">
+                <div class="row">
+                  <label class="btn primary" for="f-cam" tabindex="0" id="l-cam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/></svg>사진 찍기</label>
+                  <label class="btn" for="f-pick" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 9"/></svg>사진 고르기</label>
+                </div>
+                <span>그림 파일을 여기로 끌어다 놓아도 돼요</span>
+              </div>
+            </div>
+            <input type="file" id="f-cam" accept="image/*" capture="environment" hidden>
+            <input type="file" id="f-pick" accept="image/*" hidden>
+          </div>
+        </div>
+        <div class="card s">
+          <div class="card-h"><span class="no">②</span><h2>AI 시계 만들기</h2></div>
+          <div class="card-b">
+            <div class="frame" id="clockFrame">
+              <div class="ph" id="clockPh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2.5"/></svg>여기에 AI가 그린 내 시계가 나와요</div>
+              <div class="clockstage live" id="clockStage" hidden></div>
+              <div class="wait" id="loading" hidden><img src="logo.png" alt=""><strong>AI가 시계를 그리고 있어요</strong><div class="bar"><i></i></div><span>30초쯤 걸려요</span></div>
+            </div>
+            <div class="cta"><button class="btn sky lg block" id="b-make" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="makeLabel">AI 시계 만들기</span></button><small id="magicHint">그림을 넣으면 누를 수 있어요</small></div>
+          </div>
+        </div>
+      </div>
+      <div class="msg no" id="makeMsg" hidden></div>
+    </div>
+
+    <!-- 3 -->
+    <div class="step" data-s="3" hidden>
+      <div class="card m"><div class="card-h"><span class="no">3단계</span><h2>색 바꾸기</h2></div>
+        <div class="card-b split">
+          <div class="preview live"></div>
+          <div>
+            <div class="lab" id="handLab">바늘 색</div><div class="sws" id="handSw"></div>
+            <div class="lab">배경 색</div><div class="sws" id="bgSw"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="step" data-s="4" hidden>
+      <div class="card p"><div class="card-h"><span class="no">4단계</span><h2>내 발명품 소개하기</h2></div>
+        <div class="card-b split">
+          <div class="preview live"></div>
+          <div>
+            <div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>글자 치기가 어려우면 키보드의 마이크를 누르고 말해요.</div>
+            <label class="f"><span>시계 이름</span><input id="f-name" maxlength="20" autocomplete="off" placeholder="예) 꿈나라 시계"></label>
+            <label class="f"><span>이런 점이 좋아요</span><textarea id="f-feat" maxlength="80" placeholder="예) 9시가 되면 자라고 알려 줘요"></textarea></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="step" data-s="5" hidden>
+      <div class="final">
+        <article class="gitem solo" id="finalCard"></article>
+        <div class="final-side">
+          <button class="btn mint lg block now" id="b-save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>친구 작품에 올리기</button>
+          <div class="msg" id="saveMsg" hidden></div>
+          <div class="done" id="doneBox" hidden>
+            <button class="btn primary lg block" id="b-gal2">친구 작품 보러 가기</button>
+            <button class="btn lg block" id="b-new">새 시계 또 만들기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="stepnav" id="stepnav">
+      <button class="btn lg" id="b-prev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>이전</button>
+      <button class="btn primary lg" id="b-next">다음<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </nav>
+  </section>
+
+  <!-- 친구 작품 -->
+  <section class="view" id="v-gal" hidden>
+    <div class="galtop">
+      <button class="btn" id="b-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>돌아가기</button>
+      <h2>친구 작품</h2>
       <button class="btn" id="b-refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>새로 보기</button>
     </div>
+    <p class="galsub" id="galSub">그림이나 시계를 누르면 크게 볼 수 있어요.</p>
     <div class="glist" id="glist"><div class="empty"><b>작품을 불러오고 있어요</b>잠시만 기다려 주세요.</div></div>
   </section>
 
@@ -322,7 +413,7 @@ let DEV='';try{DEV=localStorage.getItem('gc-dev')||'';if(!DEV){DEV='d'+Math.rand
 const ls={get:(k,d)=>{try{return localStorage.getItem(k)??d;}catch(e){return d;}},set:(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}}};
 
 // 로고: logo.png가 있으면 그걸 쓰고, 없으면 그림 로고를 그대로 써요
-(function(){const im=new Image();im.onload=()=>{$('logo').innerHTML='';im.alt='';$('logo').appendChild(im);};im.src='logo.png';})();
+
 
 async function api(body){
   if(SCRIPT_URL.indexOf('http')!==0)throw new Error('선생님: index.html에 앱스 스크립트 주소를 넣어 주세요.');
@@ -378,83 +469,120 @@ async function cutWhite(dataUrl,max){const im=await loadImg(dataUrl);const sc=Ma
     if(x>0&&p[(i-1)*4+3]===0)n++;if(x<W-1&&p[(i+1)*4+3]===0)n++;if(y>0&&p[(i-W)*4+3]===0)n++;if(y<H-1&&p[(i+W)*4+3]===0)n++;if(n)p[i*4+3]=Math.min(p[i*4+3],255-n*45);}
   g.putImageData(D,0,0);return {src:c.toDataURL('image/png'),w:W,h:H};}
 
-function tab(t){['make','gal'].forEach(k=>{$('v-'+k).hidden=k!==t;$('t-'+k).setAttribute('aria-selected',k===t);});if(t==='gal')loadGallery();}
-$('t-make').onclick=()=>tab('make');$('t-gal').onclick=()=>tab('gal');
 
 const HANDS=['#23314d','#e5484d','#2f5fd0','#8b6cf0','#1f9d7a','#ffffff'];
 const DIGI=['#ff4d4d','#3ff08f','#4cc3ff','#ffd23f','#ff8ab1','#ffffff'];
-const defHand=k=>k==='digital'?DIGI[0]:HANDS[0];
 const BGS=['#ffffff','#ffe27a','#ffc6d9','#bfe0ff','#bff0dd','#ddd2ff','#23314d'];
-let drawing=null,clock=null,kind=null;
-function canMake(){$('b-make').disabled=!(drawing&&kind);
-  $('magicHint').textContent=!kind?'먼저 1단계에서 시계 종류를 골라요':!drawing?'그림을 넣으면 누를 수 있어요':clock?'다시 누르면 새로 그려요':'버튼을 누르면 AI가 내 그림을 시계로 그려 줘요';}
-function curStep(){return !kind?1:!drawing?2:!clock?3:4;}
-function pickKind(k){if(kind===k)return;kind=k;
-  document.querySelectorAll('.kind').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===k));
-  $('handLab').textContent=k==='digital'?'숫자 색':'바늘 색';
-  $('clockTip').textContent=k==='digital'?'숫자가 지금 시각을 보여 줘요':'바늘이 지금 시각으로 움직여요';
-  if(clock&&clock.kind!==k){clock=null;$('clockStage').hidden=true;$('clockStage').innerHTML='';$('clockPh').hidden=false;$('clockFrame').classList.remove('filled');
-    $('clockNote').hidden=true;$('b-again').hidden=true;$('afterMake').hidden=true;hideMsg('saveMsg');}
-  canMake();setStep(curStep());}
-document.querySelectorAll('.kind').forEach(b=>b.onclick=()=>pickKind(b.dataset.k));
+const defHand=k=>k==='digital'?DIGI[0]:HANDS[0];
+let me=null,drawing=null,clock=null,kind=null,step=1,saved=false,from='start';
+
+/* 화면 전환 */
+function view(v){['start','make','gal'].forEach(k=>$('v-'+k).hidden=k!==v);window.scrollTo(0,0);if(v==='gal')loadGallery();}
+function showWho(){const w=$('who');if(me){w.hidden=false;w.textContent=`${me.ban}반 ${me.num}번 ${me.name}`;}else w.hidden=true;}
+
+/* 첫 화면: 반·번호·이름 */
+try{const m=JSON.parse(ls.get('gc-me','null'));if(m){$('f-ban').value=m.ban;$('f-num').value=m.num;$('f-maker').value=m.name;}}catch(e){}
+['f-ban','f-num'].forEach(id=>$(id).addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'');}));
+$('meForm').addEventListener('submit',e=>{e.preventDefault();
+  const ban=$('f-ban').value.trim(),num=$('f-num').value.trim(),name=$('f-maker').value.trim();
+  if(!ban){showMsg('meMsg','몇 반인지 써 주세요.');$('f-ban').focus();return;}
+  if(!num){showMsg('meMsg','번호를 써 주세요.');$('f-num').focus();return;}
+  if(!name){showMsg('meMsg','이름을 써 주세요.');$('f-maker').focus();return;}
+  hideMsg('meMsg');me={ban,num,name};ls.set('gc-me',JSON.stringify(me));showWho();view('make');go(1);});
+$('b-gal1').onclick=()=>{from='start';view('gal');};
+$('b-back').onclick=()=>view(from);
+
+/* 단계 */
+const GUIDE={1:'안녕! 어떤 <em>시계</em>를 발명할지 골라 줘.',
+  2:{a:'내가 그린 <em>시계 그림</em>을 넣어 줘.',b:'좋아! 파란 <em>AI 시계 만들기</em> 버튼을 눌러 봐.',c:'멋진 시계가 생겼어! <em>다음</em>을 눌러 줘.',w:'AI가 내 그림을 보고 <em>시계</em>를 그리는 중이야.'},
+  3:'바늘이나 숫자, 배경의 <em>색</em>을 골라 봐.',4:'내 시계의 <em>이름</em>과 <em>좋은 점</em>을 알려 줘.',
+  5:{a:'다 됐어! <em>친구 작품에 올리기</em>를 눌러 줘.',b:'짝짝짝! 친구들 시계도 <em>구경</em>해 봐.'}};
+function say(t){$('gStep').textContent=step+'단계';$('gText').innerHTML=t;}
+function canNext(){return step===1?!!kind:step===2?!!clock:step===3?true:step===4?!!$('f-name').value.trim():false;}
+function refresh(){
+  document.querySelectorAll('#prog li').forEach((li,i)=>li.className=i+1<step||(step===5&&saved)?'done':i+1===step?'on':'');
+  document.querySelectorAll('.now').forEach(e=>e.classList.remove('now'));
+  const N=$('b-next');N.hidden=step===5;N.disabled=!canNext();$('b-prev').hidden=step===1||saved;
+  let g=GUIDE[step];
+  if(step===2){g=$('loading').hidden?(!drawing?g.a:!clock?g.b:g.c):g.w;
+    const t=!drawing?$('l-cam'):!clock?$('b-make'):N;if($('loading').hidden)t.classList.add('now');}
+  else if(step===5){g=saved?g.b:g.a;if(!saved)$('b-save').classList.add('now');}
+  else if(step===4&&!canNext()){$('f-name').classList.add('now');}
+  else if(canNext())N.classList.add('now');
+  say(g);}
+function go(n){step=n;document.querySelectorAll('.step').forEach(el=>el.hidden=+el.dataset.s!==n);
+  if(n===3)drawSwatches();if(n===5)drawFinal();drawClock();refresh();window.scrollTo({top:0,behavior:'smooth'});}
+$('b-next').onclick=()=>{if(canNext())go(step+1);};
+$('b-prev').onclick=()=>{if(step>1)go(step-1);};
+$('f-name').addEventListener('input',refresh);
+
+/* 1단계: 시계 종류 */
+document.querySelectorAll('.kind').forEach(b=>b.onclick=()=>{const k=b.dataset.k;
+  if(kind!==k){kind=k;document.querySelectorAll('.kind').forEach(x=>x.setAttribute('aria-pressed',x.dataset.k===k));
+    $('handLab').textContent=k==='digital'?'숫자 색':'바늘 색';
+    if(clock&&clock.kind!==k){clock=null;resetClock();}}
+  setTimeout(()=>go(2),350);});
+function resetClock(){$('clockStage').hidden=true;$('clockStage').innerHTML='';$('clockPh').hidden=false;$('clockFrame').classList.remove('filled');$('makeLabel').textContent='AI 시계 만들기';canMake();}
+
+/* 2단계: 그림 넣기 + AI 시계 */
+function canMake(){$('b-make').disabled=!drawing||!$('loading').hidden;
+  $('magicHint').textContent=!drawing?'그림을 넣으면 누를 수 있어요':clock?'마음에 안 들면 다시 그려요':'누르면 AI가 내 그림을 시계로 그려 줘요';}
 async function takeFile(f){if(!f){return;}
   if(f.type&&!/^image\//.test(f.type)){showMsg('makeMsg','그림 사진을 넣어 주세요.');return;}
   try{drawing=await fileToJpeg(f,1024);}
   catch(err){showMsg('makeMsg',/hei[cf]/i.test(f.type+f.name)?'이 사진은 HEIC 형식이라 열 수 없어요. 카메라 설정에서 사진 형식을 JPG로 바꾸거나, 사진 찍기 버튼으로 바로 찍어 주세요.':'그림을 열지 못했어요. 다른 사진으로 해 볼까요?');return;}
   const F=$('drawFrame');F.classList.add('filled');
   F.innerHTML=`<img src="${drawing}" alt="내 그림"><label class="btn sm change" for="f-pick" tabindex="0">그림 바꾸기</label>`;
-  hideMsg('makeMsg');canMake();setStep(curStep());}
-const GUIDE={1:['1단계','안녕! 어떤 <em>시계</em>를 발명할지 먼저 골라 줘.'],2:['2단계','좋아! 이제 내가 그린 <em>시계 그림</em>을 넣어 줘.'],
-  3:['3단계','이제 파란 <em>AI 시계 만들기</em> 버튼을 눌러 봐.'],
-  4:['4단계','멋진 시계가 생겼어! <em>색</em>을 바꾸고 내 시계를 <em>소개</em>해 줘.'],6:['완성','짝짝짝! <em>친구 작품</em>에서 친구들 시계도 구경해 봐.'],
-  wait:['잠깐만','AI가 내 그림을 보고 <em>시계</em>를 그리는 중이야.']};
-function say(k){const g=GUIDE[k];if(!g)return;$('gStep').textContent=g[0];$('gText').innerHTML=g[1];}
-function setStep(n){document.querySelectorAll('#steps li').forEach((li,i)=>{li.className=i+1<n?'done':i+1===n?'on':'';});
-  if(n>=6)document.querySelectorAll('#steps li').forEach(li=>li.className='done');
-  say(n);document.querySelectorAll('.now').forEach(e=>e.classList.remove('now'));
-  if(n===1)document.querySelectorAll('.kind').forEach(b=>b.classList.add('now'));
-  const t=n===2?document.querySelector('label[for="f-cam"]'):n===3?$('b-make'):n===4?$('b-save'):null;if(t)t.classList.add('now');}
+  hideMsg('makeMsg');canMake();refresh();}
 ['f-cam','f-pick'].forEach(id=>$(id).addEventListener('change',e=>{takeFile(e.target.files&&e.target.files[0]);e.target.value='';}));
 const DF=$('drawFrame');
 ['dragenter','dragover'].forEach(t=>DF.addEventListener(t,e=>{e.preventDefault();DF.classList.add('over');}));
 ['dragleave','drop'].forEach(t=>DF.addEventListener(t,e=>{e.preventDefault();DF.classList.remove('over');}));
 DF.addEventListener('drop',e=>takeFile(e.dataTransfer.files&&e.dataTransfer.files[0]));
-document.addEventListener('paste',e=>{if(!$('v-make').hidden){const it=[...(e.clipboardData&&e.clipboardData.items||[])].find(x=>x.type.startsWith('image/'));if(it)takeFile(it.getAsFile());}});
+document.addEventListener('paste',e=>{if(!$('v-make').hidden&&step===2){const it=[...(e.clipboardData&&e.clipboardData.items||[])].find(x=>x.type.startsWith('image/'));if(it)takeFile(it.getAsFile());}});
 document.addEventListener('keydown',e=>{const l=e.target.closest&&e.target.closest('label.btn');if(l&&(e.key==='Enter'||e.key===' ')){e.preventDefault();$(l.getAttribute('for')).click();}});
 function showMsg(id,t,ok){const m=$(id);m.hidden=false;m.className='msg '+(ok?'ok':'no');m.innerHTML=t;}
 function hideMsg(id){$(id).hidden=true;}
 
 async function make(){if(!drawing||!kind)return;hideMsg('makeMsg');
-  $('b-make').disabled=true;$('b-again').hidden=true;$('loading').hidden=false;say('wait');document.querySelectorAll('.now').forEach(e=>e.classList.remove('now'));$('clockPh').hidden=true;$('magicHint').textContent='AI가 그리는 중이에요';
+  $('loading').hidden=false;canMake();$('clockPh').hidden=true;refresh();$('b-next').disabled=true;
   try{const j=await api({action:'make',kind,image:drawing.split(',')[1],mime:'image/jpeg'});
     const cut=await cutWhite(`data:${j.mime};base64,${j.image}`,900);
     const d=j.dial||{},same=clock&&clock.kind===kind;
     clock=Object.assign(cut,{kind,cx:d.cx??.5,cy:d.cy??.5,r:d.r??.3,bx:d.bx??.25,by:d.by??.38,bw:d.bw??.5,bh:d.bh??.24,hand:same?clock.hand:defHand(kind),bg:same?clock.bg:'#ffffff'});
-    $('clockFrame').classList.add('filled');$('clockStage').hidden=false;$('clockNote').hidden=false;drawClock();
-    $('afterMake').hidden=false;$('b-again').hidden=false;drawSwatches();
-    if(!$('f-maker').value)$('f-maker').value=ls.get('gc-name','');setTimeout(()=>$('afterMake').scrollIntoView({behavior:'smooth',block:'nearest'}),250);}
+    $('clockFrame').classList.add('filled');$('clockStage').hidden=false;$('makeLabel').textContent='다시 그리기';drawClock();}
   catch(err){showMsg('makeMsg',esc(err.message||'시계를 만들지 못했어요. 한 번 더 눌러 주세요.'));if(!clock)$('clockPh').hidden=false;}
-  finally{$('loading').hidden=true;canMake();setStep(curStep());}}
-$('b-make').onclick=make;$('b-again').onclick=make;
-function drawClock(){if(clock)$('clockStage').innerHTML=clockSVG(clock);}
+  finally{$('loading').hidden=true;canMake();refresh();}}
+$('b-make').onclick=make;
+function drawClock(){if(!clock)return;const svg=clockSVG(clock);document.querySelectorAll('.live').forEach(el=>{if(el.offsetParent!==null||el.id==='clockStage')el.innerHTML=svg;});
+  const fc=document.querySelector('#finalCard [data-live-final]');if(fc&&step===5)fc.innerHTML=svg;}
 
-function drawSwatches(){
+/* 3단계: 색 */
+function drawSwatches(){if(!clock)return;
   $('handSw').innerHTML=(clock.kind==='digital'?DIGI:HANDS).map(c=>`<button class="sw" style="background:${c}" aria-label="${clock.kind==='digital'?'숫자':'바늘'} 색" aria-pressed="${clock.hand===c}" data-c="${c}"></button>`).join('');
   $('bgSw').innerHTML=BGS.map(c=>`<button class="sw" style="background:${c}" aria-label="배경 색" aria-pressed="${clock.bg===c}" data-c="${c}"></button>`).join('');
   $('handSw').querySelectorAll('.sw').forEach(b=>b.onclick=()=>{clock.hand=b.dataset.c;drawSwatches();drawClock();});
   $('bgSw').querySelectorAll('.sw').forEach(b=>b.onclick=()=>{clock.bg=b.dataset.c;drawSwatches();drawClock();});}
 
-$('b-save').onclick=async()=>{const maker=$('f-maker').value.trim(),name=$('f-name').value.trim(),feature=$('f-feat').value.trim();
-  if(!clock){showMsg('saveMsg','먼저 AI 시계를 만들어 주세요.');return;}
-  if(!maker){showMsg('saveMsg','발명한 사람 이름을 써 주세요.');$('f-maker').focus();return;}
-  if(!name){showMsg('saveMsg','시계 이름을 써 주세요.');$('f-name').focus();return;}
-  ls.set('gc-name',maker);const b=$('b-save');b.disabled=true;b.textContent='보내는 중…';
+/* 5단계: 올리기 */
+function drawFinal(){const name=$('f-name').value.trim(),feat=$('f-feat').value.trim();
+  $('finalCard').innerHTML=`<div class="gpair"><div class="gcell"><div class="gimg"><img src="${drawing}" alt="내 그림"></div><span class="gtag">그림</span></div>
+    <div class="gcell"><div class="gimg" data-live-final></div><span class="gtag">시계</span></div></div>
+    <div class="ginfo"><div><b>${esc(name)}</b><span>${esc(me.ban)}반 ${esc(me.num)}번 ${esc(me.name)}</span></div></div>${feat?`<div class="feat solo-feat">${esc(feat)}</div>`:''}`;}
+$('b-save').onclick=async()=>{if(!clock||!me)return;const name=$('f-name').value.trim(),feature=$('f-feat').value.trim();
+  const b=$('b-save');b.disabled=true;b.lastChild.textContent='보내는 중…';
   try{const small=await shrinkData(drawing,800);
-    await api({action:'save',drawing:small.split(',')[1],clock:clock.src.split(',')[1],maker,name,feature,kind:clock.kind,cx:clock.cx,cy:clock.cy,r:clock.r,bx:clock.bx,by:clock.by,bw:clock.bw,bh:clock.bh,hand:clock.hand,bg:clock.bg});
-    showMsg('saveMsg','친구 작품에 올렸어요. <button class="btn sm" id="go-gal">보러 가기</button>',true);setStep(6);$('go-gal').onclick=()=>tab('gal');}
+    await api({action:'save',drawing:small.split(',')[1],clock:clock.src.split(',')[1],maker:me.name,ban:me.ban,num:me.num,name,feature,
+      kind:clock.kind,cx:clock.cx,cy:clock.cy,r:clock.r,bx:clock.bx,by:clock.by,bw:clock.bw,bh:clock.bh,hand:clock.hand,bg:clock.bg});
+    saved=true;b.hidden=true;hideMsg('saveMsg');$('doneBox').hidden=false;refresh();}
   catch(err){showMsg('saveMsg',esc(err.message));}
-  finally{b.disabled=false;b.textContent='친구 작품에 올리기';}};
-
+  finally{b.disabled=false;b.lastChild.textContent='친구 작품에 올리기';}};
+$('b-gal2').onclick=()=>{from='make';view('gal');};
+$('b-new').onclick=()=>{drawing=null;clock=null;kind=null;saved=false;
+  document.querySelectorAll('.kind').forEach(x=>x.setAttribute('aria-pressed','false'));
+  $('drawFrame').classList.remove('filled');$('drawFrame').innerHTML=DF0;resetClock();$('f-name').value='';$('f-feat').value='';
+  $('b-save').hidden=false;$('doneBox').hidden=true;hideMsg('saveMsg');hideMsg('makeMsg');go(1);};
+const DF0=$('drawFrame').innerHTML;
 let items=[],imgCache={},galLoaded=false;
 async function loadGallery(){
   try{const j=await api({action:'list'});items=j.items||[];galLoaded=true;drawGallery();fetchImages();}
@@ -468,7 +596,7 @@ function drawGallery(){const G=$('glist');
     return `<article class="gitem"><div class="gpair">
       <button class="gcell" data-draw="${esc(it.id)}"><div class="gimg">${d?`<img src="${d.src}" alt="${esc(it.maker)}의 그림">`:'<div class="dots"></div>'}</div><span class="gtag">그림</span></button>
       <button class="gcell" data-clock="${esc(it.id)}"><div class="gimg" data-live="${esc(it.id)}">${c?clockSVG(c):'<div class="dots"></div>'}</div><span class="gtag">시계</span></button></div>
-      <div class="ginfo"><div><b>${esc(it.name||'이름 없는 시계')}</b><span>${esc(it.maker)}</span></div><div class="gstat"><span class="heart${it.liked?' on':''}">♥ ${it.likes}</span><span>댓글 ${it.comments.length}</span></div></div></article>`;}).join('');
+      <div class="ginfo"><div><b>${esc(it.name||'이름 없는 시계')}</b><span>${it.ban?esc(it.ban)+'반 '+esc(it.num)+'번 ':''}${esc(it.maker)}</span></div><div class="gstat"><span class="heart${it.liked?' on':''}">♥ ${it.likes}</span><span>댓글 ${it.comments.length}</span></div></div></article>`;}).join('');
   G.querySelectorAll('[data-draw]').forEach(b=>b.onclick=()=>openItem(b.dataset.draw,'drawing'));
   G.querySelectorAll('[data-clock]').forEach(b=>b.onclick=()=>openItem(b.dataset.clock,'clock'));}
 async function fetchImages(){const need=[];items.forEach(it=>[it.drawingId,it.clockId].forEach(id=>{if(id&&!imgCache[id]&&!need.includes(id))need.push(id);}));
@@ -488,17 +616,17 @@ function renderModal(){const it=openIt;if(!it)return;const M=$('modal');M.hidden
     <div class="mleft"><div class="mseg"><button id="m-c" aria-pressed="${mode==='clock'}">시계</button><button id="m-d" aria-pressed="${mode!=='clock'}">그림</button></div>
       <div class="mstage" id="m-stage">${mode==='clock'?(c?clockSVG(c):''):(d?`<img src="${d.src}" alt="친구 그림">`:'')}</div></div>
     <div class="mright">
-      <div class="mtop"><div><h3>${esc(it.name||'이름 없는 시계')}</h3><p>발명한 사람 ${esc(it.maker)}</p></div><button class="xbtn" id="m-close" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="mtop"><div><h3>${esc(it.name||'이름 없는 시계')}</h3><p>발명한 사람 ${it.ban?esc(it.ban)+'반 '+esc(it.num)+'번 ':''}${esc(it.maker)}</p></div><button class="xbtn" id="m-close" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       ${it.feature?`<div class="feat"><small>이런 점이 좋아요</small>${esc(it.feature)}</div>`:''}
       <div><button class="btn like" id="m-like" aria-pressed="${it.liked}">♥ 좋아요 ${it.likes}</button></div>
       <div><div class="lab">댓글 ${it.comments.length}</div><div class="cms">${it.comments.length?it.comments.map(x=>`<div class="cm"><b>${esc(x.name)}</b>${esc(x.text)}</div>`).join(''):'<div class="cm" style="color:var(--muted)">첫 댓글을 남겨 보세요.</div>'}</div></div>
-      <form class="cform" id="m-form"><input id="m-cname" maxlength="12" placeholder="이름" value="${esc(ls.get('gc-name',''))}"><input id="m-ctext" maxlength="80" placeholder="칭찬 한마디"><button class="btn primary sm" type="submit">남기기</button></form>
+      <form class="cform" id="m-form"><input id="m-cname" maxlength="12" placeholder="이름" value="${esc(me?me.name:'')}"><input id="m-ctext" maxlength="80" placeholder="칭찬 한마디"><button class="btn primary sm" type="submit">남기기</button></form>
       <div class="msg no" id="m-msg" hidden></div></div></div>`;
   $('m-close').onclick=closeModal;
   $('m-c').onclick=()=>{mode='clock';renderModal();};$('m-d').onclick=()=>{mode='drawing';renderModal();};
   $('m-like').onclick=async()=>{const b=$('m-like');b.disabled=true;try{const j=await api({action:'like',id:it.id});it.liked=j.liked;it.likes+=j.liked?1:-1;renderModal();drawGallery();}catch(e){b.disabled=false;}};
   $('m-form').addEventListener('submit',async e=>{e.preventDefault();const name=$('m-cname').value.trim(),text=$('m-ctext').value.trim();
-    if(!name||!text){showMsg('m-msg','이름과 댓글을 모두 써 주세요.');return;}ls.set('gc-name',name);
+    if(!name||!text){showMsg('m-msg','이름과 댓글을 모두 써 주세요.');return;}
     try{await api({action:'comment',id:it.id,name,text});it.comments.push({name,text});renderModal();drawGallery();}catch(err){showMsg('m-msg',esc(err.message));}});
   clearInterval(mTimer);if(mode==='clock'&&c)mTimer=setInterval(()=>{const st=$('m-stage');if(st&&openIt===it&&mode==='clock')st.innerHTML=clockSVG(c);},1000);}
 
