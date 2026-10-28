@@ -34,7 +34,7 @@ body:not(.web) #vClock{isolation:isolate}
 .cell svg{max-width:100%;max-height:100%;border-radius:12px;box-shadow:0 3px 10px rgba(20,30,50,.2);background:#fff}
 .cell p{margin:4px 0 0;max-width:100%;padding:1px 8px;border-radius:99px;background:rgba(255,255,255,.92);font:600 12px/1.4 Allimjang,Freesentation,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 4px rgba(20,30,50,.15)}
 body.web .rz{display:none}
-.rz{position:absolute;z-index:5;-webkit-app-region:no-drag}
+.rz{position:fixed;z-index:50;-webkit-app-region:no-drag}
 .rz[data-e=n],.rz[data-e=s]{left:14px;right:14px;height:8px;cursor:ns-resize}.rz[data-e=n]{top:0}.rz[data-e=s]{bottom:0}
 .rz[data-e=w],.rz[data-e=e]{top:14px;bottom:14px;width:8px;cursor:ew-resize}.rz[data-e=w]{left:0}.rz[data-e=e]{right:0}
 .rz[data-e=nw],.rz[data-e=ne],.rz[data-e=sw],.rz[data-e=se]{width:16px;height:16px}
@@ -61,7 +61,7 @@ body.web .rz{display:none}
 .box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
 .box h2{margin:0 0 10px;font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
 .box h2 i{font-style:normal;width:22px;height:22px;border-radius:50%;background:var(--pt);color:#fff;font-size:12px;display:inline-grid;place-items:center}
-.box h2 small{font-weight:400;color:var(--sub);font-size:13px}
+.box h2 small{font-weight:400;color:var(--sub);font-size:13px;display:flex;align-items:center;gap:8px}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 input[type=text],select{height:40px;border:1.5px solid var(--line);border-radius:10px;padding:0 12px;background:#fff;outline:none}
 input[type=text]:focus,select:focus{border-color:var(--pt)}
@@ -78,7 +78,7 @@ input[type=text]:focus,select:focus{border-color:var(--pt)}
 .picked{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--pt2)}
 .picked b{flex:1}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:10px}
-.it{position:relative;border:2px solid var(--line);border-radius:14px;background:#fff;padding:6px;text-align:center;transition:transform .15s,border-color .15s,box-shadow .15s}
+.it{position:relative;border:2px solid var(--line);border-radius:14px;background:#fff;padding:6px;cursor:pointer;text-align:center;transition:transform .15s,border-color .15s,box-shadow .15s}
 .it:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(20,30,50,.12)}
 .it.on{border-color:var(--pt);box-shadow:0 0 0 3px rgba(47,123,246,.18)}
 .it .th{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:#f3f5f8;overflow:hidden}
@@ -106,7 +106,7 @@ footer{text-align:center;font-size:12px;color:var(--sub)}
 </head>
 <body>
 <section id="vClock" hidden>
-  <div id="stage"></div><div id="wall" hidden></div><div class="rz" data-e="n"></div><div class="rz" data-e="s"></div><div class="rz" data-e="w"></div><div class="rz" data-e="e"></div><div class="rz" data-e="nw"></div><div class="rz" data-e="ne"></div><div class="rz" data-e="sw"></div><div class="rz" data-e="se"></div>
+  <div id="stage"></div><div id="wall" hidden></div>
   <div id="label" hidden></div>
   <div id="tools">
     <button id="tPrev" title="이전 시계">◀</button><button id="tNext" title="다음 시계">▶</button>
@@ -143,6 +143,7 @@ footer{text-align:center;font-size:12px;color:var(--sub)}
   </div>
 </section>
 
+<div class="rz" data-e="n"></div><div class="rz" data-e="s"></div><div class="rz" data-e="w"></div><div class="rz" data-e="e"></div><div class="rz" data-e="nw"></div><div class="rz" data-e="ne"></div><div class="rz" data-e="sw"></div><div class="rz" data-e="se"></div>
 <script>
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwR3HEKVpni8dYBeX7pRr_soB-UKU_Jeba04igS1mBZJEiZS2cUCiPam0G8c7ke-38F/exec';
 (function(){
@@ -213,8 +214,9 @@ if(!S.view)S.view='all';if(!S.w)S.w=560;if(!S.h)S.h=440;
 let cur=-1,timer=null;
 function msg(t,sub,btn){$('wall').hidden=true;$('stage').hidden=false;$('stage').innerHTML=`<div id="msg"><b>${t}</b>${sub||''}${btn?'<br><button class="btn sm" id="mSet">설정 열기</button>':''}</div>`;$('label').hidden=true;
   if(btn)$('mSet').onclick=openSet;if(D)D.clock(Math.max(S.size,280),200);}
+function shown(){const L=mine(),P=(S.pick||[]).filter(id=>L.some(x=>x.id===id));return P.length?P.map(id=>byId[id]):L;}
 function ready(){if(!S.school||!S.grade||!S.ban){msg('우리 반을 골라 주세요','설정에서 학교·학년·반을 고르면 우리 반 시계가 떠요.',true);return null;}
-  const L=mine();if(!L.length){msg('아직 우리 반 시계가 없어요','시계 갤러리에 올리면 여기에 떠요.',true);return null;}return L;}
+  const L=shown();if(!L.length){msg('아직 우리 반 시계가 없어요','시계 갤러리에 올리면 여기에 떠요.',true);return null;}return L;}
 async function show(step){clearTimeout(timer);const L=ready();if(!L)return;
   $('tPrev').hidden=$('tNext').hidden=S.view==='all'||L.length<2;
   if(S.view==='all')return showAll(L);
@@ -276,9 +278,12 @@ function segs(){seg('segView',[['all','모두 한 번에'],['one','하나씩 크
 async function drawGrid(){const G=$('grid'),L=mine();
   if(!S.school||!S.grade||!S.ban){G.innerHTML='<div class="empty">학교·학년·반을 고르면 우리 반 시계가 나와요.</div>';$('pickInfo').textContent='';return;}
   if(!loaded){G.innerHTML='<div class="empty"><div class="dots" style="margin:auto"></div></div>';try{await load();}catch(e){G.innerHTML=`<div class="empty">${esc(e.message)}</div>`;return;}return drawGrid();}
-  $('pickInfo').textContent=L.length?`${L.length}개 · 모두 바탕화면에 떠요`:'';
+  if(!S.pick)S.pick=[];S.pick=S.pick.filter(id=>L.some(x=>x.id===id));
+  $('pickInfo').innerHTML=!L.length?'':S.pick.length?`${S.pick.length}개 골랐어요 · 고른 시계만 떠요 <button class="btn sm" id="bAllOn">모두 띄우기</button>`:`${L.length}개 · 모두 떠요. 시계를 누르면 그 시계만 띄울 수 있어요`;
+  if($('bAllOn'))$('bAllOn').onclick=()=>{S.pick=[];save();drawGrid();};
   if(!L.length){G.innerHTML=`<div class="empty">${esc(shortSchool(S.school.name))} ${S.grade}학년 ${S.ban}반에는 아직 올라온 시계가 없어요.</div>`;return;}
-  G.innerHTML=L.map(it=>{const c=clockOf(it);return `<div class="it"><div class="th">${c?clockSVG(c,false):'<div class="dots"></div>'}</div><b>${esc(it.name||'이름 없는 시계')}</b><span>${esc(it.num?it.num+'번 ':'')}${esc(it.maker||'')}</span></div>`;}).join('');
+  G.innerHTML=L.map(it=>{const c=clockOf(it),on=S.pick.includes(it.id);return `<div class="it${on?' on':''}" data-id="${esc(it.id)}">${on?'<em>✓</em>':''}<div class="th">${c?clockSVG(c,false):'<div class="dots"></div>'}</div><b>${esc(it.name||'이름 없는 시계')}</b><span>${esc(it.num?it.num+'번 ':'')}${esc(it.maker||'')}</span></div>`;}).join('');
+  G.querySelectorAll('.it').forEach(el=>el.onclick=()=>{const id=el.dataset.id,n=S.pick.indexOf(id);if(n>=0)S.pick.splice(n,1);else S.pick.push(id);save();drawGrid();});
   const need=L.filter(it=>!img[it.clockId]);if(need.length){let n=0;await Promise.all(need.map(it=>getImg(it.clockId).then(()=>{if(++n%6===0)drawGrid();}).catch(()=>{})));drawGrid();}}
 $('oLabel').onchange=()=>{S.label=$('oLabel').checked;save();};
 async function openSet(){clearTimeout(timer);$('vClock').hidden=true;$('vSet').hidden=false;if(D)D.setMode('settings');
