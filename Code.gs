@@ -16,7 +16,7 @@ function key_() { return PropertiesService.getScriptProperties().getProperty('GE
 // ▼ 필요하면 바꿔요
 const IMAGE_MODEL = 'gemini-nano-banana-2.1'; // 나노 바나나 2.1 (그림 → 시계 사진)
 const TEXT_MODEL = 'gemini-flash-latest';     // 시계판 가운데 찾기
-const MAX_MAKE_PER_DAY = 150;                 // 하루에 만들 수 있는 시계 수 (요금 보호)
+const MAX_MAKE_PER_DAY = 500;                 // 하루에 만들 수 있는 시계 수 (요금 보호)
 
 const CLOCK_PROMPT = [
   '첨부한 그림은 초등학교 2학년 학생이 설계한 시계예요. 이 디자인 그대로, 실제로 공장에서 만든 시계처럼 보이는 제품 사진으로 만들어 주세요.',
@@ -293,17 +293,26 @@ function save_(q) {
       if (!mine && !pinOk_(q.pin)) return { ok: false, error: '내가 만든 시계만 고칠 수 있어요.' };
       row[0] = q.editId; row[1] = v[i][1]; row[12] = v[i][12]; row[13] = v[i][13];
       if (!mine) { row[2] = v[i][2]; row[19] = v[i][19]; row[20] = v[i][20]; row[21] = v[i][21]; row[25] = v[i][25]; row[26] = v[i][26]; }   // 선생님이 고쳐도 만든 사람은 그대로
-      sh.getRange(i + 1, 1, 1, row.length).setValues([row]);
+      sh.getRange(i + 1, 1, 1, row.length).setValues([row]); dirty_();
       return { ok: true, id: q.editId, edited: true };
     }
     return { ok: false, error: '작품을 찾지 못했어요.' };
   }
-  sh.appendRow(row);
+  sh.appendRow(row); dirty_();
   return { ok: true, id: id };
 }
 
 /* ---------- 3) 전시관 목록 ---------- */
-function rows_(name) { const v = store_().ss.getSheetByName(name).getDataRange().getValues(); v.shift(); return v; }
+// 시트 읽기는 10초 동안 기억해 두어 여러 명이 동시에 갤러리를 봐도 가볍게
+function rows_(name) {
+  const cache = CacheService.getScriptCache(), k = 'rows_' + name, hit = cache.get(k);
+  if (hit) try { return JSON.parse(hit); } catch (e) {}
+  const v = store_().ss.getSheetByName(name).getDataRange().getValues(); v.shift();
+  const out = v.map(r => r.map(x => x instanceof Date ? x.getTime() : x));
+  try { cache.put(k, JSON.stringify(out), 10); } catch (e) {}
+  return out;
+}
+function dirty_() { CacheService.getScriptCache().removeAll(['rows_clocks', 'rows_likes', 'rows_comments']); }
 
 function list_(q) {
   const dev = str_(q.dev, 40);
@@ -339,8 +348,8 @@ function like_(q) {
   const lock = LockService.getScriptLock(); lock.waitLock(10000);
   try {
     const sh = store_().ss.getSheetByName('likes'), v = sh.getDataRange().getValues();
-    for (let i = v.length - 1; i >= 1; i--) if (v[i][0] === id && v[i][1] === dev) { sh.deleteRow(i + 1); return { ok: true, liked: false }; }
-    sh.appendRow([id, dev, new Date()]);
+    for (let i = v.length - 1; i >= 1; i--) if (v[i][0] === id && v[i][1] === dev) { sh.deleteRow(i + 1); dirty_(); return { ok: true, liked: false }; }
+    sh.appendRow([id, dev, new Date()]); dirty_();
     return { ok: true, liked: true };
   } finally { lock.releaseLock(); }
 }
@@ -348,7 +357,7 @@ function like_(q) {
 function comment_(q) {
   const id = str_(q.id, 40), name = str_(q.name, 12).trim(), text = str_(q.text, 80).trim();
   if (!id || !name || !text) return { ok: false, error: '이름과 댓글을 모두 써 주세요.' };
-  store_().ss.getSheetByName('comments').appendRow([id, name, text, new Date(), str_(q.dev, 40)]);
+  store_().ss.getSheetByName('comments').appendRow([id, name, text, new Date(), str_(q.dev, 40)]); dirty_();
   return { ok: true };
 }
 
@@ -367,7 +376,7 @@ function pinOk_(pin) {
 function hide_(q) {
   if (!pinOk_(q.pin)) return { ok: false, error: '선생님 비밀번호가 맞지 않아요.' };
   const sh = store_().ss.getSheetByName('clocks'), v = sh.getDataRange().getValues();
-  for (let i = 1; i < v.length; i++) if (v[i][0] === q.id) { sh.getRange(i + 1, 14).setValue('Y'); return { ok: true }; }
+  for (let i = 1; i < v.length; i++) if (v[i][0] === q.id) { sh.getRange(i + 1, 14).setValue('Y'); dirty_(); return { ok: true }; }
   return { ok: false, error: '작품을 찾지 못했어요.' };
 }
 
@@ -377,7 +386,7 @@ function delComment_(q) {
   try {
     const sh = store_().ss.getSheetByName('comments'), v = sh.getDataRange().getValues();
     for (let i = v.length - 1; i >= 1; i--)
-      if (v[i][0] === q.id && new Date(v[i][3]).getTime() === Number(q.time)) { sh.deleteRow(i + 1); return { ok: true }; }
+      if (v[i][0] === q.id && new Date(v[i][3]).getTime() === Number(q.time)) { sh.deleteRow(i + 1); dirty_(); return { ok: true }; }
     return { ok: false, error: '댓글을 찾지 못했어요.' };
   } finally { lock.releaseLock(); }
 }
@@ -391,7 +400,7 @@ function redraw_(q) {
     const mine = same(v[i][2], q.maker) && same(v[i][19], q.ban) && same(v[i][20], q.num) && same(v[i][21], q.grade);
     if (!mine && !pinOk_(q.pin)) return { ok: false, error: '내가 만든 작품만 바꿀 수 있어요.' };
     const f = share_(s.folder.createFile(Utilities.newBlob(Utilities.base64Decode(q.drawing), 'image/jpeg', q.id + '_설계도_바꿈_' + stamp_() + '.jpg')));
-    sh.getRange(i + 1, 6).setValue(f.getId());
+    sh.getRange(i + 1, 6).setValue(f.getId()); dirty_();
     return { ok: true, drawingId: f.getId() };
   }
   return { ok: false, error: '작품을 찾지 못했어요.' };
