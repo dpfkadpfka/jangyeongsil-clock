@@ -89,6 +89,7 @@ function doPost(e) {
       case 'comment': return json_(comment_(q));
       case 'teacher': return json_({ ok: pinOk_(q.pin) });
       case 'hide': return json_(hide_(q));
+      case 'redraw': return json_(redraw_(q));
       case 'delcomment': return json_(delComment_(q));
       default: return json_({ ok: false, error: '알 수 없는 요청이에요.' });
     }
@@ -377,4 +378,19 @@ function delComment_(q) {
       if (v[i][0] === q.id && new Date(v[i][3]).getTime() === Number(q.time)) { sh.deleteRow(i + 1); return { ok: true }; }
     return { ok: false, error: '댓글을 찾지 못했어요.' };
   } finally { lock.releaseLock(); }
+}
+
+/* ---------- 6) 갤러리에 올린 그림(설계도) 사진만 바꾸기: 만든 사람이나 선생님만 ---------- */
+function redraw_(q) {
+  if (!b64ok_(q.drawing)) return { ok: false, error: '그림을 다시 골라 주세요.' };
+  const s = store_(), sh = s.ss.getSheetByName('clocks'), v = sh.getDataRange().getValues();
+  for (let i = 1; i < v.length; i++) if (v[i][0] === q.id) {
+    const same = (a, b) => String(a).trim() === String(b).trim();
+    const mine = same(v[i][2], q.maker) && same(v[i][19], q.ban) && same(v[i][20], q.num) && same(v[i][21], q.grade);
+    if (!mine && !pinOk_(q.pin)) return { ok: false, error: '내가 만든 작품만 바꿀 수 있어요.' };
+    const f = share_(s.folder.createFile(Utilities.newBlob(Utilities.base64Decode(q.drawing), 'image/jpeg', q.id + '_설계도_바꿈_' + stamp_() + '.jpg')));
+    sh.getRange(i + 1, 6).setValue(f.getId());
+    return { ok: true, drawingId: f.getId() };
+  }
+  return { ok: false, error: '작품을 찾지 못했어요.' };
 }
