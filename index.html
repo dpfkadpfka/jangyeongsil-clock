@@ -554,6 +554,11 @@ $('meForm').addEventListener('submit',e=>{e.preventDefault();
   if(!name){showMsg('meMsg','이름을 써 주세요.');$('f-maker').focus();return;}
   hideMsg('meMsg');me={grade,ban,num,name};ls.set('gc-me',JSON.stringify(me));showWho();view('make');go(1);});
 $('b-gal1').onclick=()=>{from='start';view('gal');};
+// 주소로 바로 가기: …/#gallery 는 시계 갤러리, …/#make 는 이름 쓰기부터
+function route(){const h=location.hash.replace('#','');
+  if(h==='gallery'){from='start';view('gal');}
+  else if(h==='make'){view('start');$('menu2').hidden=true;$('meForm').hidden=false;}}
+window.addEventListener('hashchange',route);setTimeout(route,0);
 // 위쪽 로고를 누르면 첫 화면으로
 document.querySelector('.brand').onclick=()=>{closeModal();$('meForm').hidden=true;$('menu2').hidden=false;view('start');};
 $('b-start').onclick=()=>{$('menu2').hidden=true;$('meForm').hidden=false;setTimeout(()=>$('f-grade').focus(),50);};
@@ -695,7 +700,7 @@ teacherBar();
 async function hideItem(id,btn){if(btn.dataset.sure!=='1'){btn.dataset.sure='1';btn.textContent='정말 지울까요?';setTimeout(()=>{if(btn.isConnected){btn.dataset.sure='';btn.textContent='작품 지우기';}},4000);return;}
   btn.disabled=true;try{await api({action:'hide',id,pin:PIN});items=items.filter(x=>x.id!==id);closeModal();drawGallery();}catch(err){btn.disabled=false;btn.textContent=err.message;}}
 async function loadGallery(){
-  try{const j=await api({action:'list'});items=j.items||[];galLoaded=true;drawGallery();fetchImages();}
+  try{const j=await api({action:'list'});items=(j.items||[]).sort((a,b)=>(+b.time||0)-(+a.time||0));galLoaded=true;drawGallery();fetchImages();}
   catch(err){if(!galLoaded)$('glist').innerHTML=`<div class="empty"><b>작품을 불러오지 못했어요</b>${esc(err.message)}</div>`;}}
 $('b-refresh').onclick=loadGallery;
 function itemClock(it){const im=imgCache[it.clockId];if(!im)return null;return {src:im.src,w:im.w,h:im.h,kind:it.kind==='digital'?'digital':'analog',cx:+it.cx,cy:+it.cy,r:+it.r,bx:+it.bx,by:+it.by,bw:+it.bw,bh:+it.bh,hand:it.hand,min:it.min||it.hand,sec:it.sec||'#e5484d',size:+it.size||1,bg:'#ffffff'};}
