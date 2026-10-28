@@ -903,7 +903,7 @@ async function toggleLike(id){const it=items.find(x=>x.id===id);if(!it||liking[i
   finally{delete liking[id];galSig=sigOf(items);drawGallery();if(openIt&&openIt.id===id)renderModal();}}
 async function fetchImages(){const need=[];items.forEach(it=>[it.drawingId,it.clockId].forEach(id=>{if(id&&!imgCache[id]&&!need.includes(id))need.push(id);}));
   const slow=[];let n=0;
-  await Promise.all(need.map(async id=>{const src='https://lh3.googleusercontent.com/d/'+id+'=s900';
+  await Promise.all(need.map(async id=>{const src='https://lh3.googleusercontent.com/d/'+id+'=s700-rw';
     try{const im=await loadImg(src);imgCache[id]={src,w:im.naturalWidth,h:im.naturalHeight};if(++n%6===0)drawGallery();}catch(e){slow.push(id);}}));
   drawGallery();
   for(let i=0;i<slow.length;i+=6){try{const j=await api({action:'img',ids:slow.slice(i,i+6)});
