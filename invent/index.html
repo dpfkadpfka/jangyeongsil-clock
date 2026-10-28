@@ -272,6 +272,14 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 .pinbox h3{font-family:var(--title);font-size:26px}.pinbox p{margin:0;color:var(--muted);font-weight:700}
 .pinbox input{font:inherit;font-size:22px;font-weight:800;padding:12px 16px;border-radius:16px;border:2px solid var(--line);background:var(--bg2);letter-spacing:.2em;text-align:center}
 .pinbox .row{justify-content:flex-end}
+.pinbox .tsch{position:relative}.pinbox input#tSchIn{width:100%;font-size:18px;letter-spacing:0;text-align:left;font-weight:700}
+.pinbox .tpicked{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:16px;background:var(--bg2);font-weight:800}.pinbox .tpicked b{flex:1}
+.pinbox .tlist{margin-top:6px;border:2px solid var(--line);border-radius:14px;overflow:hidden;max-height:200px;overflow-y:auto}
+.pinbox .tlist button{display:flex;justify-content:space-between;gap:8px;width:100%;padding:10px 12px;border:0;border-bottom:1px solid var(--line);background:#fff;font:inherit;font-weight:700;text-align:left;cursor:pointer}
+.pinbox .tlist button:hover{background:var(--bg2)}.pinbox .tlist small{color:var(--muted)}.pinbox .tlist .none{padding:10px 12px;color:var(--muted)}
+.pinbox .trow{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pinbox select{font:inherit;font-size:18px;font-weight:800;padding:10px 12px;border-radius:16px;border:2px solid var(--line);background:var(--bg2)}
+.pinbox .treg{display:grid;gap:6px;padding:12px 14px;border-radius:16px;background:#fff7e6;color:#8a5a00;font-weight:700;font-size:14px}.pinbox .treg b{color:#6b4500}.pinbox .treg .btn{justify-self:start}
+
 .sizer{display:flex;align-items:center;gap:12px;max-width:440px}
 .sizer .sz{width:52px;height:52px;padding:0;font-size:28px;flex:none}
 .sizer input{flex:1;accent-color:var(--orange);height:32px}
@@ -603,7 +611,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
       <img class="ico big" src="../img/step-friends.webp" alt=""><h2>발명 갤러리</h2>
       <button class="btn" id="b-refresh" aria-label="새로 보기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>새로 보기</button>
     </div>
-    <div class="tbar" id="tbar" hidden>선생님 모드예요. 작품과 댓글을 지울 수 있어요. <button class="btn sm" id="tOff">끄기</button></div>
+    <div class="tbar" id="tbar" hidden><span id="tbarText">선생님 모드예요.</span> <button class="btn sm" id="tOff">끄기</button></div>
     <div class="gtools"><div class="scope" id="galScope"></div><label class="gsearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="galSearch" type="search" placeholder="이름이나 발명품 이름으로 찾기" autocomplete="off"></label></div>
     <p class="galsub" id="galSub"></p>
     <div class="glist" id="glist"><div class="empty"><b>작품을 불러오고 있어요</b>잠시만 기다려 주세요.</div></div>
@@ -612,7 +620,12 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 </main>
 <div class="toast" id="newToast" hidden></div>
 <div class="modal" id="modal" hidden></div>
-<div class="modal" id="pinBox" hidden><form class="pinbox" id="pinForm"><h3>선생님 확인</h3><p>작품과 댓글을 지우려면 비밀번호를 넣어 주세요.</p><input id="pinIn" type="password" inputmode="numeric" autocomplete="off" placeholder="비밀번호"><div class="msg no" id="pinMsg" hidden></div><div class="row"><button type="button" class="btn" id="pinCancel">취소</button><button class="btn primary" type="submit">확인</button></div></form></div>
+<div class="modal" id="pinBox" hidden><form class="pinbox" id="pinForm"><h3>선생님 확인</h3><p>우리 반 학교·학년·반과 비밀번호를 넣으면 우리 반 작품과 댓글을 관리할 수 있어요.</p>
+<div class="tsch"><div class="tpicked" id="tSchPicked" hidden><b id="tSchName"></b><button type="button" class="btn sm" id="tSchChange">바꾸기</button></div><input id="tSchIn" type="text" placeholder="학교 이름 (예: 부천북초)" autocomplete="off"><div class="tlist" id="tSchList" hidden></div></div>
+<div class="trow"><select id="tGrade"><option value="">학년</option></select><select id="tBan"><option value="">반</option></select></div>
+<input id="pinIn" type="password" autocomplete="off" placeholder="비밀번호 (4자리 이상)">
+<div class="treg" id="pinReg" hidden><b>이 반은 아직 등록된 선생님이 없어요.</b>지금 넣은 비밀번호로 우리 반 선생님 등록을 할까요? 다음부터 같은 비밀번호로 들어오시면 돼요.<button type="button" class="btn primary sm" id="pinRegYes">이 비밀번호로 등록하기</button></div>
+<div class="msg no" id="pinMsg" hidden></div><div class="row"><button type="button" class="btn" id="pinCancel">취소</button><button class="btn primary" type="submit">확인</button></div></form></div>
 <script>
 /* 나도 발명가! 생활 발명 연구소 — 만든 사람 예람쌤 */
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwR3HEKVpni8dYBeX7pRr_soB-UKU_Jeba04igS1mBZJEiZS2cUCiPam0G8c7ke-38F/exec';
@@ -793,19 +806,42 @@ $('b-new').onclick=()=>{chatLog=[];ideaNow=null;ideaList=null;pics=[null,null,nu
 
 /* ---------- 선생님 모드 ---------- */
 let PIN='';try{PIN=sessionStorage.getItem('gc-pin')||'';}catch(e){}
-function teacherBar(){$('tbar').hidden=!PIN;}
-$('b-teacher').onclick=()=>{$('pinBox').hidden=false;$('pinIn').value='';hideMsg('pinMsg');setTimeout(()=>$('pinIn').focus(),50);};
+// 선생님: 비밀번호만 넣으면 예람쌤(모든 반), 학교·학년·반+비밀번호면 그 반 선생님
+const TSEP='\u0001';
+function tinfo(){if(!PIN)return null;const a=PIN.split(TSEP);return a.length<4?{all:true}:{s:a[0],g:a[1],b:a[2]};}
+function tcan(it){const t=tinfo();if(!t)return false;if(t.all)return true;const q=(a,b)=>String(a??'').trim()===String(b??'').trim();
+  return q(it.school,t.s)&&q(it.grade,t.g)&&q(it.ban,t.b);}
+function teacherBar(){const b=$('tbar'),t=tinfo();b.hidden=!t;if(!t)return;
+  $('tbarText').textContent=t.all?'선생님 모드예요. 모든 작품과 댓글을 지우고 고칠 수 있어요.':`${shortSchool(t.s)} ${t.g}학년 ${t.b}반 선생님 모드예요. 우리 반 작품과 댓글을 지우고 고칠 수 있어요.`;}
+let tSchool=null,tSchT=null,tSchQ='';
+function tSetSchool(sc){tSchool=sc;$('tSchPicked').hidden=!sc;$('tSchIn').hidden=!!sc;$('tSchList').hidden=true;if(sc)$('tSchName').textContent=sc.name;else{$('tSchIn').value='';}}
+$('tSchChange').onclick=()=>{tSetSchool(null);setTimeout(()=>$('tSchIn').focus(),50);};
+$('tSchIn').addEventListener('input',()=>{clearTimeout(tSchT);const q=$('tSchIn').value.trim(),L=$('tSchList');if(q.length<2){L.hidden=true;return;}
+  tSchT=setTimeout(async()=>{tSchQ=q;L.hidden=false;L.innerHTML='<div class="none">찾는 중…</div>';
+    try{const j=await api({action:'school',q});if(tSchQ!==q)return;const list=j.schools||[];
+      L.innerHTML=list.length?list.map((x,i)=>`<button type="button" data-i="${i}"><b>${esc(x.name)}</b><small>${esc(x.addr||x.region||'')}</small></button>`).join(''):'<div class="none">학교를 찾지 못했어요.</div>';
+      L.querySelectorAll('button').forEach(b=>b.onclick=()=>tSetSchool(list[+b.dataset.i]));}catch(err){L.innerHTML=`<div class="none">${esc(err.message)}</div>`;}},350);});
+for(let i=1;i<=6;i++)$('tGrade').insertAdjacentHTML('beforeend',`<option value="${i}">${i}학년</option>`);
+for(let i=1;i<=15;i++)$('tBan').insertAdjacentHTML('beforeend',`<option value="${i}">${i}반</option>`);
+function openPin(){const p=myPlace();tSetSchool(p&&p.school?{name:p.school}:null);$('tGrade').value=p?String(p.grade||''):'';$('tBan').value=p?String(p.ban||''):'';
+  $('pinIn').value='';$('pinReg').hidden=true;hideMsg('pinMsg');$('pinBox').hidden=false;setTimeout(()=>(tSchool?$('pinIn'):$('tSchIn')).focus(),50);}
+$('b-teacher').onclick=()=>{if(PIN){PIN='';try{sessionStorage.removeItem('gc-pin');}catch(e){}teacherBar();drawGallery();return;}openPin();};
 $('pinCancel').onclick=()=>{$('pinBox').hidden=true;};
-$('pinForm').addEventListener('submit',async e=>{e.preventDefault();const p=$('pinIn').value.trim();if(!p)return;
-  try{const j=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'teacher',pin:p})}).then(r=>r.json());
-    if(!j.ok){showMsg('pinMsg','비밀번호가 맞지 않아요.');return;}PIN=p;try{sessionStorage.setItem('gc-pin',p);}catch(e){}$('pinBox').hidden=true;teacherBar();view('gal');}
-  catch(err){showMsg('pinMsg','서버에 연결하지 못했어요.');}});
+async function tLogin(register){const p=$('pinIn').value.trim();if(!p){$('pinIn').focus();return;}
+  const cls=tSchool&&$('tGrade').value&&$('tBan').value,pin=cls?[tSchool.name,$('tGrade').value,$('tBan').value,p].join(TSEP):p;
+  try{const j=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'teacher',pin,register:!!register})}).then(r=>r.json());
+    if(j.need==='register'){$('pinReg').hidden=false;hideMsg('pinMsg');return;}
+    if(!j.ok){$('pinReg').hidden=true;showMsg('pinMsg',esc(j.error||'비밀번호가 맞지 않아요.'));return;}
+    PIN=j.all?p:pin;try{sessionStorage.setItem('gc-pin',PIN);}catch(e){}$('pinBox').hidden=true;teacherBar();galScope='class';view('gal');}
+  catch(err){showMsg('pinMsg','서버에 연결하지 못했어요.');}}
+$('pinForm').addEventListener('submit',e=>{e.preventDefault();tLogin(false);});
+$('pinRegYes').onclick=()=>tLogin(true);
 $('tOff').onclick=()=>{PIN='';try{sessionStorage.removeItem('gc-pin');}catch(e){}teacherBar();drawGallery();};
 teacherBar();
 
 /* ---------- 발명 갤러리 ---------- */
 let items=[],galSig='',galBusy=false,galScope=null,galQ='',galLimit=24,galIO=null,gqT=null;
-function myPlace(){if(me&&me.school)return me;try{const m=JSON.parse(ls.get('gc-me','null'));if(m&&m.school)return m;}catch(e){}return null;}
+function myPlace(){const t=tinfo();if(t&&!t.all)return {school:t.s,grade:t.g,ban:t.b};if(me&&me.school)return me;try{const m=JSON.parse(ls.get('gc-me','null'));if(m&&m.school)return m;}catch(e){}return null;}
 const eq=(a,b)=>String(a??'').trim()===String(b??'').trim();
 function shownItems(){const p=myPlace();let L=items;
   if(p&&galScope==='school')L=L.filter(x=>eq(x.school,p.school));else if(p&&galScope==='class')L=L.filter(x=>eq(x.school,p.school)&&eq(x.grade,p.grade)&&eq(x.ban,p.ban));
@@ -830,7 +866,7 @@ function drawGallery(){const G=$('glist');drawScope();const L=shownItems();
   $('galSub').textContent=`발명품 ${L.length}개 · 누르면 크게 볼 수 있어요.`;
   G.innerHTML=L.slice(0,galLimit).map(it=>`<article class="gitem" data-open="${esc(it.id)}"><div class="gpos"><div class="gone">${it.imageId?`<img src="${driveImg(it.imageId)}" alt="" loading="lazy">`:''}</div><div class="gbadges">${it.appId?'<span>📱 앱</span>':''}${it.videoId?'<span>🎬 영상</span>':''}</div></div>
     <div class="ginfo"><div><b>${esc(it.name||'이름 없는 발명품')}</b><span>${esc(whoLine(it))}</span></div><div class="gstat"><button class="heart${it.liked?' on':''}" data-like="${esc(it.id)}">${it.liked?'❤️':'🤍'} ${it.likes}</button><span class="cmt">💬 ${it.comments.length}</span></div></div>
-    ${it.problem?`<p class="gfeat">${esc(it.problem)} → ${esc(it.feature||'')}</p>`:''}${PIN?`<button class="btn sm tdel" data-del="${esc(it.id)}">작품 지우기</button>`:''}</article>`).join('')+(L.length>galLimit?'<div class="morebtn" id="galMore"><div class="dots"></div></div>':'');
+    ${it.problem?`<p class="gfeat">${esc(it.problem)} → ${esc(it.feature||'')}</p>`:''}${tcan(it)?`<button class="btn sm tdel" data-del="${esc(it.id)}">작품 지우기</button>`:''}</article>`).join('')+(L.length>galLimit?'<div class="morebtn" id="galMore"><div class="dots"></div></div>':'');
   G.querySelectorAll('[data-open]').forEach(a=>a.onclick=e=>{if(e.target.closest('button[data-like],button[data-del]'))return;openItem(a.dataset.open);});
   G.querySelectorAll('[data-like]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleLike(b.dataset.like);});
   G.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{e.stopPropagation();hideItem(b.dataset.del,b);});
@@ -858,9 +894,9 @@ function renderModal(){const it=openIt;if(!it)return;const M=$('modal');M.hidden
       ${it.problem?`<div class="pw"><small>불편한 일</small>${esc(it.problem)}</div>`:''}${it.wish?`<div class="pw"><small>바라는 것</small>${esc(it.wish)}</div>`:''}
       ${it.feature?`<div class="feat"><small>이런 발명품이에요</small>${esc(it.feature)}</div>`:''}
       <div><button class="btn like" id="m-like" aria-pressed="${it.liked}">${it.liked?'❤️':'🤍'} 좋아요 ${it.likes}</button></div>
-      <div><div class="lab">댓글 ${it.comments.length}</div><div class="cms">${it.comments.length?it.comments.map((x,i)=>`<div class="cm"><b>${esc(x.name)}</b>${esc(x.text)}${PIN&&x.time?`<button class="cdel" data-ci="${i}">✕</button>`:''}</div>`).join(''):'<div class="cm" style="color:var(--muted)">첫 댓글을 남겨 보세요.</div>'}</div></div>
+      <div><div class="lab">댓글 ${it.comments.length}</div><div class="cms">${it.comments.length?it.comments.map((x,i)=>`<div class="cm"><b>${esc(x.name)}</b>${esc(x.text)}${tcan(it)&&x.time?`<button class="cdel" data-ci="${i}">✕</button>`:''}</div>`).join(''):'<div class="cm" style="color:var(--muted)">첫 댓글을 남겨 보세요.</div>'}</div></div>
       <form class="cform" id="m-form"><input id="m-cname" maxlength="12" placeholder="이름" value="${esc(me?me.name:'')}"><input id="m-ctext" maxlength="80" placeholder="칭찬 한마디"><button class="btn primary sm" type="submit">남기기</button></form>
-      <div class="msg no" id="m-msg" hidden></div>${PIN?'<button class="btn sm tdel" id="m-del">작품 지우기</button>':''}</div></div>`;
+      <div class="msg no" id="m-msg" hidden></div>${tcan(it)?'<button class="btn sm tdel" id="m-del">작품 지우기</button>':''}</div></div>`;
   $('m-close').onclick=closeModal;
   M.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{mtab=b.dataset.t;renderModal();});
   M.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{mpic=+b.dataset.p;renderModal();});
