@@ -869,8 +869,10 @@ function shownItems(){const p=myPlace(),eq=(a,b)=>String(a??'').trim()===String(
   return L;}
 function scoped(p,eq){
   if(!p||galScope==='all')return items;
-  if(galScope==='school')return items.filter(x=>eq(x.school,p.school));
-  return items.filter(x=>eq(x.school,p.school)&&eq(x.grade,p.grade)&&eq(x.ban,p.ban));}
+  // 학교 칸이 생기기 전에 올린 작품은 학교가 비어 있어서, 비어 있으면 같은 학교로 봐요
+  const sameSchool=x=>!x.school||eq(x.school,p.school);
+  if(galScope==='school')return items.filter(sameSchool);
+  return items.filter(x=>sameSchool(x)&&eq(x.grade,p.grade)&&eq(x.ban,p.ban));}
 function drawScope(){const p=myPlace(),S=$('galScope');if(galScope===null)galScope=p?'class':'all';
   S.innerHTML=[['class',p?`우리 반 (${p.grade}-${p.ban})`:'우리 반'],['school',p?shortSchool(p.school):'우리 학교'],['all','전체']].map(([k,l])=>`<button data-sc="${k}" aria-pressed="${galScope===k}"${!p&&k!=='all'?' disabled':''}>${esc(l)}</button>`).join('')+(p?'':'<small>시계를 만들 때 학교·반을 고르면 우리 반만 볼 수 있어요</small>');
   S.querySelectorAll('button').forEach(b=>b.onclick=()=>{galScope=b.dataset.sc;drawScope();drawGallery();});}
