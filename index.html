@@ -297,6 +297,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 .draghint{margin:10px 0 0;font-size:15px;font-weight:700;color:var(--muted);text-align:center;max-width:400px}
 .mact{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.mact .tdel{margin:0}
 .brand{cursor:pointer}
+.redraw{justify-self:start;background:#fff;border-color:#fff}
 .galsub{margin:0 0 18px;color:var(--muted);font-weight:700}
 @media (max-width:900px){.split,.final{grid-template-columns:1fr}.preview{max-width:420px;width:100%;margin:0 auto}}
 @media (max-width:640px){.me .f select{font-size:20px;padding-left:10px;padding-right:30px;background-position:right 8px center}.prog em{font-size:12px}.prog .n{width:38px;height:38px}.kinds.big{grid-template-columns:1fr}.kinds.big .kind svg{width:100px;height:100px}.who{display:none}.stepnav .btn{min-width:0;flex:1}}
@@ -752,7 +753,8 @@ function renderModal(){const it=openIt;if(!it)return;const M=$('modal');M.hidden
   const c=itemClock(it),d=imgCache[it.drawingId];
   M.innerHTML=`<div class="mbox" role="dialog" aria-modal="true" aria-label="작품 크게 보기">
     <div class="mleft"><div class="mseg"><button id="m-c" aria-pressed="${mode==='clock'}">시계</button><button id="m-d" aria-pressed="${mode!=='clock'}">그림</button></div>
-      <div class="mstage" id="m-stage">${mode==='clock'?(c?clockSVG(c):''):(d?`<img src="${d.src}" alt="친구 그림">`:'')}</div></div>
+      <div class="mstage" id="m-stage">${mode==='clock'?(c?clockSVG(c):''):(d?`<img src="${d.src}" alt="친구 그림">`:'')}</div>
+      ${mode!=='clock'&&canEdit(it)?'<label class="btn sm redraw" for="m-file" tabindex="0">🖼️ 그림 바꾸기</label><input type="file" id="m-file" accept="image/*" hidden>':''}</div>
     <div class="mright">
       <div class="mtop"><div><h3>${esc(it.name||'이름 없는 시계')}</h3><p>발명한 사람 ${it.grade?esc(it.grade)+'학년 ':''}${it.ban?esc(it.ban)+'반 '+esc(it.num)+'번 ':''}${esc(it.maker)}</p></div><button class="xbtn" id="m-close" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       ${it.feature?`<div class="feat"><small>이런 점이 좋아요</small>${esc(it.feature)}</div>`:''}
@@ -762,6 +764,11 @@ function renderModal(){const it=openIt;if(!it)return;const M=$('modal');M.hidden
       <div class="msg no" id="m-msg" hidden></div><div class="mact">${canEdit(it)?`<button class="btn primary sm" id="m-edit">✏️ ${PIN?'이 시계 고치기':'내 시계 고치기'}</button>`:''}${PIN?'<button class="btn sm tdel" id="m-del">작품 지우기</button>':''}</div></div></div>`;
   $('m-close').onclick=closeModal;
   if($('m-edit'))$('m-edit').onclick=()=>startEdit(it,$('m-edit'));
+  if($('m-file'))$('m-file').onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const L=M.querySelector('.redraw');L.textContent='바꾸는 중…';
+    try{const data=await fileToJpeg(f,1024),small=await shrinkData(data,720),who=me||{};
+      const j=await api({action:'redraw',id:it.id,drawing:small.split(',')[1],pin:PIN,maker:who.name,grade:who.grade,ban:who.ban,num:who.num});
+      imgCache[j.drawingId]={src:small,w:0,h:0};it.drawingId=j.drawingId;renderModal();drawGallery();}
+    catch(err){showMsg('m-msg',esc(err.message));L.textContent='🖼️ 그림 바꾸기';}};
   if(PIN){$('m-del').onclick=()=>hideItem(it.id,$('m-del'));
     M.querySelectorAll('.cdel').forEach(b=>b.onclick=async()=>{const x=it.comments[+b.dataset.ci];b.disabled=true;
       try{await api({action:'delcomment',id:it.id,time:x.time,pin:PIN});it.comments.splice(+b.dataset.ci,1);renderModal();drawGallery();}catch(err){showMsg('m-msg',esc(err.message));b.disabled=false;}});}
