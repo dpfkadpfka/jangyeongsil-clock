@@ -298,6 +298,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 .mact{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.mact .tdel{margin:0}
 .brand{cursor:pointer}
 .redraw{justify-self:start;background:#fff;border-color:#fff}
+.toast{position:fixed;left:50%;top:92px;transform:translateX(-50%);z-index:40;background:var(--orange);color:#fff;font-weight:800;font-size:18px;padding:12px 22px;border-radius:999px;box-shadow:0 10px 24px -8px rgba(255,122,26,.7);animation:pop .25s}
 .galsub{margin:0 0 18px;color:var(--muted);font-weight:700}
 @media (max-width:900px){.split,.final{grid-template-columns:1fr}.preview{max-width:420px;width:100%;margin:0 auto}}
 @media (max-width:640px){.me .f select{font-size:20px;padding-left:10px;padding-right:30px;background-position:right 8px center}.prog em{font-size:12px}.prog .n{width:38px;height:38px}.kinds.big{grid-template-columns:1fr}.kinds.big .kind svg{width:100px;height:100px}.who{display:none}.stepnav .btn{min-width:0;flex:1}}
@@ -453,6 +454,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 
   <footer>© 2026 예람쌤. All rights reserved. · 문의 <a href="mailto:dpfkadpfka@gmail.com">dpfkadpfka@gmail.com</a> · <button class="tlink" id="b-teacher">선생님</button></footer>
 </main>
+<div class="toast" id="newToast" hidden></div>
 <div class="modal" id="modal" hidden></div>
 <div class="modal" id="pinBox" hidden><form class="pinbox" id="pinForm"><h3>선생님 확인</h3><p>작품과 댓글을 지우려면 비밀번호를 넣어 주세요.</p><input id="pinIn" type="password" inputmode="numeric" autocomplete="off" placeholder="비밀번호"><div class="msg no" id="pinMsg" hidden></div><div class="row"><button type="button" class="btn" id="pinCancel">취소</button><button class="btn primary" type="submit">확인</button></div></form></div>
 
@@ -700,10 +702,22 @@ $('tOff').onclick=()=>{PIN='';try{sessionStorage.removeItem('gc-pin');}catch(e){
 teacherBar();
 async function hideItem(id,btn){if(btn.dataset.sure!=='1'){btn.dataset.sure='1';btn.textContent='정말 지울까요?';setTimeout(()=>{if(btn.isConnected){btn.dataset.sure='';btn.textContent='작품 지우기';}},4000);return;}
   btn.disabled=true;try{await api({action:'hide',id,pin:PIN});items=items.filter(x=>x.id!==id);closeModal();drawGallery();}catch(err){btn.disabled=false;btn.textContent=err.message;}}
-async function loadGallery(){
-  try{const j=await api({action:'list'});items=(j.items||[]).sort((a,b)=>(+b.time||0)-(+a.time||0));galLoaded=true;drawGallery();fetchImages();}
-  catch(err){if(!galLoaded)$('glist').innerHTML=`<div class="empty"><b>작품을 불러오지 못했어요</b>${esc(err.message)}</div>`;}}
-$('b-refresh').onclick=loadGallery;
+let galSig='',galBusy=false;
+const sigOf=list=>JSON.stringify(list.map(x=>[x.id,x.likes,x.comments.length,x.drawingId,x.clockId,x.name,x.hand,x.min,x.sec,x.size,x.cx,x.cy]));
+async function loadGallery(quiet){if(galBusy)return;galBusy=true;
+  try{const j=await api({action:'list'}),list=(j.items||[]).sort((a,b)=>(+b.time||0)-(+a.time||0)),sig=sigOf(list);
+    if(quiet===true&&sig===galSig)return;            // 바뀐 게 없으면 그대로
+    const newCount=galSig?list.filter(x=>!items.some(y=>y.id===x.id)).length:0;
+    items=list;galSig=sig;galLoaded=true;
+    if(openIt){const n=items.find(x=>x.id===openIt.id);if(n)openIt=n;}
+    drawGallery();fetchImages();
+    if(quiet===true&&newCount>0){const t=$('newToast');t.textContent=`새 작품 ${newCount}개가 올라왔어요!`;t.hidden=false;clearTimeout(t._h);t._h=setTimeout(()=>t.hidden=true,4000);}}
+  catch(err){if(!galLoaded)$('glist').innerHTML=`<div class="empty"><b>작품을 불러오지 못했어요</b>${esc(err.message)}</div>`;}
+  finally{galBusy=false;}}
+$('b-refresh').onclick=()=>loadGallery();
+// 갤러리를 보고 있으면 15초마다 새 작품·좋아요·댓글을 저절로 불러와요(새로고침 안 해도 돼요)
+setInterval(()=>{if(!$('v-gal').hidden&&document.visibilityState==='visible')loadGallery(true);},15000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!$('v-gal').hidden)loadGallery(true);});
 function itemClock(it){const im=imgCache[it.clockId];if(!im)return null;return {src:im.src,w:im.w,h:im.h,kind:it.kind==='digital'?'digital':'analog',cx:+it.cx,cy:+it.cy,r:+it.r,bx:+it.bx,by:+it.by,bw:+it.bw,bh:+it.bh,hand:it.hand,min:it.min||it.hand,sec:it.sec||'#e5484d',size:+it.size||1,bg:'#ffffff'};}
 function drawGallery(){const G=$('glist');
   if(!items.length){G.innerHTML='<div class="empty"><b>아직 올라온 작품이 없어요</b>시계 만들기에서 첫 작품을 올려 보세요.</div>';return;}
