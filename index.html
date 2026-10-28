@@ -292,6 +292,9 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 .me-top{display:flex;align-items:center;justify-content:space-between}
 .me-top b{font-family:var(--title);font-size:24px;color:#4a3300}
 @media (max-width:640px){.menu2{grid-template-columns:1fr}.mbtn img{width:96px;height:96px}}
+.plainbtn{margin-top:10px;height:48px;font-size:17px;color:#1767a8;border-color:#bfe0ff}
+.preview{touch-action:none;cursor:grab}
+.draghint{margin:10px 0 0;font-size:15px;font-weight:700;color:var(--muted);text-align:center;max-width:400px}
 .galsub{margin:0 0 18px;color:var(--muted);font-weight:700}
 @media (max-width:900px){.split,.final{grid-template-columns:1fr}.preview{max-width:420px;width:100%;margin:0 auto}}
 @media (max-width:640px){.me .f select{font-size:20px;padding-left:10px;padding-right:30px;background-position:right 8px center}.prog em{font-size:12px}.prog .n{width:38px;height:38px}.kinds.big{grid-template-columns:1fr}.kinds.big .kind svg{width:100px;height:100px}.who{display:none}.stepnav .btn{min-width:0;flex:1}}
@@ -378,7 +381,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
               <div class="clockstage live" id="clockStage" hidden></div>
               <div class="wait" id="loading" hidden><img src="img/mascot-think.webp" alt=""><strong>AI가 시계를 그리고 있어요</strong><div class="bar"><i></i></div><span>30초쯤 걸려요</span></div>
             </div>
-            <div class="cta"><button class="btn sky lg block" id="b-make" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="makeLabel">AI 시계 만들기</span></button><small id="magicHint">그림을 넣으면 누를 수 있어요</small></div>
+            <div class="cta"><button class="btn sky lg block" id="b-make" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="makeLabel">AI 시계 만들기</span></button><small id="magicHint">그림을 넣으면 누를 수 있어요</small><button class="btn block plainbtn" id="b-plain" disabled>AI 없이 내 그림 그대로 쓰기</button></div>
             <div class="vers" id="verRow" hidden></div>
           </div>
         </div>
@@ -390,7 +393,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
     <div class="step" data-s="3" hidden>
       <div class="card m"><div class="card-h"><span class="no">3단계</span><h2>바늘 색 바꾸기</h2><img class="ico" src="img/step-palette.webp" alt=""></div>
         <div class="card-b split">
-          <div class="preview live"></div>
+          <div><div class="preview live"></div><p class="draghint">👆 시계를 손가락으로 누르고 끌면 바늘 가운데를 옮길 수 있어요</p></div>
           <div>
             <div id="swRows"></div>
           </div>
@@ -533,7 +536,7 @@ const HANDS=['#23314d','#e5484d','#ff7a1a','#2f5fd0','#8b6cf0','#1f9d7a','#ff8ab
 const DIGI=['#ff4d4d','#3ff08f','#4cc3ff','#ffd23f','#ff8ab1','#ffffff'];
 const SECS=['#e5484d','#ff7a1a','#ffcf3f','#3fd6ab','#4cc3ff','#9b7bff','#ff8ab1','#23314d'];
 const defHand=k=>k==='digital'?DIGI[0]:HANDS[0];
-let me=null,drawing=null,clock=null,kind=null,step=1,saved=false,from='start';
+let drawingId='',me=null,drawing=null,clock=null,kind=null,step=1,saved=false,from='start';
 
 /* 화면 전환 */
 function view(v){['start','make','gal'].forEach(k=>$('v-'+k).hidden=k!==v);window.scrollTo(0,0);if(v==='gal')loadGallery();}
@@ -589,14 +592,24 @@ function drawVersions(){const R=$('verRow');if(!R)return;
   R.hidden=false;
   R.innerHTML=`<div class="ver-h">마음에 드는 시계를 골라요</div><div class="ver-list">${versions.map((v,i)=>`<button class="ver${clock&&clock.src===v.src?' on':''}" data-v="${i}" aria-label="${i+1}번 시계"><img src="${v.src}" alt=""><span>${i+1}</span></button>`).join('')}</div>`;
   R.querySelectorAll('.ver').forEach(b=>b.onclick=()=>{const v=versions[+b.dataset.v];Object.assign(clock,v);drawVersions();drawClock();});}
+// 3단계: 미리보기를 끌어서 바늘(또는 숫자 칸) 가운데 옮기기
+document.querySelectorAll('.preview.live').forEach(P=>{let on=false;
+  const mv=e=>{if(!on||!clock)return;const svg=P.querySelector('svg');if(!svg)return;const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal;
+    const sx=Math.min(r.width/vb.width,r.height/vb.height),ox=r.left+(r.width-vb.width*sx)/2,oy=r.top+(r.height-vb.height*sx)/2;
+    const x=Math.max(0,Math.min(1,(e.clientX-ox)/sx/vb.width)),y=Math.max(0,Math.min(1,(e.clientY-oy)/sx/vb.height));
+    if(clock.kind==='digital'){clock.bx=Math.max(0,Math.min(1-clock.bw,x-clock.bw/2));clock.by=Math.max(0,Math.min(1-clock.bh,y-clock.bh/2));}else{clock.cx=x;clock.cy=y;}
+    const v=versions.find(q=>q.src===clock.src);if(v)Object.assign(v,{cx:clock.cx,cy:clock.cy,bx:clock.bx,by:clock.by});
+    P.innerHTML=clockSVG(clock);e.preventDefault();};
+  P.addEventListener('pointerdown',e=>{on=true;try{P.setPointerCapture(e.pointerId);}catch(_){}mv(e);});
+  P.addEventListener('pointermove',mv);['pointerup','pointercancel'].forEach(t=>P.addEventListener(t,()=>{on=false;drawClock();}));});
 function resetClock(){versions=[];drawVersions();$('clockStage').hidden=true;$('clockStage').innerHTML='';$('clockPh').hidden=false;$('clockFrame').classList.remove('filled');$('makeLabel').textContent='AI 시계 만들기';canMake();}
 
 /* 2단계: 그림 넣기 + AI 시계 */
-function canMake(){$('b-make').disabled=!drawing||!$('loading').hidden;
+function canMake(){$('b-make').disabled=!drawing||!$('loading').hidden;$('b-plain').disabled=!drawing||!$('loading').hidden;
   $('magicHint').textContent=!drawing?'그림을 넣으면 누를 수 있어요':clock?'마음에 안 들면 다시 그려요':'누르면 AI가 내 그림을 시계로 그려 줘요';}
 async function takeFile(f){if(!f){return;}
   if(f.type&&!/^image\//.test(f.type)){showMsg('makeMsg','그림 사진을 넣어 주세요.');return;}
-  try{drawing=await fileToJpeg(f,1024);}
+  try{drawing=await fileToJpeg(f,1024);drawingId='';}
   catch(err){showMsg('makeMsg',/hei[cf]/i.test(f.type+f.name)?'이 사진은 HEIC 형식이라 열 수 없어요. 카메라 설정에서 사진 형식을 JPG로 바꾸거나, 사진 찍기 버튼으로 바로 찍어 주세요.':'그림을 열지 못했어요. 다른 사진으로 해 볼까요?');return;}
   const F=$('drawFrame');F.classList.add('filled');
   F.innerHTML=`<img src="${drawing}" alt="내 그림"><label class="btn sm change" for="f-pick" tabindex="0">그림 바꾸기</label>`;
@@ -613,22 +626,29 @@ function hideMsg(id){$(id).hidden=true;}
 
 async function make(){if(!drawing||!kind)return;hideMsg('makeMsg');
   $('loading').hidden=false;canMake();$('clockPh').hidden=true;refresh();$('b-next').disabled=true;
-  try{const j=await api({action:'make',kind,image:drawing.split(',')[1],mime:'image/jpeg'});
+  try{const j=await api({action:'make',kind,image:drawing.split(',')[1],mime:'image/jpeg',drawingId,maker:me&&me.name,grade:me&&me.grade,ban:me&&me.ban,num:me&&me.num});
+    if(j.drawingId)drawingId=j.drawingId;
     const cut=await cutWhite(`data:${j.mime};base64,${j.image}`,900);
     const d=j.dial||{},same=clock&&clock.kind===kind;
     const prev=clock;
-    clock=Object.assign(cut,{kind,cx:d.cx??.5,cy:d.cy??.5,r:d.r??.3,bx:d.bx??.25,by:d.by??.38,bw:d.bw??.5,bh:d.bh??.24,hand:same?clock.hand:defHand(kind),min:same?clock.min:defHand(kind),size:same?clock.size:1,sec:same?clock.sec:'#e5484d',bg:'#ffffff'});
-    versions.push({src:clock.src,w:clock.w,h:clock.h,kind,cx:clock.cx,cy:clock.cy,r:clock.r,bx:clock.bx,by:clock.by,bw:clock.bw,bh:clock.bh});
+    clock=Object.assign(cut,{kind,cx:d.cx??.5,cy:d.cy??.5,r:d.r??.3,bx:d.bx??.25,by:d.by??.38,bw:d.bw??.5,bh:d.bh??.24,hand:same?clock.hand:defHand(kind),min:same?clock.min:defHand(kind),size:same?clock.size:1,sec:same?clock.sec:'#e5484d',bg:'#ffffff',clockId:j.clockId||''});
+    versions.push({clockId:clock.clockId,plain:false,src:clock.src,w:clock.w,h:clock.h,kind,cx:clock.cx,cy:clock.cy,r:clock.r,bx:clock.bx,by:clock.by,bw:clock.bw,bh:clock.bh});
     if(versions.length>8)versions.shift();drawVersions();
     $('clockFrame').classList.add('filled');$('clockStage').hidden=false;$('makeLabel').textContent='다시 그리기';drawClock();}
   catch(err){showMsg('makeMsg',esc(err.message||'시계를 만들지 못했어요. 한 번 더 눌러 주세요.'));if(!clock)$('clockPh').hidden=false;}
   finally{$('loading').hidden=true;canMake();refresh();}}
 $('b-make').onclick=make;
+// AI 없이 내 그림 그대로 시계로
+$('b-plain').onclick=async()=>{if(!drawing||!kind)return;const im=await loadImg(drawing),same=clock&&clock.kind===kind;
+  clock={src:drawing,w:im.naturalWidth,h:im.naturalHeight,kind,cx:.5,cy:.5,r:.25,bx:.3,by:.4,bw:.4,bh:.2,hand:same?clock.hand:defHand(kind),min:same?clock.min:defHand(kind),sec:same?clock.sec:'#e5484d',size:same?clock.size:1,bg:'#ffffff',clockId:'',plain:true};
+  versions.push({clockId:'',plain:true,src:clock.src,w:clock.w,h:clock.h,kind,cx:.5,cy:.5,r:.25,bx:.3,by:.4,bw:.4,bh:.2});if(versions.length>8)versions.shift();drawVersions();
+  $('clockPh').hidden=true;$('clockFrame').classList.add('filled');$('clockStage').hidden=false;drawClock();hideMsg('makeMsg');
+  showMsg('makeMsg','내 그림 위에 바늘을 올렸어요. 다음 단계에서 바늘 가운데를 손가락으로 끌어 맞춰요.',true);canMake();refresh();};
 function drawClock(){if(!clock)return;document.querySelectorAll('.live').forEach(el=>{if(el.offsetParent!==null||el.id==='clockStage')el.innerHTML=clockSVG(clock);});
   const fc=document.querySelector('#finalCard [data-live-final]');if(fc&&step===5)fc.innerHTML=clockSVG(clock);}
 
 /* 3단계: 색 */
-function drawSwatches(){if(!clock)return;
+function drawSwatches(){if(!clock)return;const dh=document.querySelector('.draghint');if(dh)dh.textContent=clock.kind==='digital'?'👆 시계를 손가락으로 누르고 끌면 숫자 자리를 옮길 수 있어요':'👆 시계를 손가락으로 누르고 끌면 바늘 가운데를 옮길 수 있어요';
   const rows=clock.kind==='digital'?[['hand','숫자 색',DIGI]]:[['hand','시침 색 (짧은 바늘)',HANDS],['min','분침 색 (긴 바늘)',HANDS],['sec','초침 색 (가는 바늘)',SECS]];
   $('swRows').innerHTML=rows.map(([k,lab,list])=>`<div class="lab">${lab}</div><div class="sws">${list.map(c=>`<button class="sw" style="background:${c}" aria-label="${lab}" aria-pressed="${clock[k]===c}" data-k="${k}" data-c="${c}"></button>`).join('')}</div>`).join('');
   $('swRows').innerHTML+=`<div class="lab">${clock.kind==='digital'?'숫자 크기':'바늘 길이'}</div><div class="sizer"><button class="btn sz" data-d="-1" aria-label="작게">−</button><input type="range" id="szR" min="60" max="${clock.kind==='digital'?115:140}" step="5" value="${Math.round((clock.size||1)*100)}"><button class="btn sz" data-d="1" aria-label="크게">+</button></div>`;
@@ -644,7 +664,8 @@ function drawFinal(){const name=$('f-name').value.trim(),feat=$('f-feat').value.
 $('b-save').onclick=async()=>{if(!clock||!me)return;const name=$('f-name').value.trim(),feature=$('f-feat').value.trim();
   const b=$('b-save');b.disabled=true;b.lastChild.textContent='보내는 중…';
   try{const small=await shrinkData(drawing,720);
-    await api({action:'save',drawing:small.split(',')[1],clock:clock.src.split(',')[1],clockMime:clock.src.slice(5,clock.src.indexOf(';')),maker:me.name,grade:me.grade,ban:me.ban,num:me.num,name,feature,
+    const useIds=drawingId&&clock.clockId;
+    await api({action:'save',drawingId:drawingId||'',clockId:clock.clockId||'',drawing:drawingId?'':small.split(',')[1],clock:clock.clockId?'':(clock.plain?small:clock.src).split(',')[1],clockMime:clock.clockId?'':(clock.plain?'image/jpeg':clock.src.slice(5,clock.src.indexOf(';'))),maker:me.name,grade:me.grade,ban:me.ban,num:me.num,name,feature,
       kind:clock.kind,cx:clock.cx,cy:clock.cy,r:clock.r,bx:clock.bx,by:clock.by,bw:clock.bw,bh:clock.bh,hand:clock.hand,min:clock.min,sec:clock.sec,size:clock.size||1,bg:'#ffffff'});
     saved=true;b.hidden=true;hideMsg('saveMsg');$('doneBox').hidden=false;refresh();}
   catch(err){showMsg('saveMsg',esc(err.message));}
