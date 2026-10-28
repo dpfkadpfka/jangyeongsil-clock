@@ -295,6 +295,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 .plainbtn{margin-top:10px;height:48px;font-size:17px;color:#1767a8;border-color:#bfe0ff}
 .preview{touch-action:none;cursor:grab}
 .draghint{margin:10px 0 0;font-size:15px;font-weight:700;color:var(--muted);text-align:center;max-width:400px}
+.mact{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.mact .tdel{margin:0}
 .galsub{margin:0 0 18px;color:var(--muted);font-weight:700}
 @media (max-width:900px){.split,.final{grid-template-columns:1fr}.preview{max-width:420px;width:100%;margin:0 auto}}
 @media (max-width:640px){.me .f select{font-size:20px;padding-left:10px;padding-right:30px;background-position:right 8px center}.prog em{font-size:12px}.prog .n{width:38px;height:38px}.kinds.big{grid-template-columns:1fr}.kinds.big .kind svg{width:100px;height:100px}.who{display:none}.stepnav .btn{min-width:0;flex:1}}
@@ -536,7 +537,7 @@ const HANDS=['#23314d','#e5484d','#ff7a1a','#2f5fd0','#8b6cf0','#1f9d7a','#ff8ab
 const DIGI=['#ff4d4d','#3ff08f','#4cc3ff','#ffd23f','#ff8ab1','#ffffff'];
 const SECS=['#e5484d','#ff7a1a','#ffcf3f','#3fd6ab','#4cc3ff','#9b7bff','#ff8ab1','#23314d'];
 const defHand=k=>k==='digital'?DIGI[0]:HANDS[0];
-let drawingId='',me=null,drawing=null,clock=null,kind=null,step=1,saved=false,from='start';
+let editId='',drawingId='',me=null,drawing=null,clock=null,kind=null,step=1,saved=false,from='start';
 
 /* 화면 전환 */
 function view(v){['start','make','gal'].forEach(k=>$('v-'+k).hidden=k!==v);window.scrollTo(0,0);if(v==='gal')loadGallery();}
@@ -626,7 +627,7 @@ function hideMsg(id){$(id).hidden=true;}
 
 async function make(){if(!drawing||!kind)return;hideMsg('makeMsg');
   $('loading').hidden=false;canMake();$('clockPh').hidden=true;refresh();$('b-next').disabled=true;
-  try{const j=await api({action:'make',kind,image:drawing.split(',')[1],mime:'image/jpeg',drawingId,maker:me&&me.name,grade:me&&me.grade,ban:me&&me.ban,num:me&&me.num});
+  try{const j=await api({action:'make',kind,image:drawing.split(',')[1],mime:drawing.slice(5,drawing.indexOf(';')),drawingId,maker:me&&me.name,grade:me&&me.grade,ban:me&&me.ban,num:me&&me.num});
     if(j.drawingId)drawingId=j.drawingId;
     const cut=await cutWhite(`data:${j.mime};base64,${j.image}`,900);
     const d=j.dial||{},same=clock&&clock.kind===kind;
@@ -665,13 +666,13 @@ $('b-save').onclick=async()=>{if(!clock||!me)return;const name=$('f-name').value
   const b=$('b-save');b.disabled=true;b.lastChild.textContent='보내는 중…';
   try{const small=await shrinkData(drawing,720);
     const useIds=drawingId&&clock.clockId;
-    await api({action:'save',drawingId:drawingId||'',clockId:clock.clockId||'',drawing:drawingId?'':small.split(',')[1],clock:clock.clockId?'':(clock.plain?small:clock.src).split(',')[1],clockMime:clock.clockId?'':(clock.plain?'image/jpeg':clock.src.slice(5,clock.src.indexOf(';'))),maker:me.name,grade:me.grade,ban:me.ban,num:me.num,name,feature,
+    await api({action:'save',editId,pin:editId?PIN:'',drawingId:drawingId||'',clockId:clock.clockId||'',drawing:drawingId?'':small.split(',')[1],clock:clock.clockId?'':(clock.plain?small:clock.src).split(',')[1],clockMime:clock.clockId?'':(clock.plain?'image/jpeg':clock.src.slice(5,clock.src.indexOf(';'))),maker:me.name,grade:me.grade,ban:me.ban,num:me.num,name,feature,
       kind:clock.kind,cx:clock.cx,cy:clock.cy,r:clock.r,bx:clock.bx,by:clock.by,bw:clock.bw,bh:clock.bh,hand:clock.hand,min:clock.min,sec:clock.sec,size:clock.size||1,bg:'#ffffff'});
-    saved=true;b.hidden=true;hideMsg('saveMsg');$('doneBox').hidden=false;refresh();}
+    saved=true;b.hidden=true;hideMsg('saveMsg');$('doneBox').hidden=false;if(editId){editId='';galLoaded=false;}refresh();}
   catch(err){showMsg('saveMsg',esc(err.message));}
   finally{b.disabled=false;b.lastChild.textContent='시계 갤러리에 올리기';}};
 $('b-gal2').onclick=()=>{from='make';view('gal');};
-$('b-new').onclick=()=>{drawing=null;clock=null;kind=null;saved=false;
+$('b-new').onclick=()=>{drawing=null;clock=null;kind=null;saved=false;editId='';drawingId='';$('b-save').lastChild.textContent='시계 갤러리에 올리기';
   document.querySelectorAll('.kind').forEach(x=>x.setAttribute('aria-pressed','false'));
   $('drawFrame').classList.remove('filled');$('drawFrame').innerHTML=DF0;resetClock();$('f-name').value='';$('f-feat').value='';
   $('b-save').hidden=false;$('doneBox').hidden=true;hideMsg('saveMsg');hideMsg('makeMsg');go(1);};
@@ -717,6 +718,24 @@ async function fetchImages(){const need=[];items.forEach(it=>[it.drawingId,it.cl
 
 
 let mTimer=null,openIt=null,mode='clock';
+function canEdit(it){if(PIN)return true;if(!me)return false;const q=(a,b)=>String(a??'').trim()===String(b??'').trim();
+  return q(it.maker,me.name)&&q(it.grade,me.grade)&&q(it.ban,me.ban)&&q(it.num,me.num);}
+// 갤러리 작품을 만들기 화면으로 불러와서 고치기 (3단계부터, 2단계로 돌아가 다시 그릴 수도 있어요)
+async function startEdit(it,btn){btn.disabled=true;btn.textContent='불러오는 중…';
+  try{const j=await api({action:'img',ids:[it.drawingId,it.clockId]}),im=j.images||{};
+    if(!im[it.drawingId]||!im[it.clockId])throw new Error('그림을 불러오지 못했어요.');
+    const ci=await loadImg(im[it.clockId]),k=it.kind==='digital'?'digital':'analog';
+    editId=it.id;drawingId=it.drawingId;drawing=im[it.drawingId];kind=k;saved=false;
+    if(!me)me={grade:it.grade,ban:it.ban,num:it.num,name:it.maker};
+    clock={src:im[it.clockId],w:ci.naturalWidth,h:ci.naturalHeight,kind:k,cx:+it.cx,cy:+it.cy,r:+it.r,bx:+it.bx||.25,by:+it.by||.38,bw:+it.bw||.5,bh:+it.bh||.24,hand:it.hand,min:it.min||it.hand,sec:it.sec||'#e5484d',size:+it.size||1,bg:'#ffffff',clockId:it.clockId};
+    versions=[{clockId:it.clockId,src:clock.src,w:clock.w,h:clock.h,kind:k,cx:clock.cx,cy:clock.cy,r:clock.r,bx:clock.bx,by:clock.by,bw:clock.bw,bh:clock.bh}];
+    document.querySelectorAll('.kind').forEach(x=>x.setAttribute('aria-pressed',x.dataset.k===k));
+    const F=$('drawFrame');F.classList.add('filled');F.innerHTML=`<img src="${drawing}" alt="내 그림"><label class="btn sm change" for="f-pick" tabindex="0">그림 바꾸기</label>`;
+    $('clockPh').hidden=true;$('clockFrame').classList.add('filled');$('clockStage').hidden=false;$('makeLabel').textContent='다시 그리기';drawVersions();
+    $('f-name').value=it.name||'';$('f-feat').value=it.feature||'';
+    $('b-save').hidden=false;$('doneBox').hidden=true;hideMsg('saveMsg');hideMsg('makeMsg');$('b-save').lastChild.textContent='고친 시계 저장하기';
+    closeModal();showWho();view('make');canMake();go(3);}
+  catch(err){btn.disabled=false;btn.textContent=err.message;}}
 function closeModal(){$('modal').hidden=true;$('modal').innerHTML='';clearInterval(mTimer);openIt=null;}
 $('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('modal').hidden)closeModal();});
@@ -732,8 +751,9 @@ function renderModal(){const it=openIt;if(!it)return;const M=$('modal');M.hidden
       <div><button class="btn like" id="m-like" aria-pressed="${it.liked}">♥ 좋아요 ${it.likes}</button></div>
       <div><div class="lab">댓글 ${it.comments.length}</div><div class="cms">${it.comments.length?it.comments.map((x,i)=>`<div class="cm"><b>${esc(x.name)}</b>${esc(x.text)}${PIN&&x.time?`<button class="cdel" data-ci="${i}" aria-label="댓글 지우기">✕</button>`:''}</div>`).join(''):'<div class="cm" style="color:var(--muted)">첫 댓글을 남겨 보세요.</div>'}</div></div>
       <form class="cform" id="m-form"><input id="m-cname" maxlength="12" placeholder="이름" value="${esc(me?me.name:'')}"><input id="m-ctext" maxlength="80" placeholder="칭찬 한마디"><button class="btn primary sm" type="submit">남기기</button></form>
-      <div class="msg no" id="m-msg" hidden></div>${PIN?'<button class="btn sm tdel" id="m-del">작품 지우기</button>':''}</div></div>`;
+      <div class="msg no" id="m-msg" hidden></div><div class="mact">${canEdit(it)?`<button class="btn primary sm" id="m-edit">✏️ ${PIN?'이 시계 고치기':'내 시계 고치기'}</button>`:''}${PIN?'<button class="btn sm tdel" id="m-del">작품 지우기</button>':''}</div></div></div>`;
   $('m-close').onclick=closeModal;
+  if($('m-edit'))$('m-edit').onclick=()=>startEdit(it,$('m-edit'));
   if(PIN){$('m-del').onclick=()=>hideItem(it.id,$('m-del'));
     M.querySelectorAll('.cdel').forEach(b=>b.onclick=async()=>{const x=it.comments[+b.dataset.ci];b.disabled=true;
       try{await api({action:'delcomment',id:it.id,time:x.time,pin:PIN});it.comments.splice(+b.dataset.ci,1);renderModal();drawGallery();}catch(err){showMsg('m-msg',esc(err.message));b.disabled=false;}});}
