@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>나도 발명가! 생활 발명 연구소</title>
 <meta name="description" content="생활 속 불편함을 찾아 AI 친구와 아이디어를 키우고, 그림·앱·영상으로 만들어 보는 2학년 발명 연구소. 만든 사람 예람쌤">
-<link rel="icon" href="../favicon.png">
-<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="icon" href="ilab/favicon.png">
+<link rel="apple-touch-icon" href="ilab/apple-touch-icon.png">
 <link rel="preload" href="../fonts/allimjang-b.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../fonts/freesentation-800.woff2" as="font" type="font/woff2" crossorigin>
 <style>
@@ -496,12 +496,88 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
   .bcard{padding:14px}.bcard .bi{font-size:40px}.bcard b{font-size:20px}
   .appframe{height:62vh}
 }
+/* ===== 발명 연구소 전용 디자인: 연구 노트 느낌 (민트 · 레몬 · 코랄 · 남색) ===== */
+:root{
+  --bg:#fffcf5; --bg2:#f1f8f4; --ink:#22314a; --text:#33405a; --muted:#7a8699; --line:#dcebe3;
+  --brand:#2f9e7e; --brand-d:#23856a; --brand-soft:#e3f4ec;
+  --orange:#2f9e7e; --orange-d:#23856a;
+  --mint:#2f9e7e; --mint-l:#e3f4ec; --lemon:#fccd37; --lemon-l:#fff4cc; --coral:#f26a5e; --coral-l:#ffe6e2; --navy:#22314a;
+  --c-y:#fff4cc; --c-y2:#fff4cc; --c-s:#e3f4ec; --c-s2:#e3f4ec; --c-m:#2f9e7e; --c-m2:#e3f4ec; --c-p:#ffe6e2; --c-p2:#ffe6e2; --c-pk:#ffe6e2;
+}
+body{background-color:var(--bg);background-image:linear-gradient(rgba(47,158,126,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(47,158,126,.07) 1px,transparent 1px);background-size:28px 28px}
+button:focus-visible,label:focus-visible,input:focus-visible,textarea:focus-visible{outline-color:rgba(47,158,126,.55)}
+/* 앱 바 */
+.appbar{background:rgba(255,252,245,.95);border-bottom:3px solid var(--mint-l)}
+.brand-name b{color:var(--mint)}
+.who{background:var(--mint-l);color:var(--navy)}
+/* 첫 화면 */
+.hero h1{color:var(--navy)}
+.hero h1 b{color:var(--mint);background:linear-gradient(transparent 62%,var(--lemon-l) 62%);padding:0 6px;border-radius:4px}
+.mbtn{background:#fff;border:3px solid var(--line);box-shadow:0 8px 0 var(--line);border-radius:28px}
+.mbtn:active{box-shadow:0 4px 0 var(--line)}
+.mbtn.make{background:var(--lemon-l);border-color:#f5dc86;box-shadow:0 8px 0 #f5dc86}
+.mbtn.gal{background:var(--mint-l);border-color:#bfe3d3;box-shadow:0 8px 0 #bfe3d3}
+.mbtn b{color:var(--navy)}
+.me{background:#fff;border:3px solid var(--line);box-shadow:0 8px 0 var(--line)}
+.me .f span,.me-top b{color:var(--navy)}
+.me .f select,.me .f input{background-color:var(--bg2);border-color:var(--line)}
+.me .f select:focus{border-color:var(--mint)}
+/* 버튼 */
+.btn{border-color:var(--line);color:var(--navy)}
+.btn:hover{background:var(--bg2)}
+.btn.primary{background:var(--mint);border-color:var(--mint);box-shadow:0 6px 0 var(--brand-d)}
+.btn.primary:hover{background:var(--brand-d)}
+.btn.primary:active{transform:translateY(3px);box-shadow:0 3px 0 var(--brand-d)}
+.btn.sky{background:var(--navy);border-color:var(--navy);box-shadow:0 6px 0 #121c2e}
+.btn.mint{background:var(--coral);border-color:var(--coral);box-shadow:0 6px 0 #c94d43}
+.btn:disabled{box-shadow:none}
+/* 단계 표시: 연구 노트 견출지 */
+.prog li::before{background:var(--line);height:4px;top:23px}
+.prog .n{border-radius:14px;background:#fff;border:3px solid var(--line);color:#b3bfcc}
+.prog li.done .n{background:var(--lemon);border-color:var(--lemon);color:var(--navy)}
+.prog li.done::before,.prog li.on::before{background:var(--mint)}
+.prog li.on .n{background:var(--mint);border-color:var(--mint);color:#fff;box-shadow:0 6px 0 var(--brand-d)}
+/* 안내 말풍선 */
+.bubble{background:#fff;border:3px solid var(--line)}
+.bubble::before{border-right-color:var(--line);left:-17px}
+.bubble small{background:var(--lemon);color:var(--navy)}
+.bubble p em{color:var(--coral)}
+/* 카드: 흰 노트 + 색 견출지 */
+.card,.card.k,.card.y,.card.s,.card.m,.card.p,.card.o{background:#fff;border:3px solid var(--line);box-shadow:0 8px 0 var(--line);padding:6px;border-radius:28px}
+.card-h{padding:10px 12px 12px}
+.card-h .no{background:var(--mint);color:#fff}
+.card.y .card-h .no{background:var(--coral)}.card.s .card-h .no{background:#e8b300}.card.m .card-h .no{background:var(--mint)}.card.p .card-h .no{background:var(--navy)}.card.o .card-h .no{background:var(--coral)}
+.card-h h2,.card.y .card-h h2{color:var(--navy);text-shadow:none}
+.card-h small,.card.y .card-h small{color:var(--muted);background:var(--bg2)}
+.card-h .ico{width:56px;height:56px;object-fit:contain;margin-left:auto;flex:none}
+.card-b{background:var(--bg);border-radius:22px}
+.chip{border-color:var(--line)}
+.chip[aria-pressed="true"]{background:var(--lemon-l);border-color:var(--lemon)}
+.big-in{background:#fff}
+.big-in:focus{border-color:var(--mint)}
+/* 만들기 카드 */
+.bcard img.bi{width:110px;height:110px;object-fit:contain;display:block;margin:0 auto 4px}
+/* 갤러리 */
+.gitem,.gitem:nth-child(4n+1),.gitem:nth-child(4n+2),.gitem:nth-child(4n+3),.gitem:nth-child(4n),.gitem.solo{background:#fff;border:3px solid var(--line);box-shadow:0 8px 0 var(--line)}
+.gitem:nth-child(3n+1){border-top:10px solid var(--mint)}.gitem:nth-child(3n+2){border-top:10px solid var(--lemon)}.gitem:nth-child(3n){border-top:10px solid var(--coral)}
+.galtop h2{color:var(--navy)}
+.tip{background:var(--mint-l);color:var(--brand-d)}
+.stepnav{background:linear-gradient(rgba(255,252,245,0),var(--bg) 35%)}
+.btn:disabled,.btn.primary:disabled,.btn.sky:disabled,.btn.mint:disabled{background:#e7eeea;border-color:#e7eeea;color:#a3b2ab;box-shadow:none;transform:none}
+.msg-me{background:var(--mint);color:#fff}
+.msg-ai{background:#fff;border:2px solid var(--line)}
+.msg-ai img{width:44px;height:44px}
+.idea:hover{border-color:var(--mint)}
+.feat{background:var(--lemon-l);color:var(--navy)}
+.f input:focus,.f textarea:focus{border-color:var(--mint)}
+@media (max-width:760px){.card-h .ico{width:40px;height:40px}.card{box-shadow:0 5px 0 var(--line)}}
+footer{color:#9aa8b5}
 </style>
 </head>
 <body>
 <header class="appbar">
   <div class="in">
-    <div class="brand"><div class="logo"><img src="../logo.png" alt=""></div><div class="brand-name">나도 발명가! <b>생활 발명 연구소</b></div></div>
+    <div class="brand"><div class="logo"><img src="ilab/logo.webp" alt=""></div><div class="brand-name">나도 발명가! <b>생활 발명 연구소</b></div></div>
     <div class="who" id="who" hidden></div>
     <span class="yr" title="만든 사람 예람쌤"><img src="../yeram-logo.png" alt="예람쌤"></span>
   </div>
@@ -509,12 +585,12 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 <main class="in">
   <section class="view" id="v-start">
     <div class="hero">
-      <div class="hero-art"><img src="../img/mascot-hello.webp" alt="발명 도우미"></div>
+      <div class="hero-art"><img src="ilab/mascot-hello.webp" alt="발명 도우미"></div>
       <h1>나도 발명가!<br><b>생활 발명 연구소</b></h1>
       <p>불편한 걸 찾아서 AI 친구와 함께 발명해요.</p>
       <div class="menu2" id="menu2">
-        <button class="mbtn make" id="b-start"><img src="../img/step-pencil.webp" alt=""><b>발명하기</b><span>불편한 일을 발명으로 바꿔요</span></button>
-        <button class="mbtn gal" id="b-gal1"><img src="../img/step-friends.webp" alt=""><b>발명 갤러리 구경하기</b><span>친구들의 발명품을 봐요</span></button>
+        <button class="mbtn make" id="b-start"><img src="ilab/step-draw.webp" alt=""><b>발명하기</b><span>불편한 일을 발명으로 바꿔요</span></button>
+        <button class="mbtn gal" id="b-gal1"><img src="ilab/gallery.webp" alt=""><b>발명 갤러리 구경하기</b><span>친구들의 발명품을 봐요</span></button>
       </div>
       <form class="me" id="meForm" autocomplete="off" hidden>
         <div class="me-top"><b>나는 누구일까요?</b><button type="button" class="btn sm" id="meBack">← 처음으로</button></div>
@@ -538,10 +614,10 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
     <ol class="prog prog6" id="prog">
       <li><span class="n">1</span><em>불편한 일</em></li><li><span class="n">2</span><em>바라는 것</em></li><li><span class="n">3</span><em>아이디어</em></li><li><span class="n">4</span><em>그림</em></li><li><span class="n">5</span><em>만들기</em></li><li><span class="n">6</span><em>올리기</em></li>
     </ol>
-    <div class="guide"><div class="mascot"><img id="mascotImg" src="../img/mascot-point.webp" alt=""></div><div class="bubble"><small id="gStep">1단계</small><p id="gText"></p></div></div>
+    <div class="guide"><div class="mascot"><img id="mascotImg" src="ilab/mascot-point.webp" alt=""></div><div class="bubble"><small id="gStep">1단계</small><p id="gText"></p></div></div>
 
     <div class="step" data-s="1">
-      <div class="card y"><div class="card-h"><span class="no">1단계</span><h2>생활에서 불편했던 일은?</h2></div>
+      <div class="card y"><div class="card-h"><span class="no">1단계</span><h2>생활에서 불편했던 일은?</h2><img class="ico" src="ilab/step-problem.webp" alt=""></div>
         <div class="card-b">
           <div class="chips" id="probChips"></div>
           <textarea class="big-in" id="f-prob" maxlength="200" placeholder="예) 아침마다 늦잠을 자서 학교에 늦을 뻔해요"></textarea>
@@ -550,7 +626,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
     </div>
 
     <div class="step" data-s="2" hidden>
-      <div class="card s"><div class="card-h"><span class="no">2단계</span><h2>어떻게 되면 좋겠어?</h2></div>
+      <div class="card s"><div class="card-h"><span class="no">2단계</span><h2>어떻게 되면 좋겠어?</h2><img class="ico" src="ilab/step-wish.webp" alt=""></div>
         <div class="card-b">
           <div class="pw" id="probShow"></div>
           <div class="chips" id="wishChips" style="margin-top:14px"></div>
@@ -559,7 +635,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
     </div>
 
     <div class="step" data-s="3" hidden>
-      <div class="card m"><div class="card-h"><span class="no">3단계</span><h2>AI 친구와 아이디어 만들기</h2></div>
+      <div class="card m"><div class="card-h"><span class="no">3단계</span><h2>AI 친구와 아이디어 만들기</h2><img class="ico" src="ilab/step-chat.webp" alt=""></div>
         <div class="card-b">
           <div class="chat" id="chat"></div>
           <div class="chosen" id="chosen" hidden></div>
@@ -568,7 +644,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
     </div>
 
     <div class="step" data-s="4" hidden>
-      <div class="card p"><div class="card-h"><span class="no">4단계</span><h2>내 발명품 그림</h2><img class="ico" src="../img/step-palette.webp" alt=""></div>
+      <div class="card p"><div class="card-h"><span class="no">4단계</span><h2>내 발명품 그림</h2><img class="ico" src="ilab/step-draw.webp" alt=""></div>
         <div class="card-b">
           <div class="pics" id="pics"></div>
           <div class="refrow" id="refRow"><label class="btn sm" for="f-ref" tabindex="0">🖍️ 내가 그린 그림도 넣기</label><input type="file" id="f-ref" accept="image/*" hidden><span id="refInfo">넣으면 AI가 내 그림을 보고 그려요</span></div>
@@ -577,11 +653,11 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
     </div>
 
     <div class="step" data-s="5" hidden>
-      <div class="card o"><div class="card-h"><span class="no">5단계</span><h2>진짜로 만들어 보기</h2></div>
+      <div class="card o"><div class="card-h"><span class="no">5단계</span><h2>진짜로 만들어 보기</h2><img class="ico" src="ilab/step-build.webp" alt=""></div>
         <div class="card-b">
           <div class="builds">
-            <div class="bcard" id="bcApp"><div class="bi">📱</div><b>앱으로 만들기</b><p>AI가 내 발명품을 눌러 볼 수 있는 앱으로 만들어 줘요 (바이브코딩)</p><button class="btn primary" id="b-app">앱 만들기</button></div>
-            <div class="bcard" id="bcVid"><div class="bi">🎬</div><b>영상으로 만들기</b><p>AI가 내 발명품이 움직이는 8초 영상을 만들어 줘요</p><button class="btn sky" id="b-vid">영상 만들기</button></div>
+            <div class="bcard" id="bcApp"><img class="bi" src="ilab/make-app.webp" alt=""><b>앱으로 만들기</b><p>AI가 내 발명품을 눌러 볼 수 있는 앱으로 만들어 줘요 (바이브코딩)</p><button class="btn primary" id="b-app">앱 만들기</button></div>
+            <div class="bcard" id="bcVid"><img class="bi" src="ilab/make-video.webp" alt=""><b>영상으로 만들기</b><p>AI가 내 발명품이 움직이는 8초 영상을 만들어 줘요</p><button class="btn sky" id="b-vid">영상 만들기</button></div>
           </div>
           <div class="result" id="appRes" hidden></div>
           <div class="result" id="vidRes" hidden></div>
@@ -595,7 +671,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
         <div class="final-side">
           <label class="f"><span>발명품 이름</span><input id="f-title" maxlength="30"></label>
           <label class="f"><span>어떤 발명품인지</span><textarea id="f-desc" maxlength="400"></textarea></label>
-          <img class="final-ico" src="../img/step-upload.webp" alt=""><button class="btn mint lg block now" id="b-save">발명 갤러리에 올리기</button>
+          <img class="final-ico" src="ilab/step-share.webp" alt=""><button class="btn mint lg block now" id="b-save">발명 갤러리에 올리기</button>
           <div class="msg" id="saveMsg" hidden></div>
           <div class="done" id="doneBox" hidden><button class="btn primary lg block" id="b-gal2">발명 갤러리 보러 가기</button><button class="btn lg block" id="b-new">새 발명 또 하기</button></div>
         </div>
@@ -608,7 +684,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
   <section class="view" id="v-gal" hidden>
     <div class="galtop">
       <button class="btn" id="b-back">← 돌아가기</button>
-      <img class="ico big" src="../img/step-friends.webp" alt=""><h2>발명 갤러리</h2>
+      <img class="ico big" src="ilab/gallery.webp" alt=""><h2>발명 갤러리</h2>
       <button class="btn" id="b-refresh" aria-label="새로 보기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>새로 보기</button>
     </div>
     <div class="tbar" id="tbar" hidden><span id="tbarText">선생님 모드예요.</span> <button class="btn sm" id="tOff">끄기</button></div>
@@ -701,7 +777,7 @@ const GUIDE={1:'생활에서 <em>불편했던 일</em>을 골라 보거나 써 �
   3:{a:'AI 친구가 아이디어를 <em>3개</em> 줄 거야. 마음에 드는 걸 골라 봐!',b:'더 붙이고 싶은 걸 AI 친구에게 <em>말해</em> 봐. 다 됐으면 다음!'},
   4:{a:'내 발명품을 <em>그림</em>으로 그리고 있어. 조금만 기다려!',b:'제일 마음에 드는 <em>그림</em>을 골라 줘!'},
   5:'이제 진짜로 만들어 볼까? <em>앱</em>이나 <em>영상</em>을 골라 봐!',6:{a:'다 됐어! <em>발명 갤러리에 올리기</em>를 눌러 줘.',b:'짝짝짝! 친구들 발명품도 <em>구경</em>해 봐.'}};
-function say(t,pose){$('gStep').textContent=step+'단계';$('gText').innerHTML=t;const im=$('mascotImg'),src='../img/mascot-'+(pose||'point')+'.webp';if(!im.src.endsWith(src))im.src=src;}
+function say(t,pose){$('gStep').textContent=step+'단계';$('gText').innerHTML=t;const im=$('mascotImg'),src='ilab/mascot-'+(pose||'point')+'.webp';if(!im.src.endsWith(src))im.src=src;}
 function canNext(){return step===1?$('f-prob').value.trim().length>1:step===2?$('f-wish').value.trim().length>1:step===3?!!ideaNow&&!busy:step===4?picOn>=0&&!!pics[picOn]&&pics[picOn].id:step===5?!busy:false;}
 function refresh(){document.querySelectorAll('#prog li').forEach((li,i)=>li.className=i+1<step||(step===6&&saved)?'done':i+1===step?'on':'');
   document.querySelectorAll('.now').forEach(e=>e.classList.remove('now'));
@@ -724,9 +800,9 @@ $('b-prev').onclick=()=>{if(step>1)go(step-1);};
 /* 3단계: AI 친구와 대화 */
 function addMsg(whoS,text){chatLog.push({who:whoS,text});drawChat();}
 function drawChat(typing){const C=$('chat');
-  C.innerHTML=chatLog.map(m=>m.who==='me'?`<div class="msg-me">${esc(m.text)}</div>`:`<div class="msg-ai"><img src="../img/mascot-point.webp" alt=""><div>${esc(m.text)}</div></div>`).join('')+
+  C.innerHTML=chatLog.map(m=>m.who==='me'?`<div class="msg-me">${esc(m.text)}</div>`:`<div class="msg-ai"><img src="ilab/ai-friend.webp" alt=""><div>${esc(m.text)}</div></div>`).join('')+
     (ideaList&&!ideaNow?`<div class="ideas">${ideaList.map((d,i)=>ideaCard(d,i)).join('')}</div>`:'')+
-    (typing?'<div class="msg-ai"><img src="../img/mascot-think.webp" alt=""><div class="typing"><i></i><i></i><i></i></div></div>':'');
+    (typing?'<div class="msg-ai"><img src="ilab/ai-friend.webp" alt=""><div class="typing"><i></i><i></i><i></i></div></div>':'');
   C.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>pickIdea(+b.dataset.pick));
   C.scrollTop=C.scrollHeight;
   const ch=$('chosen');ch.hidden=!ideaNow;if(ideaNow)ch.innerHTML=`<div class="em">${esc(ideaNow.emoji||'💡')}</div><div><b>${esc(ideaNow.title)}</b><span>${esc(ideaNow.desc)}</span></div>`;}
@@ -771,7 +847,7 @@ async function makeApp(request){if(busy)return;busy=true;hideMsg('buildMsg');con
   finally{busy=false;B.disabled=false;B.textContent=app?'앱 새로 만들기':'앱 만들기';refresh();}}
 $('b-app').onclick=()=>makeApp('');
 async function makeVid(){if(busy)return;const p=chosenPic();if(!p||!p.src)return;busy=true;hideMsg('buildMsg');const B=$('b-vid');B.disabled=true;B.textContent='영상 준비 중…';refresh();
-  const R=$('vidRes');R.hidden=false;R.innerHTML='<div class="wait" style="position:relative;min-height:220px;border-radius:20px"><img src="../img/mascot-think.webp" alt=""><strong>AI가 영상을 만들고 있어요</strong><div class="bar"><i></i></div><span>1~2분쯤 걸려요. 기다리는 동안 앱도 만들어 봐요!</span></div>';
+  const R=$('vidRes');R.hidden=false;R.innerHTML='<div class="wait" style="position:relative;min-height:220px;border-radius:20px"><img src="ilab/mascot-think.webp" alt=""><strong>AI가 영상을 만들고 있어요</strong><div class="bar"><i></i></div><span>1~2분쯤 걸려요. 기다리는 동안 앱도 만들어 봐요!</span></div>';
   try{const img=await shrink(p.src,1024,'image/png');
     const s=await api({action:'inv_video',image:b64(img),mime:'image/png',idea:ideaNow,...who()});
     B.textContent='영상 만드는 중…';busy=false;refresh();
