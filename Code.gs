@@ -236,7 +236,10 @@ function save_(q) {
   const id = 'c' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
   const maker = str_(q.maker, 12), name = str_(q.name, 20);
   const d = s.folder.createFile(Utilities.newBlob(Utilities.base64Decode(q.drawing), 'image/jpeg', id + '_설계도_' + maker + '.jpg'));
-  const c = s.folder.createFile(Utilities.newBlob(Utilities.base64Decode(q.clock), 'image/png', id + '_시계_' + maker + '.png'));
+  const cm = q.clockMime === 'image/webp' ? 'image/webp' : 'image/png';
+  const c = s.folder.createFile(Utilities.newBlob(Utilities.base64Decode(q.clock), cm, id + '_시계_' + maker + (cm === 'image/webp' ? '.webp' : '.png')));
+  // 갤러리에서 빨리 보이도록 링크가 있는 사람만 볼 수 있게(목록에 없는 파일은 주소를 알 수 없음)
+  [d, c].forEach(f => { try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {} });
   const hex = v => /^#[0-9a-fA-F]{6}$/.test(String(v)) ? v : '#1b2433';
   sh.appendRow([id, new Date(), maker, name, str_(q.feature, 80), d.getId(), c.getId(),
     num_(q.cx, 0, 1, 0.5), num_(q.cy, 0, 1, 0.5), num_(q.r, 0.05, 0.5, 0.3), hex(q.hand), hex(q.bg), str_(q.dev, 40), '',
