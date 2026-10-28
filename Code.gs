@@ -109,10 +109,37 @@ function make_(q) {
   if (!countToday_()) return { ok: false, error: '오늘 만들 수 있는 시계를 다 만들었어요. 내일 다시 해요.' };
 
   const digital = q.kind === 'digital';
+  const s = store_(), who = whoStr_(q);
+  // 올린 그림은 바로 드라이브에 저장(같은 그림으로 다시 그릴 때는 다시 올리지 않아요)
+  let drawingId = String(q.drawingId || '');
+  if (!drawingId || !makeIds_()[drawingId]) drawingId = share_(s.folder.createFile(Utilities.newBlob(Utilities.base64Decode(q.image), q.mime || 'image/jpeg', stamp_() + '_그림_' + who + '.jpg'))).getId();
   const out = genImage_(q.image, q.mime || 'image/jpeg', digital ? DIGITAL_PROMPT : CLOCK_PROMPT);
-  if (!out) return { ok: false, error: '시계를 만들지 못했어요. 한 번 더 눌러 주세요.', detail: LAST_ERR };
+  if (!out) { logMake_(s, q, drawingId, '', '실패'); return { ok: false, error: /429/.test(LAST_ERR) ? '지금 친구들이 한꺼번에 많이 만들고 있어요. 10초 뒤에 다시 눌러 주세요.' : '시계를 만들지 못했어요. 한 번 더 눌러 주세요.', detail: LAST_ERR, drawingId: drawingId }; }
+  const ext = /webp/.test(out.mime) ? '.webp' : /jpe?g/.test(out.mime) ? '.jpg' : '.png';
+  const clockId = share_(s.folder.createFile(Utilities.newBlob(Utilities.base64Decode(out.data), out.mime, stamp_() + '_AI시계_' + who + ext))).getId();
+  logMake_(s, q, drawingId, clockId, '');
   const dial = digital ? findScreen_(out.data, out.mime) : findDial_(out.data, out.mime);
-  return { ok: true, image: out.data, mime: out.mime, dial: dial };
+  return { ok: true, image: out.data, mime: out.mime, dial: dial, drawingId: drawingId, clockId: clockId };
+}
+
+function share_(f) { try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {} return f; }
+function stamp_() { return Utilities.formatDate(new Date(), 'Asia/Seoul', 'MMdd_HHmmss'); }
+function whoStr_(q) { return [str_(q.grade, 2) && str_(q.grade, 2) + '학년', str_(q.ban, 3) && str_(q.ban, 3) + '반', str_(q.num, 3) && str_(q.num, 3) + '번', str_(q.maker, 12)].filter(Boolean).join(' ') || '이름없음'; }
+function makesSheet_(s) {
+  let sh = s.ss.getSheetByName('makes');
+  if (!sh) { sh = s.ss.insertSheet('makes'); sh.appendRow(['시각', '학년', '반', '번호', '이름', '종류', '그림 파일', '시계 파일', '메모']); }
+  return sh;
+}
+// 만들 때마다 기록: 누가, 무엇을, 어떤 파일로
+function logMake_(s, q, drawingId, clockId, memo) {
+  const link = id => id ? 'https://drive.google.com/file/d/' + id + '/view' : '';
+  makesSheet_(s).appendRow([new Date(), str_(q.grade, 2), str_(q.ban, 3), str_(q.num, 3), str_(q.maker, 12), q.kind === 'digital' ? '디지털' : '바늘', link(drawingId), link(clockId), memo]);
+}
+// 이 앱이 만든 파일만 갤러리에 쓸 수 있어요
+function makeIds_() {
+  const out = {};
+  makesSheet_(store_()).getDataRange().getValues().forEach(r => [r[6], r[7]].forEach(u => { const m = String(u).match(/\/d\/([\w-]+)/); if (m) out[m[1]] = 1; }));
+  return out;
 }
 
 function countToday_() {
@@ -161,11 +188,19 @@ function gen_(parts, image, models, studioModels) {
   if (sa) {
     let tok = '';
     try { tok = vertexToken_(sa); } catch (e) { errs.push(String(e.message || e)); }
-    if (tok) for (const m of models) {
-      const r = UrlFetchApp.fetch('https://aiplatform.googleapis.com/v1/projects/' + sa.project_id + '/locations/global/publishers/google/models/' + m + ':generateContent', {
-        method: 'post', contentType: 'application/json', headers: { Authorization: 'Bearer ' + tok }, muteHttpExceptions: true, payload: JSON.stringify(body) });
-      if (r.getResponseCode() === 200) { const j = JSON.parse(r.getContentText()); if (!image || findImage_(j)) return j; errs.push(m + ' 그림 없음'); }
-      else errs.push(m + ' ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 200));
+    // 한 곳이 붐비면(429) 다른 지역 서버로, 그래도 안 되면 잠깐 쉬고 한 번 더
+    const LOCS = ['global', 'us-central1', 'asia-northeast3', 'asia-northeast1', 'europe-west4'];
+    if (tok) for (let round = 0; round < 2; round++) {
+      for (const m of models) for (const loc of LOCS) {
+        const host = loc === 'global' ? 'aiplatform.googleapis.com' : loc + '-aiplatform.googleapis.com';
+        const r = UrlFetchApp.fetch('https://' + host + '/v1/projects/' + sa.project_id + '/locations/' + loc + '/publishers/google/models/' + m + ':generateContent', {
+          method: 'post', contentType: 'application/json', headers: { Authorization: 'Bearer ' + tok }, muteHttpExceptions: true, payload: JSON.stringify(body) });
+        const code = r.getResponseCode();
+        if (code === 200) { const j = JSON.parse(r.getContentText()); if (!image || findImage_(j)) return j; errs.push(m + '@' + loc + ' 그림 없음'); break; }
+        errs.push(m + '@' + loc + ' ' + code);
+        if (code !== 429 && code !== 503 && code !== 404) break;   // 붐빔·지역 없음이 아니면 다른 지역도 같은 결과
+      }
+      if (round === 0) Utilities.sleep(4000);
     }
   }
   if (key_()) for (const m of studioModels) {
@@ -229,17 +264,18 @@ function findDial_(b64, mime) {
 
 /* ---------- 2) 전시관에 걸기 ---------- */
 function save_(q) {
-  if (!b64ok_(q.drawing) || !b64ok_(q.clock)) return { ok: false, error: '그림을 다시 만들어 주세요.' };
   const s = store_();
+  const ids = (q.drawingId || q.clockId) ? makeIds_() : {};
+  const reuseD = q.drawingId && ids[q.drawingId], reuseC = q.clockId && ids[q.clockId];
+  if ((!reuseD && !b64ok_(q.drawing)) || (!reuseC && !b64ok_(q.clock))) return { ok: false, error: '그림을 다시 만들어 주세요.' };
   const sh = s.ss.getSheetByName('clocks');
   if (sh.getRange(1, 25).getValue() !== '바늘크기') sh.getRange(1, 15, 1, 11).setValues([['kind', 'bx', 'by', 'bw', 'bh', '반', '번호', '학년', '분침', '초침', '바늘크기']]);
   const id = 'c' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
   const maker = str_(q.maker, 12), name = str_(q.name, 20);
-  const d = s.folder.createFile(Utilities.newBlob(Utilities.base64Decode(q.drawing), 'image/jpeg', id + '_설계도_' + maker + '.jpg'));
-  const cm = q.clockMime === 'image/webp' ? 'image/webp' : 'image/png';
-  const c = s.folder.createFile(Utilities.newBlob(Utilities.base64Decode(q.clock), cm, id + '_시계_' + maker + (cm === 'image/webp' ? '.webp' : '.png')));
   // 갤러리에서 빨리 보이도록 링크가 있는 사람만 볼 수 있게(목록에 없는 파일은 주소를 알 수 없음)
-  [d, c].forEach(f => { try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {} });
+  const d = reuseD ? { getId: () => q.drawingId } : share_(s.folder.createFile(Utilities.newBlob(Utilities.base64Decode(q.drawing), 'image/jpeg', id + '_설계도_' + maker + '.jpg')));
+  const cm = ['image/webp', 'image/jpeg', 'image/png'].indexOf(q.clockMime) >= 0 ? q.clockMime : 'image/png';
+  const c = reuseC ? { getId: () => q.clockId } : share_(s.folder.createFile(Utilities.newBlob(Utilities.base64Decode(q.clock), cm, id + '_시계_' + maker + '.' + cm.split('/')[1].replace('jpeg', 'jpg'))));
   const hex = v => /^#[0-9a-fA-F]{6}$/.test(String(v)) ? v : '#1b2433';
   sh.appendRow([id, new Date(), maker, name, str_(q.feature, 80), d.getId(), c.getId(),
     num_(q.cx, 0, 1, 0.5), num_(q.cy, 0, 1, 0.5), num_(q.r, 0.05, 0.5, 0.3), hex(q.hand), hex(q.bg), str_(q.dev, 40), '',
