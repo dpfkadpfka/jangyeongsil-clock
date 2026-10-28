@@ -315,6 +315,16 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 .schpick b{font-size:20px;color:var(--ink)}.schpick small{color:var(--muted);font-weight:700;font-size:13px;flex:1}
 .gitem[data-open]{cursor:pointer}
 .gitem[data-open]:active{transform:scale(.99)}
+.scope{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0 10px}
+.scope button{border:2px solid var(--line);background:#fff;border-radius:999px;padding:9px 18px;font:inherit;font-size:17px;font-weight:800;color:var(--muted);cursor:pointer}
+.scope button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.scope button:disabled{opacity:.45;cursor:default}
+.scope small{color:var(--muted);font-weight:700;font-size:14px}
+.gtools{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 4px}.gtools .scope{margin:0}
+.gsearch{display:flex;align-items:center;gap:8px;background:var(--bg2);border-radius:999px;padding:0 16px;height:48px;min-width:min(320px,100%);flex:0 1 360px}
+.gsearch svg{width:20px;height:20px;color:var(--muted);flex:none}
+.gsearch input{border:0;background:none;font:inherit;font-size:17px;font-weight:700;color:var(--ink);width:100%;outline:none}
+.morebtn{grid-column:1/-1;justify-self:center;margin-top:6px}
 .galsub{margin:0 0 18px;color:var(--muted);font-weight:700}
 @media (max-width:900px){.split,.final{grid-template-columns:1fr}.preview{max-width:420px;width:100%;margin:0 auto}}
 @media (max-width:640px){.me .f select{font-size:20px;padding-left:10px;padding-right:30px;background-position:right 8px center}.prog em{font-size:12px}.prog .n{width:38px;height:38px}.kinds.big{grid-template-columns:1fr}.kinds.big .kind svg{width:100px;height:100px}.who{display:none}.stepnav .btn{min-width:0;flex:1}}
@@ -351,11 +361,63 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
   .feat{font-size:15px;padding:10px 14px}
   .cform{grid-template-columns:minmax(0,1fr) auto}.cform #m-cname{grid-column:1/-1}
   .cms{max-height:160px}
-  .hero{margin-top:18px;gap:10px}.hero-art{width:140px;height:140px}.hero>p{font-size:16px}
-  .mbtn{padding:18px 14px;border-radius:26px;grid-template-columns:auto 1fr;justify-items:start;text-align:left;column-gap:14px;align-items:center}
-  .mbtn img{width:72px;height:72px;grid-row:span 2}.mbtn b{font-size:22px}.mbtn span{font-size:14px}
+  .hero{margin-top:10px;gap:6px}.hero-art{width:92px;height:92px}
+  .hero h1{font-size:28px;line-height:1.15}.hero h1 br{display:none}.hero h1 b{margin-left:.25em}
+  .hero>p{font-size:14px;margin-bottom:4px}
+  .menu2{gap:10px;margin-top:4px}
+  .mbtn{padding:12px 14px;border-radius:20px;grid-template-columns:auto 1fr;justify-items:start;text-align:left;column-gap:12px;row-gap:2px;align-items:center;box-shadow:0 5px 0 rgba(0,0,0,.08);animation:none}
+  .mbtn img{width:50px;height:50px;grid-row:span 2}.mbtn b{font-size:19px}.mbtn span{font-size:13px}
+  .me{gap:12px}.me-top b{font-size:20px}
+  .f span{font-size:15px}.f input,.f textarea{font-size:18px;padding:11px 14px}
+  .me .f select{font-size:18px;padding:10px 30px 10px 10px}
+  .school input{font-size:18px}.schpick b{font-size:17px}
+  .btn.lg{height:58px;font-size:20px}
   .me{padding:16px;border-radius:26px}.me .f select{font-size:20px}
   footer{font-size:13px;margin:28px 0 18px}
+  .gsearch{flex:1 1 100%;height:44px}.gsearch input{font-size:16px}
+  .scope button{padding:7px 13px;font-size:15px}.scope small{font-size:12px;width:100%}
+  .prog{margin-top:12px}.prog .n{width:34px;height:34px;font-size:16px}.prog li::before{top:15px;height:5px}.prog em{font-size:11px}
+  .guide{gap:10px;padding:12px 0}.mascot{width:68px;height:68px}
+  .bubble{padding:12px 16px;border-radius:20px}.bubble small{font-size:12px;padding:1px 10px;margin-bottom:4px}.bubble p{font-size:18px}
+  .bubble::before{left:-10px;border-width:9px;border-right-width:12px;margin-top:-9px}
+  .card{border-radius:24px;padding:7px}.card-h{padding:8px 10px 10px}.card-h h2{font-size:20px}.card-h .no{font-size:13px;padding:3px 10px}
+  .card-h .ico{width:40px;height:40px}.card-b{border-radius:18px;padding:12px}
+  .work,.lower{gap:14px}
+  .kinds.big{padding:12px;gap:12px}.kinds.big .kind{padding:16px 12px;gap:8px;border-radius:20px}
+  .kinds.big .kind .kimg{width:110px;height:110px}.kinds.big .kind b{font-size:24px}.kinds.big .kind span{font-size:14px}
+  .kinds.big{grid-template-columns:1fr 1fr}
+  .frame{aspect-ratio:1/1}.pick .row{flex-direction:column;width:100%}.pick .btn{width:100%}
+  .btn{height:50px;font-size:17px}.btn.sm{height:38px;font-size:14px}
+  .cta{margin-top:10px}.cta small{font-size:13px}.plainbtn{height:44px;font-size:15px}
+  .vers{padding:10px}.ver{width:64px;height:64px}
+  .split{grid-template-columns:1fr;gap:14px}.preview{width:100%;max-width:340px}
+  .sws{gap:10px;margin-bottom:14px}.sw{width:42px;height:42px}.lab{font-size:15px;margin-bottom:8px}
+  .sizer .sz{width:44px;height:44px;font-size:24px}
+  .tip{font-size:14px;padding:9px 12px}
+  .final{grid-template-columns:1fr;gap:14px}.final-ico{width:80px;height:80px}
+  .stepnav{padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));margin-top:14px}.stepnav .btn{height:52px}
+  .who{display:none}
+  /* 첫 화면: 한 화면에 딱 맞게, 스크롤 없이 */
+  body.is-start{height:100dvh;overflow:hidden;overscroll-behavior:none}
+  body.is-start #v-start{height:calc(100dvh - 60px - env(safe-area-inset-top,0px));display:flex;flex-direction:column;justify-content:center;padding-bottom:34px}
+  body.is-start .hero{margin:0;gap:8px}
+  body.is-start .hero-art{width:min(110px,16dvh);height:min(110px,16dvh)}
+  body.is-start .hero h1{font-size:clamp(24px,7vw,30px)}
+  body.is-start footer{position:fixed;left:0;right:0;bottom:calc(8px + env(safe-area-inset-bottom,0px));margin:0;font-size:11px;line-height:1.5;padding:0 12px}
+  /* 이름 쓰기 화면: 캐릭터·큰 제목은 숨기고 입력 칸만 */
+  body.is-form{height:auto;overflow:auto}
+  body.is-form #v-start{height:auto;justify-content:flex-start;padding:10px 0 40px}
+  body.is-form .hero-art,body.is-form .hero>p,body.is-form .hero h1{display:none}
+  body.is-form footer{position:static;margin:18px 0 12px}
+  .me{gap:10px;padding:14px;border-radius:22px}
+  .me-top b{font-size:19px}.me-top .btn{height:36px;font-size:14px;padding:0 12px}
+  .me .f{gap:4px}.me .f span{font-size:14px}
+  .me .f input,.school input{height:48px;font-size:17px;padding:0 14px;border-radius:14px}
+  .me .f select{height:48px;font-size:17px;padding:0 26px 0 8px;border-radius:14px;background-position:right 8px center;background-size:16px}
+  .me-row{gap:8px}
+  .schpick{padding:8px 10px;border-radius:14px}.schpick b{font-size:16px}.schpick small{font-size:12px}
+  .schlist b{font-size:16px}
+  .me .btn.lg{height:52px;font-size:19px}
 }
 </style>
 </head>
@@ -507,6 +569,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
       <button class="btn" id="b-refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>새로 보기</button>
     </div>
     <div class="tbar" id="tbar" hidden>선생님 모드예요. 작품과 댓글을 지울 수 있어요. <button class="btn sm" id="tOff">끄기</button></div>
+    <div class="gtools"><div class="scope" id="galScope"></div><label class="gsearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="galSearch" type="search" placeholder="이름이나 시계 이름으로 찾기" autocomplete="off"></label></div>
     <p class="galsub" id="galSub">그림이나 시계를 누르면 크게 볼 수 있어요.</p>
     <div class="glist" id="glist"><div class="empty"><b>작품을 불러오고 있어요</b>잠시만 기다려 주세요.</div></div>
   </section>
@@ -603,7 +666,8 @@ const defHand=k=>k==='digital'?DIGI[0]:HANDS[0];
 let editId='',drawingId='',me=null,drawing=null,clock=null,kind=null,step=1,saved=false,from='start';
 
 /* 화면 전환 */
-function view(v){['start','make','gal'].forEach(k=>$('v-'+k).hidden=k!==v);window.scrollTo(0,0);if(v==='gal')loadGallery();}
+function startMode(){const st=!$('v-start').hidden,form=!$('meForm').hidden;document.body.classList.toggle('is-start',st);document.body.classList.toggle('is-form',st&&form);}
+function view(v){['start','make','gal'].forEach(k=>$('v-'+k).hidden=k!==v);setTimeout(startMode,0);window.scrollTo(0,0);if(v==='gal')loadGallery();}
 const shortSchool=n=>String(n||'').replace(/등학교$/,'').replace(/학교$/,'');
 function showWho(){const w=$('who');if(me){w.hidden=false;w.textContent=`${me.school?shortSchool(me.school)+' ':''}${me.grade}학년 ${me.ban}반 ${me.num}번 ${me.name}`;}else w.hidden=true;}
 
@@ -633,12 +697,12 @@ $('b-gal1').onclick=()=>{from='start';view('gal');};
 // 주소로 바로 가기: …/#gallery 는 시계 갤러리, …/#make 는 이름 쓰기부터
 function route(){const h=location.hash.replace('#','');
   if(h==='gallery'){from='start';view('gal');}
-  else if(h==='make'){view('start');$('menu2').hidden=true;$('meForm').hidden=false;}}
+  else if(h==='make'){view('start');$('menu2').hidden=true;$('meForm').hidden=false;}startMode();}
 window.addEventListener('hashchange',route);setTimeout(route,0);
 // 위쪽 로고를 누르면 첫 화면으로
-document.querySelector('.brand').onclick=()=>{closeModal();$('meForm').hidden=true;$('menu2').hidden=false;view('start');};
-$('b-start').onclick=()=>{$('menu2').hidden=true;$('meForm').hidden=false;setTimeout(()=>$('f-grade').focus(),50);};
-$('meBack').onclick=()=>{$('meForm').hidden=true;$('menu2').hidden=false;};
+document.querySelector('.brand').onclick=()=>{closeModal();$('meForm').hidden=true;$('menu2').hidden=false;view('start');startMode();};
+$('b-start').onclick=()=>{$('menu2').hidden=true;$('meForm').hidden=false;startMode();setTimeout(()=>$('f-grade').focus(),50);};
+$('meBack').onclick=()=>{$('meForm').hidden=true;$('menu2').hidden=false;startMode();};
 $('b-back').onclick=()=>view(from);
 
 /* 단계 */
@@ -792,17 +856,37 @@ $('b-refresh').onclick=()=>loadGallery();
 setInterval(()=>{if(!$('v-gal').hidden&&document.visibilityState==='visible')loadGallery(true);},15000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!$('v-gal').hidden)loadGallery(true);});
 function itemClock(it){const im=imgCache[it.clockId];if(!im)return null;return {src:im.src,w:im.w,h:im.h,kind:it.kind==='digital'?'digital':'analog',cx:+it.cx,cy:+it.cy,r:+it.r,bx:+it.bx,by:+it.by,bw:+it.bw,bh:+it.bh,hand:it.hand,min:it.min||it.hand,sec:it.sec||'#e5484d',size:+it.size||1,bg:'#ffffff'};}
-function drawGallery(){const G=$('glist');
+// 갤러리 보기 범위: 우리 반 / 우리 학교 / 전체
+let galScope=null;
+let gqT=null;$('galSearch').addEventListener('input',()=>{clearTimeout(gqT);gqT=setTimeout(()=>{galQ=$('galSearch').value.trim();galLimit=24;drawGallery();},250);});
+function myPlace(){if(me&&me.school)return me;try{const m=JSON.parse(ls.get('gc-me','null'));if(m&&m.school)return m;}catch(e){}return null;}
+let galQ='',galLimit=24;
+function shownItems(){const p=myPlace(),eq=(a,b)=>String(a??'').trim()===String(b??'').trim();
+  let L=scoped(p,eq);const q=galQ.replace(/\s/g,'');
+  if(q)L=L.filter(x=>[x.maker,x.name,x.feature].some(v=>String(v||'').replace(/\s/g,'').includes(q)));
+  return L;}
+function scoped(p,eq){
+  if(!p||galScope==='all')return items;
+  if(galScope==='school')return items.filter(x=>eq(x.school,p.school));
+  return items.filter(x=>eq(x.school,p.school)&&eq(x.grade,p.grade)&&eq(x.ban,p.ban));}
+function drawScope(){const p=myPlace(),S=$('galScope');if(galScope===null)galScope=p?'class':'all';
+  S.innerHTML=[['class',p?`우리 반 (${p.grade}-${p.ban})`:'우리 반'],['school',p?shortSchool(p.school):'우리 학교'],['all','전체']].map(([k,l])=>`<button data-sc="${k}" aria-pressed="${galScope===k}"${!p&&k!=='all'?' disabled':''}>${esc(l)}</button>`).join('')+(p?'':'<small>시계를 만들 때 학교·반을 고르면 우리 반만 볼 수 있어요</small>');
+  S.querySelectorAll('button').forEach(b=>b.onclick=()=>{galScope=b.dataset.sc;drawScope();drawGallery();});}
+function drawGallery(){const G=$('glist');drawScope();const list=shownItems();
+  if(items.length&&!list.length&&galQ){$('galSub').textContent='';G.innerHTML=`<div class="empty"><b>"${esc(galQ)}" 시계를 찾지 못했어요</b>이름을 다시 확인해 볼까요?</div>`;return;}
+  if(items.length&&!list.length){$('galSub').textContent='그림이나 시계를 누르면 크게 볼 수 있어요.';G.innerHTML=`<div class="empty"><b>${galScope==='class'?'우리 반':'우리 학교'}에는 아직 작품이 없어요</b>첫 작품을 올려 보세요. '전체'를 누르면 다른 친구들 시계도 볼 수 있어요.</div>`;return;}
   if(!items.length){G.innerHTML='<div class="empty"><b>아직 올라온 작품이 없어요</b>시계 만들기에서 첫 작품을 올려 보세요.</div>';return;}
-  $('galSub').textContent=`작품 ${items.length}개 · 그림이나 시계를 누르면 크게 볼 수 있어요.`;
-  G.innerHTML=items.map(it=>{const c=itemClock(it),d=imgCache[it.drawingId];
+  $('galSub').textContent=`작품 ${list.length}개 · 그림이나 시계를 누르면 크게 볼 수 있어요.`;
+  const more=list.length>galLimit;
+  G.innerHTML=list.slice(0,galLimit).map(it=>{const c=itemClock(it),d=imgCache[it.drawingId];
     return `<article class="gitem" data-open="${esc(it.id)}"><div class="gpair">
       <button class="gcell" data-draw="${esc(it.id)}"><div class="gimg">${d?`<img src="${d.src}" alt="${esc(it.maker)}의 그림">`:'<div class="dots"></div>'}</div><span class="gtag">그림</span></button>
       <button class="gcell" data-clock="${esc(it.id)}"><div class="gimg" data-live="${esc(it.id)}">${c?clockSVG(c):'<div class="dots"></div>'}</div><span class="gtag">시계</span></button></div>
-      <div class="ginfo"><div><b>${esc(it.name||'이름 없는 시계')}</b><span>${it.school?esc(shortSchool(it.school))+' ':''}${it.grade?esc(it.grade)+'학년 ':''}${it.ban?esc(it.ban)+'반 '+esc(it.num)+'번 ':''}${esc(it.maker)}</span></div><div class="gstat"><button class="heart${it.liked?' on':''}" data-like="${esc(it.id)}" aria-label="좋아요">${it.liked?'❤️':'🤍'} ${it.likes}</button><span class="cmt">💬 ${it.comments.length}</span></div></div>${it.feature?`<p class="gfeat">${esc(it.feature)}</p>`:''}${PIN?`<button class="btn sm tdel" data-del="${esc(it.id)}">작품 지우기</button>`:''}</article>`;}).join('');
+      <div class="ginfo"><div><b>${esc(it.name||'이름 없는 시계')}</b><span>${it.school?esc(shortSchool(it.school))+' ':''}${it.grade?esc(it.grade)+'학년 ':''}${it.ban?esc(it.ban)+'반 '+esc(it.num)+'번 ':''}${esc(it.maker)}</span></div><div class="gstat"><button class="heart${it.liked?' on':''}" data-like="${esc(it.id)}" aria-label="좋아요">${it.liked?'❤️':'🤍'} ${it.likes}</button><span class="cmt">💬 ${it.comments.length}</span></div></div>${it.feature?`<p class="gfeat">${esc(it.feature)}</p>`:''}${PIN?`<button class="btn sm tdel" data-del="${esc(it.id)}">작품 지우기</button>`:''}</article>`;}).join('')+(more?`<button class="btn lg morebtn" id="galMore">작품 더 보기 (${list.length-galLimit}개 더)</button>`:'');
   G.querySelectorAll('[data-open]').forEach(a=>a.onclick=e=>{if(e.target.closest('button[data-like],button[data-del]'))return;
     const d=e.target.closest('[data-draw]');openItem(a.dataset.open,d?'drawing':'clock');});
   G.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{e.stopPropagation();hideItem(b.dataset.del,b);});
+  if($('galMore'))$('galMore').onclick=()=>{galLimit+=24;drawGallery();};
   G.querySelectorAll('[data-like]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleLike(b.dataset.like);});}
 // 좋아요: 누르자마자 숫자가 바뀌고(기다리지 않음), 서버에는 뒤에서 저장
 const liking={};
