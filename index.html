@@ -170,6 +170,9 @@ button:focus-visible,label:focus-visible,input:focus-visible,textarea:focus-visi
 .ginfo span{color:rgba(31,38,51,.7);font-size:15px;font-weight:700}
 .gstat{display:flex;gap:8px;white-space:nowrap}
 .gstat span{background:#fff;border-radius:999px;padding:3px 11px;font-size:14px;font-weight:800;color:var(--ink)}
+.gstat .heart{border:0;background:#fff;border-radius:999px;padding:8px 16px;font:inherit;font-size:17px;font-weight:800;color:var(--ink);cursor:pointer;min-height:40px;transition:transform .1s}
+.gstat .heart:active{transform:scale(.9)}
+.gstat .heart.on{color:#e5484d;background:#fff0f4}
 .heart.on{color:var(--err)!important}
 .dots{width:30px;height:30px;border-radius:50%;border:4px solid var(--line);border-top-color:var(--orange);animation:rot 1s linear infinite}
 @keyframes rot{to{transform:rotate(360deg)}}
@@ -726,10 +729,18 @@ function drawGallery(){const G=$('glist');
     return `<article class="gitem"><div class="gpair">
       <button class="gcell" data-draw="${esc(it.id)}"><div class="gimg">${d?`<img src="${d.src}" alt="${esc(it.maker)}의 그림">`:'<div class="dots"></div>'}</div><span class="gtag">그림</span></button>
       <button class="gcell" data-clock="${esc(it.id)}"><div class="gimg" data-live="${esc(it.id)}">${c?clockSVG(c):'<div class="dots"></div>'}</div><span class="gtag">시계</span></button></div>
-      <div class="ginfo"><div><b>${esc(it.name||'이름 없는 시계')}</b><span>${it.grade?esc(it.grade)+'학년 ':''}${it.ban?esc(it.ban)+'반 '+esc(it.num)+'번 ':''}${esc(it.maker)}</span></div><div class="gstat"><span class="heart${it.liked?' on':''}">♥ ${it.likes}</span><span>댓글 ${it.comments.length}</span></div></div>${PIN?`<button class="btn sm tdel" data-del="${esc(it.id)}">작품 지우기</button>`:''}</article>`;}).join('');
+      <div class="ginfo"><div><b>${esc(it.name||'이름 없는 시계')}</b><span>${it.grade?esc(it.grade)+'학년 ':''}${it.ban?esc(it.ban)+'반 '+esc(it.num)+'번 ':''}${esc(it.maker)}</span></div><div class="gstat"><button class="heart${it.liked?' on':''}" data-like="${esc(it.id)}" aria-label="좋아요">${it.liked?'❤️':'🤍'} ${it.likes}</button><span>댓글 ${it.comments.length}</span></div></div>${PIN?`<button class="btn sm tdel" data-del="${esc(it.id)}">작품 지우기</button>`:''}</article>`;}).join('');
   G.querySelectorAll('[data-draw]').forEach(b=>b.onclick=()=>openItem(b.dataset.draw,'drawing'));
   G.querySelectorAll('[data-clock]').forEach(b=>b.onclick=()=>openItem(b.dataset.clock,'clock'));
-  G.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>hideItem(b.dataset.del,b));}
+  G.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>hideItem(b.dataset.del,b));
+  G.querySelectorAll('[data-like]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleLike(b.dataset.like);});}
+// 좋아요: 누르자마자 숫자가 바뀌고(기다리지 않음), 서버에는 뒤에서 저장
+const liking={};
+async function toggleLike(id){const it=items.find(x=>x.id===id);if(!it||liking[id])return;liking[id]=1;
+  it.liked=!it.liked;it.likes+=it.liked?1:-1;drawGallery();if(openIt&&openIt.id===id)renderModal();
+  try{const j=await api({action:'like',id});if(j.liked!==it.liked){it.liked=j.liked;it.likes+=j.liked?1:-1;}}
+  catch(e){it.liked=!it.liked;it.likes+=it.liked?1:-1;}
+  finally{delete liking[id];galSig=sigOf(items);drawGallery();if(openIt&&openIt.id===id)renderModal();}}
 async function fetchImages(){const need=[];items.forEach(it=>[it.drawingId,it.clockId].forEach(id=>{if(id&&!imgCache[id]&&!need.includes(id))need.push(id);}));
   const slow=[];let n=0;
   await Promise.all(need.map(async id=>{const src='https://lh3.googleusercontent.com/d/'+id+'=s900';
@@ -772,7 +783,7 @@ function renderModal(){const it=openIt;if(!it)return;const M=$('modal');M.hidden
     <div class="mright">
       <div class="mtop"><div><h3>${esc(it.name||'이름 없는 시계')}</h3><p>발명한 사람 ${it.grade?esc(it.grade)+'학년 ':''}${it.ban?esc(it.ban)+'반 '+esc(it.num)+'번 ':''}${esc(it.maker)}</p></div><button class="xbtn" id="m-close" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       ${it.feature?`<div class="feat"><small>이런 점이 좋아요</small>${esc(it.feature)}</div>`:''}
-      <div><button class="btn like" id="m-like" aria-pressed="${it.liked}">♥ 좋아요 ${it.likes}</button></div>
+      <div><button class="btn like" id="m-like" aria-pressed="${it.liked}">${it.liked?'❤️':'🤍'} 좋아요 ${it.likes}</button></div>
       <div><div class="lab">댓글 ${it.comments.length}</div><div class="cms">${it.comments.length?it.comments.map((x,i)=>`<div class="cm"><b>${esc(x.name)}</b>${esc(x.text)}${PIN&&x.time?`<button class="cdel" data-ci="${i}" aria-label="댓글 지우기">✕</button>`:''}</div>`).join(''):'<div class="cm" style="color:var(--muted)">첫 댓글을 남겨 보세요.</div>'}</div></div>
       <form class="cform" id="m-form"><input id="m-cname" maxlength="12" placeholder="이름" value="${esc(me?me.name:'')}"><input id="m-ctext" maxlength="80" placeholder="칭찬 한마디"><button class="btn primary sm" type="submit">남기기</button></form>
       <div class="msg no" id="m-msg" hidden></div><div class="mact">${canEdit(it)?`<button class="btn primary sm" id="m-edit">✏️ ${PIN?'이 시계 고치기':'내 시계 고치기'}</button>`:''}${PIN?'<button class="btn sm tdel" id="m-del">작품 지우기</button>':''}</div></div></div>`;
@@ -787,7 +798,7 @@ function renderModal(){const it=openIt;if(!it)return;const M=$('modal');M.hidden
     M.querySelectorAll('.cdel').forEach(b=>b.onclick=async()=>{const x=it.comments[+b.dataset.ci];b.disabled=true;
       try{await api({action:'delcomment',id:it.id,time:x.time,pin:PIN});it.comments.splice(+b.dataset.ci,1);renderModal();drawGallery();}catch(err){showMsg('m-msg',esc(err.message));b.disabled=false;}});}
   $('m-c').onclick=()=>{mode='clock';renderModal();};$('m-d').onclick=()=>{mode='drawing';renderModal();};
-  $('m-like').onclick=async()=>{const b=$('m-like');b.disabled=true;try{const j=await api({action:'like',id:it.id});it.liked=j.liked;it.likes+=j.liked?1:-1;renderModal();drawGallery();}catch(e){b.disabled=false;}};
+  $('m-like').onclick=()=>toggleLike(it.id);
   $('m-form').addEventListener('submit',async e=>{e.preventDefault();const name=$('m-cname').value.trim(),text=$('m-ctext').value.trim();
     if(!name||!text){showMsg('m-msg','이름과 댓글을 모두 써 주세요.');return;}
     try{await api({action:'comment',id:it.id,name,text});it.comments.push({name,text,time:0});renderModal();drawGallery();}catch(err){showMsg('m-msg',esc(err.message));}});
