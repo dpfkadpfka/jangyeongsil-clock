@@ -66,7 +66,7 @@ function store_() {
     ss = SpreadsheetApp.create('그림 시계 전시관 목록');
     DriveApp.getFileById(ss.getId()).moveTo(folder);
     const c = ss.getSheets()[0]; c.setName('clocks');
-    c.appendRow(['id', '올린 시각', '만든 사람', '시계 이름', '특징', 'drawingId', 'clockId', 'cx', 'cy', 'r', 'hand', 'bg', 'device', '숨기기(Y)', 'kind', 'bx', 'by', 'bw', 'bh', '반', '번호', '학년', '분침', '초침', '바늘크기']);
+    c.appendRow(['id', '올린 시각', '만든 사람', '시계 이름', '특징', 'drawingId', 'clockId', 'cx', 'cy', 'r', 'hand', 'bg', 'device', '숨기기(Y)', 'kind', 'bx', 'by', 'bw', 'bh', '반', '번호', '학년', '분침', '초침', '바늘크기', '학교', '학교코드']);
     ss.insertSheet('likes').appendRow(['clockId', 'device', '시각']);
     ss.insertSheet('comments').appendRow(['clockId', '이름', '댓글', '시각', 'device']);
     P.setProperty('SHEET_ID', ss.getId());
@@ -90,6 +90,7 @@ function doPost(e) {
       case 'teacher': return json_({ ok: pinOk_(q.pin) });
       case 'hide': return json_(hide_(q));
       case 'redraw': return json_(redraw_(q));
+      case 'school': return json_(school_(q));
       case 'delcomment': return json_(delComment_(q));
       default: return json_({ ok: false, error: '알 수 없는 요청이에요.' });
     }
@@ -125,16 +126,17 @@ function make_(q) {
 
 function share_(f) { try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {} return f; }
 function stamp_() { return Utilities.formatDate(new Date(), 'Asia/Seoul', 'MMdd_HHmmss'); }
-function whoStr_(q) { return [str_(q.grade, 2) && str_(q.grade, 2) + '학년', str_(q.ban, 3) && str_(q.ban, 3) + '반', str_(q.num, 3) && str_(q.num, 3) + '번', str_(q.maker, 12)].filter(Boolean).join(' ') || '이름없음'; }
+function whoStr_(q) { return [str_(q.school, 30).replace(/등학교$/, ''), str_(q.grade, 2) && str_(q.grade, 2) + '학년', str_(q.ban, 3) && str_(q.ban, 3) + '반', str_(q.num, 3) && str_(q.num, 3) + '번', str_(q.maker, 12)].filter(Boolean).join(' ') || '이름없음'; }
 function makesSheet_(s) {
   let sh = s.ss.getSheetByName('makes');
-  if (!sh) { sh = s.ss.insertSheet('makes'); sh.appendRow(['시각', '학년', '반', '번호', '이름', '종류', '그림 파일', '시계 파일', '메모']); }
+  if (!sh) { sh = s.ss.insertSheet('makes'); sh.appendRow(['시각', '학년', '반', '번호', '이름', '종류', '그림 파일', '시계 파일', '메모', '학교']); }
+  else if (sh.getRange(1, 10).getValue() !== '학교') sh.getRange(1, 10).setValue('학교');
   return sh;
 }
 // 만들 때마다 기록: 누가, 무엇을, 어떤 파일로
 function logMake_(s, q, drawingId, clockId, memo) {
   const link = id => id ? 'https://drive.google.com/file/d/' + id + '/view' : '';
-  makesSheet_(s).appendRow([new Date(), str_(q.grade, 2), str_(q.ban, 3), str_(q.num, 3), str_(q.maker, 12), q.kind === 'digital' ? '디지털' : '바늘', link(drawingId), link(clockId), memo]);
+  makesSheet_(s).appendRow([new Date(), str_(q.grade, 2), str_(q.ban, 3), str_(q.num, 3), str_(q.maker, 12), q.kind === 'digital' ? '디지털' : '바늘', link(drawingId), link(clockId), memo, str_(q.school, 30)]);
 }
 // 이 앱이 만든 파일만 갤러리에 쓸 수 있어요
 function makeIds_() {
@@ -271,7 +273,7 @@ function save_(q) {
   const reuseD = q.drawingId && ids[q.drawingId], reuseC = q.clockId && ids[q.clockId];
   if ((!reuseD && !b64ok_(q.drawing)) || (!reuseC && !b64ok_(q.clock))) return { ok: false, error: '그림을 다시 만들어 주세요.' };
   const sh = s.ss.getSheetByName('clocks');
-  if (sh.getRange(1, 25).getValue() !== '바늘크기') sh.getRange(1, 15, 1, 11).setValues([['kind', 'bx', 'by', 'bw', 'bh', '반', '번호', '학년', '분침', '초침', '바늘크기']]);
+  if (sh.getRange(1, 27).getValue() !== '학교코드') sh.getRange(1, 15, 1, 13).setValues([['kind', 'bx', 'by', 'bw', 'bh', '반', '번호', '학년', '분침', '초침', '바늘크기', '학교', '학교코드']]);
   const id = 'c' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
   const maker = str_(q.maker, 12), name = str_(q.name, 20);
   // 갤러리에서 빨리 보이도록 링크가 있는 사람만 볼 수 있게(목록에 없는 파일은 주소를 알 수 없음)
@@ -281,7 +283,7 @@ function save_(q) {
   const hex = v => /^#[0-9a-fA-F]{6}$/.test(String(v)) ? v : '#1b2433';
   const row = [id, new Date(), maker, name, str_(q.feature, 80), d.getId(), c.getId(),
     num_(q.cx, 0, 1, 0.5), num_(q.cy, 0, 1, 0.5), num_(q.r, 0.05, 0.5, 0.3), hex(q.hand), hex(q.bg), str_(q.dev, 40), '',
-    q.kind === 'digital' ? 'digital' : 'analog', num_(q.bx, 0, 1, 0.25), num_(q.by, 0, 1, 0.38), num_(q.bw, 0, 1, 0.5), num_(q.bh, 0, 1, 0.24), str_(q.ban, 3), str_(q.num, 3), str_(q.grade, 2), hex(q.min), hex(q.sec), num_(q.size, 0.5, 1.5, 1)];
+    q.kind === 'digital' ? 'digital' : 'analog', num_(q.bx, 0, 1, 0.25), num_(q.by, 0, 1, 0.38), num_(q.bw, 0, 1, 0.5), num_(q.bh, 0, 1, 0.24), str_(q.ban, 3), str_(q.num, 3), str_(q.grade, 2), hex(q.min), hex(q.sec), num_(q.size, 0.5, 1.5, 1), str_(q.school, 30), str_(q.schoolCode, 20)];
   // 고치기: 만든 사람(학년·반·번호·이름이 같음)이나 선생님만, 같은 줄을 새 내용으로 바꿔요
   if (q.editId) {
     const v = sh.getDataRange().getValues();
@@ -290,7 +292,7 @@ function save_(q) {
       const mine = same(v[i][2], q.maker) && same(v[i][19], q.ban) && same(v[i][20], q.num) && same(v[i][21], q.grade);
       if (!mine && !pinOk_(q.pin)) return { ok: false, error: '내가 만든 시계만 고칠 수 있어요.' };
       row[0] = q.editId; row[1] = v[i][1]; row[12] = v[i][12]; row[13] = v[i][13];
-      if (!mine) { row[2] = v[i][2]; row[19] = v[i][19]; row[20] = v[i][20]; row[21] = v[i][21]; }   // 선생님이 고쳐도 만든 사람은 그대로
+      if (!mine) { row[2] = v[i][2]; row[19] = v[i][19]; row[20] = v[i][20]; row[21] = v[i][21]; row[25] = v[i][25]; row[26] = v[i][26]; }   // 선생님이 고쳐도 만든 사람은 그대로
       sh.getRange(i + 1, 1, 1, row.length).setValues([row]);
       return { ok: true, id: q.editId, edited: true };
     }
@@ -309,7 +311,7 @@ function list_(q) {
   const items = rows_('clocks').filter(r => r[0] && String(r[13]).toUpperCase() !== 'Y').reverse().map(r => ({
     id: r[0], time: new Date(r[1]).getTime(), maker: r[2], name: r[3], feature: r[4], drawingId: r[5], clockId: r[6],
     cx: r[7], cy: r[8], r: r[9], hand: r[10], bg: r[11],
-    kind: r[14] || 'analog', bx: r[15], by: r[16], bw: r[17], bh: r[18], ban: r[19] || '', num: r[20] || '', grade: r[21] || '', min: r[22] || '', sec: r[23] || '', size: r[24] || 1,
+    kind: r[14] || 'analog', bx: r[15], by: r[16], bw: r[17], bh: r[18], ban: r[19] || '', num: r[20] || '', grade: r[21] || '', min: r[22] || '', sec: r[23] || '', size: r[24] || 1, school: r[25] || '',
     likes: likes.filter(l => l[0] === r[0]).length,
     liked: likes.some(l => l[0] === r[0] && l[1] === dev),
     comments: comments.filter(c => c[0] === r[0]).map(c => ({ name: c[1], text: c[2], time: new Date(c[3]).getTime(), mine: c[4] === dev }))
@@ -393,4 +395,25 @@ function redraw_(q) {
     return { ok: true, drawingId: f.getId() };
   }
   return { ok: false, error: '작품을 찾지 못했어요.' };
+}
+
+/* ---------- 7) 학교 찾기: 나이스 교육정보 개방 포털(학교 기본정보) ----------
+   [스크립트 속성]에 NEIS_KEY(인증키)를 넣으면 더 많은 결과가 나와요. 없어도 5개까지는 돼요. */
+function school_(q) {
+  const name = str_(q.q, 30).trim();
+  if (name.length < 2) return { ok: true, schools: [] };
+  const cache = CacheService.getScriptCache(), ck = 'sch_' + Utilities.base64EncodeWebSafe(name).slice(0, 200);
+  const hit = cache.get(ck);
+  if (hit) return { ok: true, schools: JSON.parse(hit) };
+  const key = PropertiesService.getScriptProperties().getProperty('NEIS_KEY') || '';
+  const url = 'https://open.neis.go.kr/hub/schoolInfo?Type=json&pIndex=1&pSize=' + (key ? 30 : 5) + (key ? '&KEY=' + encodeURIComponent(key) : '') + '&SCHUL_NM=' + encodeURIComponent(name);
+  const r = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  let rows = [];
+  try { const j = JSON.parse(r.getContentText()); rows = (j.schoolInfo && j.schoolInfo[1] && j.schoolInfo[1].row) || []; } catch (e) {}
+  const order = k => /초등/.test(k) ? 0 : /중학/.test(k) ? 1 : 2;
+  const list = rows.map(x => ({ name: x.SCHUL_NM, code: x.ATPT_OFCDC_SC_CODE + '-' + x.SD_SCHUL_CODE, kind: x.SCHUL_KND_SC_NM,
+    region: x.LCTN_SC_NM, addr: String(x.ORG_RDNMA || '').split(' ').slice(0, 3).join(' ') }))
+    .sort((a, b) => order(a.kind) - order(b.kind));
+  if (list.length) cache.put(ck, JSON.stringify(list), 21600);
+  return { ok: true, schools: list };
 }
