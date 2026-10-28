@@ -66,7 +66,7 @@ function store_() {
     ss = SpreadsheetApp.create('그림 시계 전시관 목록');
     DriveApp.getFileById(ss.getId()).moveTo(folder);
     const c = ss.getSheets()[0]; c.setName('clocks');
-    c.appendRow(['id', '올린 시각', '만든 사람', '시계 이름', '특징', 'drawingId', 'clockId', 'cx', 'cy', 'r', 'hand', 'bg', 'device', '숨기기(Y)', 'kind', 'bx', 'by', 'bw', 'bh', '반', '번호', '학년', '분침', '초침']);
+    c.appendRow(['id', '올린 시각', '만든 사람', '시계 이름', '특징', 'drawingId', 'clockId', 'cx', 'cy', 'r', 'hand', 'bg', 'device', '숨기기(Y)', 'kind', 'bx', 'by', 'bw', 'bh', '반', '번호', '학년', '분침', '초침', '바늘크기']);
     ss.insertSheet('likes').appendRow(['clockId', 'device', '시각']);
     ss.insertSheet('comments').appendRow(['clockId', '이름', '댓글', '시각', 'device']);
     P.setProperty('SHEET_ID', ss.getId());
@@ -232,7 +232,7 @@ function save_(q) {
   if (!b64ok_(q.drawing) || !b64ok_(q.clock)) return { ok: false, error: '그림을 다시 만들어 주세요.' };
   const s = store_();
   const sh = s.ss.getSheetByName('clocks');
-  if (sh.getRange(1, 24).getValue() !== '초침') sh.getRange(1, 15, 1, 10).setValues([['kind', 'bx', 'by', 'bw', 'bh', '반', '번호', '학년', '분침', '초침']]);
+  if (sh.getRange(1, 25).getValue() !== '바늘크기') sh.getRange(1, 15, 1, 11).setValues([['kind', 'bx', 'by', 'bw', 'bh', '반', '번호', '학년', '분침', '초침', '바늘크기']]);
   const id = 'c' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
   const maker = str_(q.maker, 12), name = str_(q.name, 20);
   const d = s.folder.createFile(Utilities.newBlob(Utilities.base64Decode(q.drawing), 'image/jpeg', id + '_설계도_' + maker + '.jpg'));
@@ -240,7 +240,7 @@ function save_(q) {
   const hex = v => /^#[0-9a-fA-F]{6}$/.test(String(v)) ? v : '#1b2433';
   sh.appendRow([id, new Date(), maker, name, str_(q.feature, 80), d.getId(), c.getId(),
     num_(q.cx, 0, 1, 0.5), num_(q.cy, 0, 1, 0.5), num_(q.r, 0.05, 0.5, 0.3), hex(q.hand), hex(q.bg), str_(q.dev, 40), '',
-    q.kind === 'digital' ? 'digital' : 'analog', num_(q.bx, 0, 1, 0.25), num_(q.by, 0, 1, 0.38), num_(q.bw, 0, 1, 0.5), num_(q.bh, 0, 1, 0.24), str_(q.ban, 3), str_(q.num, 3), str_(q.grade, 2), hex(q.min), hex(q.sec)]);
+    q.kind === 'digital' ? 'digital' : 'analog', num_(q.bx, 0, 1, 0.25), num_(q.by, 0, 1, 0.38), num_(q.bw, 0, 1, 0.5), num_(q.bh, 0, 1, 0.24), str_(q.ban, 3), str_(q.num, 3), str_(q.grade, 2), hex(q.min), hex(q.sec), num_(q.size, 0.5, 1.5, 1)]);
   return { ok: true, id: id };
 }
 
@@ -253,7 +253,7 @@ function list_(q) {
   const items = rows_('clocks').filter(r => r[0] && String(r[13]).toUpperCase() !== 'Y').reverse().map(r => ({
     id: r[0], time: new Date(r[1]).getTime(), maker: r[2], name: r[3], feature: r[4], drawingId: r[5], clockId: r[6],
     cx: r[7], cy: r[8], r: r[9], hand: r[10], bg: r[11],
-    kind: r[14] || 'analog', bx: r[15], by: r[16], bw: r[17], bh: r[18], ban: r[19] || '', num: r[20] || '', grade: r[21] || '', min: r[22] || '', sec: r[23] || '',
+    kind: r[14] || 'analog', bx: r[15], by: r[16], bw: r[17], bh: r[18], ban: r[19] || '', num: r[20] || '', grade: r[21] || '', min: r[22] || '', sec: r[23] || '', size: r[24] || 1,
     likes: likes.filter(l => l[0] === r[0]).length,
     liked: likes.some(l => l[0] === r[0] && l[1] === dev),
     comments: comments.filter(c => c[0] === r[0]).map(c => ({ name: c[1], text: c[2], time: new Date(c[3]).getTime(), mine: c[4] === dev }))
