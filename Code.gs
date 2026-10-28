@@ -91,6 +91,14 @@ function doPost(e) {
       case 'hide': return json_(hide_(q));
       case 'redraw': return json_(redraw_(q));
       case 'school': return json_(school_(q));
+      case 'inv_chat': return json_(invChat_(q));
+      case 'inv_image': return json_(invImage_(q));
+      case 'inv_app': return json_(invApp_(q));
+      case 'inv_video': return json_(invVideo_(q));
+      case 'inv_video_check': return json_(invVideoCheck_(q));
+      case 'inv_save': return json_(invSave_(q));
+      case 'inv_list': return json_(invList_(q));
+      case 'inv_getapp': return json_(invGetApp_(q));
       case 'delcomment': return json_(delComment_(q));
       default: return json_({ ok: false, error: '알 수 없는 요청이에요.' });
     }
@@ -185,7 +193,10 @@ function vertexToken_(sa) {
 // 버텍스 AI 또는 AI 스튜디오에 generateContent 요청 (모델 여러 개를 차례로 시도)
 function gen_(parts, image, models, studioModels) {
   const body = { contents: [{ role: 'user', parts: parts }] };
-  if (image) body.generationConfig = { responseModalities: ['TEXT', 'IMAGE'], imageConfig: { aspectRatio: '1:1' } };
+  const wantImg = image === true || image === 'wide';
+  if (image === true) body.generationConfig = { responseModalities: ['TEXT', 'IMAGE'], imageConfig: { aspectRatio: '1:1' } };
+  else if (image === 'wide') body.generationConfig = { responseModalities: ['TEXT', 'IMAGE'], imageConfig: { aspectRatio: '16:9' } };
+  else if (image === 'text') body.generationConfig = { maxOutputTokens: 16000, temperature: 0.7 };
   else body.generationConfig = { responseMimeType: 'application/json' };
   const sa = sa_(), errs = [];
   if (sa) {
@@ -199,7 +210,7 @@ function gen_(parts, image, models, studioModels) {
         const r = UrlFetchApp.fetch('https://' + host + '/v1/projects/' + sa.project_id + '/locations/' + loc + '/publishers/google/models/' + m + ':generateContent', {
           method: 'post', contentType: 'application/json', headers: { Authorization: 'Bearer ' + tok }, muteHttpExceptions: true, payload: JSON.stringify(body) });
         const code = r.getResponseCode();
-        if (code === 200) { const j = JSON.parse(r.getContentText()); if (!image || findImage_(j)) return j; errs.push(m + '@' + loc + ' 그림 없음'); break; }
+        if (code === 200) { const j = JSON.parse(r.getContentText()); if (!wantImg || findImage_(j)) return j; errs.push(m + '@' + loc + ' 그림 없음'); break; }
         errs.push(m + '@' + loc + ' ' + code);
         if (code !== 429 && code !== 503 && code !== 404) break;   // 붐빔·지역 없음이 아니면 다른 지역도 같은 결과
       }
@@ -209,7 +220,7 @@ function gen_(parts, image, models, studioModels) {
   if (key_()) for (const m of studioModels) {
     const r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + m + ':generateContent', {
       method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key_() }, muteHttpExceptions: true, payload: JSON.stringify(body) });
-    if (r.getResponseCode() === 200) { const j = JSON.parse(r.getContentText()); if (!image || findImage_(j)) return j; errs.push(m + ' 그림 없음'); }
+    if (r.getResponseCode() === 200) { const j = JSON.parse(r.getContentText()); if (!wantImg || findImage_(j)) return j; errs.push(m + ' 그림 없음'); }
     else errs.push('studio ' + m + ' ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 200));
   }
   LAST_ERR = errs.join(' | ');
@@ -312,7 +323,7 @@ function rows_(name) {
   try { cache.put(k, JSON.stringify(out), 10); } catch (e) {}
   return out;
 }
-function dirty_() { CacheService.getScriptCache().removeAll(['rows_clocks', 'rows_likes', 'rows_comments']); }
+function dirty_() { CacheService.getScriptCache().removeAll(['rows_clocks', 'rows_likes', 'rows_comments', 'rows_inventions']); }
 
 function list_(q) {
   const dev = str_(q.dev, 40);
@@ -332,6 +343,7 @@ function list_(q) {
 function img_(q) {
   const allowed = {};
   rows_('clocks').forEach(r => { allowed[r[5]] = 1; allowed[r[6]] = 1; });
+  invRows_().forEach(r => String(r[12] || '').split(',').concat([r[11]]).forEach(x => { if (x) allowed[x] = 1; }));
   const ids = (Array.isArray(q.ids) ? q.ids : []).slice(0, 12).filter(id => allowed[id]);
   const out = {};
   ids.forEach(id => {
@@ -375,8 +387,9 @@ function pinOk_(pin) {
 
 function hide_(q) {
   if (!pinOk_(q.pin)) return { ok: false, error: '선생님 비밀번호가 맞지 않아요.' };
-  const sh = store_().ss.getSheetByName('clocks'), v = sh.getDataRange().getValues();
-  for (let i = 1; i < v.length; i++) if (v[i][0] === q.id) { sh.getRange(i + 1, 14).setValue('Y'); dirty_(); return { ok: true }; }
+  const inv = String(q.id).charAt(0) === 'i';
+  const sh = inv ? invSheet_() : store_().ss.getSheetByName('clocks'), v = sh.getDataRange().getValues();
+  for (let i = 1; i < v.length; i++) if (v[i][0] === q.id) { sh.getRange(i + 1, inv ? 16 : 14).setValue('Y'); dirty_(); return { ok: true }; }
   return { ok: false, error: '작품을 찾지 못했어요.' };
 }
 
@@ -425,4 +438,166 @@ function school_(q) {
     .sort((a, b) => order(a.kind) - order(b.kind));
   if (list.length) cache.put(ck, JSON.stringify(list), 21600);
   return { ok: true, schools: list };
+}
+
+/* =====================================================================
+   나도 발명가! 생활 속 발명 연구소 (2학년)
+   불편한 일 → 바라는 것 → AI 친구와 아이디어 → 그림 3장 → 앱/영상 → 갤러리
+   ===================================================================== */
+const INV_TEXT_MODELS = ['gemini-3.8-flash', 'gemini-3-flash-preview', 'gemini-3.5-flash-lite'];
+const VEO_MODELS = ['veo-3.1-fast-generate-001', 'veo-3.1-generate-001', 'veo-3.0-fast-generate-001'];
+const MAX_VIDEO_PER_DAY = 60, MAX_APP_PER_DAY = 300;
+
+function limit_(name, max) {
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    const P = PropertiesService.getScriptProperties(), k = name + '_' + Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyyMMdd');
+    const n = Number(P.getProperty(k) || 0);
+    if (n >= max) return false;
+    P.setProperty(k, String(n + 1)); return true;
+  } finally { lock.releaseLock(); }
+}
+function invSheet_() {
+  const ss = store_().ss;
+  let sh = ss.getSheetByName('inventions');
+  if (!sh) { sh = ss.insertSheet('inventions'); sh.appendRow(['id', '올린 시각', '학교', '학년', '반', '번호', '이름', '불편한 점', '바라는 점', '발명품 이름', '설명', '대표 그림', '그림들', '앱 파일', '영상 파일', '숨기기(Y)', 'device', '학교코드', '만든 방법']); }
+  return sh;
+}
+function invRows_() { invSheet_(); return rows_('inventions'); }
+function invLog_(q, kind, fileId, memo) {
+  const ss = store_().ss;
+  let sh = ss.getSheetByName('inv_makes');
+  if (!sh) { sh = ss.insertSheet('inv_makes'); sh.appendRow(['시각', '학교', '학년', '반', '번호', '이름', '종류', '파일', '메모']); }
+  sh.appendRow([new Date(), str_(q.school, 30), str_(q.grade, 2), str_(q.ban, 3), str_(q.num, 3), str_(q.maker, 12), kind, fileId ? 'https://drive.google.com/file/d/' + fileId + '/view' : '', str_(memo, 300)]);
+}
+const KID_RULES = '너는 초등학교 2학년 친구의 발명을 돕는 다정한 AI 친구 "발명 도우미"야. 반말로, 아주 쉬운 낱말로, 한 문장은 짧게 말해. ' +
+  '친구 생각을 먼저 칭찬하고 키워 줘. 위험하거나 남을 다치게 하는 것, 무서운 것, 어른 내용은 부드럽게 다른 쪽으로 돌려. 개인정보(주소, 전화번호)는 묻지 마.';
+
+// 1) AI 친구와 아이디어 대화: 처음엔 아이디어 3개, 그다음엔 친구 말을 받아서 아이디어를 고쳐 줘요
+function invChat_(q) {
+  const problem = str_(q.problem, 200), wish = str_(q.wish, 200);
+  const hist = (Array.isArray(q.history) ? q.history : []).slice(-12).map(m => (m.who === 'me' ? '친구: ' : '도우미: ') + str_(m.text, 300)).join('\n');
+  const idea = q.idea ? JSON.stringify(q.idea).slice(0, 1200) : '';
+  const prompt = KID_RULES + '\n\n[친구가 불편한 점] ' + problem + '\n[친구가 바라는 점] ' + wish +
+    (idea ? '\n[지금 고른 아이디어] ' + idea : '') + (hist ? '\n[지금까지 대화]\n' + hist : '') + '\n[친구가 방금 한 말] ' + str_(q.text, 300) +
+    '\n\n해야 할 일:\n' + (idea
+      ? '- 친구 말을 반영해서 아이디어를 더 좋게 고쳐 줘. reply에는 바뀐 점을 2~3문장으로 말하고, 끝에 "또 바꾸고 싶은 게 있어?"처럼 물어봐.\n- idea에 고친 아이디어를 넣어.'
+      : '- 불편함을 해결하는 서로 다른 발명 아이디어 3개를 만들어. 실제로 있을 법하고 재미있게. reply에는 "이런 건 어때?"처럼 1~2문장.') +
+    '\n\nJSON으로만 대답해: {"reply":"...", ' + (idea ? '"idea":{"emoji":"하나","title":"발명품 이름(10자 이내)","desc":"어떤 발명품인지 2문장","features":["기능1","기능2","기능3"]}' : '"ideas":[{"emoji":"하나","title":"발명품 이름(10자 이내)","desc":"어떤 발명품인지 2문장","features":["기능1","기능2","기능3"]}]') + '}';
+  const j = gen_([{ text: prompt }], false, INV_TEXT_MODELS, [TEXT_MODEL]);
+  if (!j) return { ok: false, error: /429/.test(LAST_ERR) ? '지금 친구들이 많이 쓰고 있어요. 10초 뒤에 다시 해 봐요.' : 'AI 친구가 대답하지 못했어요. 다시 보내 볼까요?' };
+  try {
+    const t = j.candidates[0].content.parts.map(p => p.text || '').join('');
+    const d = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1));
+    return { ok: true, reply: str_(d.reply, 600), ideas: d.ideas || null, idea: d.idea || null };
+  } catch (e) { return { ok: false, error: 'AI 친구 말을 알아듣지 못했어요. 다시 보내 볼까요?' }; }
+}
+
+// 2) 아이디어 그림 (한 번에 한 장, 화면에서 3번 불러요)
+const INV_STYLES = [
+  '실제로 공장에서 만든 것 같은 제품 사진. 깨끗한 흰 배경, 정면에서 조금 위.',
+  '아이가 그 발명품을 쓰고 있는 생활 장면. 밝고 따뜻한 3D 애니메이션 그림체.',
+  '발명품 설명 그림. 귀여운 그림책 그림체, 기능마다 작은 화살표 그림(글자 없이).'
+];
+function invImage_(q) {
+  if (!countToday_()) return { ok: false, error: '오늘 만들 수 있는 그림을 다 만들었어요. 내일 다시 해요.' };
+  const idea = q.idea || {}, style = INV_STYLES[num_(q.style, 0, 2, 0)];
+  const prompt = '초등학교 2학년 학생이 생각한 발명품을 그려 줘.\n발명품 이름: ' + str_(idea.title, 30) + '\n설명: ' + str_(idea.desc, 300) +
+    '\n기능: ' + (Array.isArray(idea.features) ? idea.features.slice(0, 5).map(x => str_(x, 60)).join(', ') : '') +
+    '\n그림 방식: ' + style + '\n지킬 것: 아이에게 안전하고 밝은 그림. 그림 안에 글자, 숫자, 로고를 넣지 말 것. 정사각형.';
+  const parts = [{ text: prompt }];
+  if (b64ok_(q.ref)) parts.push({ inlineData: { mimeType: q.refMime || 'image/jpeg', data: q.ref } });   // 아이가 그린 그림이 있으면 참고
+  const j = gen_(parts, true, VERTEX_IMAGE_MODELS, [IMAGE_MODEL]);
+  const out = j && findImage_(j);
+  if (!out) return { ok: false, error: /429/.test(LAST_ERR) ? '지금 친구들이 한꺼번에 많이 그리고 있어요. 10초 뒤에 다시 눌러 주세요.' : '그림을 그리지 못했어요. 다시 눌러 주세요.' };
+  const f = share_(store_().folder.createFile(Utilities.newBlob(Utilities.base64Decode(out.data), out.mime, stamp_() + '_발명그림_' + whoStr_(q) + (/png/.test(out.mime) ? '.png' : '.jpg'))));
+  invLog_(q, '그림', f.getId(), str_(idea.title, 30));
+  return { ok: true, image: out.data, mime: out.mime, id: f.getId() };
+}
+
+// 3) 바이브코딩: 발명품을 눌러 볼 수 있는 작은 웹앱(한 파일 HTML)
+function invApp_(q) {
+  if (!limit_('app', MAX_APP_PER_DAY)) return { ok: false, error: '오늘 만들 수 있는 앱을 다 만들었어요. 내일 다시 해요.' };
+  const idea = q.idea || {};
+  const prompt = '초등학교 2학년 학생의 발명품을 실제로 눌러 보며 체험하는 작은 웹앱을 만들어 줘.\n' +
+    '발명품 이름: ' + str_(idea.title, 30) + '\n설명: ' + str_(idea.desc, 300) + '\n기능: ' + (Array.isArray(idea.features) ? idea.features.slice(0, 5).map(x => str_(x, 60)).join(' / ') : '') +
+    '\n학생이 바라는 점: ' + str_(q.wish, 200) + (q.request ? '\n학생이 고쳐 달라고 한 것: ' + str_(q.request, 300) : '') +
+    '\n\n규칙:\n- HTML 파일 하나(<!doctype html>부터)로만 대답해. 설명 글, 코드 블록 표시(```)는 쓰지 마.\n- CSS와 JavaScript는 파일 안에. 바깥 주소(CDN, 글꼴, 이미지 주소, fetch)는 절대 쓰지 마.\n' +
+    '- 발명품 그림은 <img src="{{IMAGE}}">로 넣어(이 글자는 그대로 둬, 나중에 바뀜).\n- 기능마다 큰 버튼이 있고 누르면 그 기능이 화면에서 움직임·소리 없는 효과·말풍선으로 보여야 해. 2학년이 바로 알 수 있게 쉬운 한국어.\n' +
+    '- 휴대폰과 태블릿 화면에 맞게, 밝고 귀여운 색. 300줄 이내.';
+  const j = gen_([{ text: prompt }], 'text', INV_TEXT_MODELS, [TEXT_MODEL]);
+  if (!j) return { ok: false, error: /429/.test(LAST_ERR) ? '지금 친구들이 많이 쓰고 있어요. 10초 뒤에 다시 해 봐요.' : '앱을 만들지 못했어요. 다시 눌러 주세요.' };
+  let html = j.candidates[0].content.parts.map(p => p.text || '').join('');
+  html = html.replace(/^[\s\S]*?(<!doctype html|<html)/i, '$1').replace(/```[\s\S]*$/, '').trim();
+  if (!/<html|<body|<div/i.test(html)) return { ok: false, error: '앱을 만들지 못했어요. 다시 눌러 주세요.' };
+  const f = share_(store_().folder.createFile(Utilities.newBlob(html, 'text/html', stamp_() + '_발명앱_' + whoStr_(q) + '.html')));
+  invLog_(q, '앱', f.getId(), str_(idea.title, 30));
+  return { ok: true, html: html, id: f.getId() };
+}
+
+// 4) AI 영상(Veo): 고른 그림으로 8초 영상. 오래 걸려서 시작 → 확인을 나눠요
+function veoBase_(sa, m) { return 'https://us-central1-aiplatform.googleapis.com/v1/projects/' + sa.project_id + '/locations/us-central1/publishers/google/models/' + m; }
+function invVideo_(q) {
+  const sa = sa_();
+  if (!sa) return { ok: false, error: '선생님: 영상은 VERTEX_SA가 있어야 만들 수 있어요.' };
+  if (!b64ok_(q.image)) return { ok: false, error: '먼저 그림을 골라 주세요.' };
+  if (!limit_('video', MAX_VIDEO_PER_DAY)) return { ok: false, error: '오늘 만들 수 있는 영상을 다 만들었어요. 내일 다시 해요.' };
+  const idea = q.idea || {};
+  const prompt = 'A short, cheerful, kid-friendly product demo of a child\'s invention called "' + str_(idea.title, 30) + '". ' + str_(idea.desc, 300) +
+    ' Show the invention working by itself in a bright, cozy everyday place (a kid\'s room, classroom or kitchen). No people, no faces. Smooth gentle camera motion, playful animation style, bright colors, no text, no logos. Keep the invention looking exactly like the reference image.';
+  const tok = vertexToken_(sa), errs = [];
+  for (const m of VEO_MODELS) {
+    const r = UrlFetchApp.fetch(veoBase_(sa, m) + ':predictLongRunning', { method: 'post', contentType: 'application/json', headers: { Authorization: 'Bearer ' + tok }, muteHttpExceptions: true,
+      payload: JSON.stringify({ instances: [{ prompt: prompt, image: { bytesBase64Encoded: q.image, mimeType: q.mime || 'image/png' } }],
+        parameters: { aspectRatio: '16:9', durationSeconds: 8, sampleCount: 1, generateAudio: false, resolution: '720p' } }) });
+    if (r.getResponseCode() === 200) { const d = JSON.parse(r.getContentText()); if (d.name) return { ok: true, op: d.name, model: m }; }
+    errs.push(m + ' ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 200));
+  }
+  Logger.log(errs.join(' | '));
+  return { ok: false, error: '영상을 시작하지 못했어요. 조금 뒤에 다시 눌러 주세요.', detail: errs.join(' | ').slice(0, 600) };
+}
+function invVideoCheck_(q) {
+  const sa = sa_(), m = VEO_MODELS.indexOf(q.model) >= 0 ? q.model : VEO_MODELS[0];
+  const r = UrlFetchApp.fetch(veoBase_(sa, m) + ':fetchPredictOperation', { method: 'post', contentType: 'application/json', headers: { Authorization: 'Bearer ' + vertexToken_(sa) }, muteHttpExceptions: true,
+    payload: JSON.stringify({ operationName: str_(q.op, 400) }) });
+  if (r.getResponseCode() !== 200) return { ok: false, error: '영상 상태를 확인하지 못했어요.', detail: r.getContentText().slice(0, 300) };
+  const d = JSON.parse(r.getContentText());
+  if (!d.done) return { ok: true, done: false };
+  if (d.error) return { ok: false, error: '영상을 만들지 못했어요. 다시 눌러 주세요.', detail: JSON.stringify(d.error).slice(0, 300) };
+  const v = d.response && d.response.videos && d.response.videos[0];
+  if (!v || !v.bytesBase64Encoded) return { ok: false, error: '이 그림으로는 영상을 만들 수 없었어요. 다른 그림으로 해 볼까요?' };
+  const f = share_(store_().folder.createFile(Utilities.newBlob(Utilities.base64Decode(v.bytesBase64Encoded), v.mimeType || 'video/mp4', stamp_() + '_발명영상_' + whoStr_(q) + '.mp4')));
+  invLog_(q, '영상', f.getId(), '');
+  return { ok: true, done: true, video: v.bytesBase64Encoded, mime: v.mimeType || 'video/mp4', id: f.getId() };
+}
+
+// 5) 갤러리에 올리기 / 목록 / 앱 열기
+function invSave_(q) {
+  const sh = invSheet_(), id = 'i' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
+  const ok = {}; invMakeIds_().forEach(x => ok[x] = 1);
+  const imgs = (Array.isArray(q.imageIds) ? q.imageIds : []).filter(x => ok[x]).slice(0, 6);
+  const main = ok[q.imageId] ? q.imageId : (imgs[0] || '');
+  sh.appendRow([id, new Date(), str_(q.school, 30), str_(q.grade, 2), str_(q.ban, 3), str_(q.num, 3), str_(q.maker, 12), str_(q.problem, 200), str_(q.wish, 200),
+    str_(q.title, 30), str_(q.desc, 400), main, imgs.join(','), ok[q.appId] ? q.appId : '', ok[q.videoId] ? q.videoId : '', '', str_(q.dev, 40), str_(q.schoolCode, 20), str_(q.how, 20)]);
+  dirty_();
+  return { ok: true, id: id };
+}
+function invMakeIds_() {
+  const sh = store_().ss.getSheetByName('inv_makes'); if (!sh) return [];
+  return sh.getDataRange().getValues().map(r => (String(r[7]).match(/\/d\/([\w-]+)/) || [])[1]).filter(Boolean);
+}
+function invList_(q) {
+  const dev = str_(q.dev, 40), likes = rows_('likes'), comments = rows_('comments');
+  const items = invRows_().filter(r => r[0] && String(r[15]).toUpperCase() !== 'Y').reverse().map(r => ({
+    id: r[0], time: new Date(r[1]).getTime(), school: r[2], grade: r[3], ban: r[4], num: r[5], maker: r[6], problem: r[7], wish: r[8], name: r[9], feature: r[10],
+    imageId: r[11], imageIds: String(r[12] || '').split(',').filter(Boolean), appId: r[13], videoId: r[14],
+    likes: likes.filter(l => l[0] === r[0]).length, liked: likes.some(l => l[0] === r[0] && l[1] === dev),
+    comments: comments.filter(c => c[0] === r[0]).map(c => ({ name: c[1], text: c[2], time: new Date(c[3]).getTime(), mine: c[4] === dev }))
+  }));
+  return { ok: true, items: items };
+}
+function invGetApp_(q) {
+  const id = str_(q.id, 80);
+  if (!invRows_().some(r => r[13] === id)) return { ok: false, error: '앱을 찾지 못했어요.' };
+  return { ok: true, html: DriveApp.getFileById(id).getBlob().getDataAsString('UTF-8') };
 }
