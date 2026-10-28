@@ -296,6 +296,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 .preview{touch-action:none;cursor:grab}
 .draghint{margin:10px 0 0;font-size:15px;font-weight:700;color:var(--muted);text-align:center;max-width:400px}
 .mact{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.mact .tdel{margin:0}
+.brand{cursor:pointer}
 .galsub{margin:0 0 18px;color:var(--muted);font-weight:700}
 @media (max-width:900px){.split,.final{grid-template-columns:1fr}.preview{max-width:420px;width:100%;margin:0 auto}}
 @media (max-width:640px){.me .f select{font-size:20px;padding-left:10px;padding-right:30px;background-position:right 8px center}.prog em{font-size:12px}.prog .n{width:38px;height:38px}.kinds.big{grid-template-columns:1fr}.kinds.big .kind svg{width:100px;height:100px}.who{display:none}.stepnav .btn{min-width:0;flex:1}}
@@ -553,6 +554,8 @@ $('meForm').addEventListener('submit',e=>{e.preventDefault();
   if(!name){showMsg('meMsg','이름을 써 주세요.');$('f-maker').focus();return;}
   hideMsg('meMsg');me={grade,ban,num,name};ls.set('gc-me',JSON.stringify(me));showWho();view('make');go(1);});
 $('b-gal1').onclick=()=>{from='start';view('gal');};
+// 위쪽 로고를 누르면 첫 화면으로
+document.querySelector('.brand').onclick=()=>{closeModal();$('meForm').hidden=true;$('menu2').hidden=false;view('start');};
 $('b-start').onclick=()=>{$('menu2').hidden=true;$('meForm').hidden=false;setTimeout(()=>$('f-grade').focus(),50);};
 $('meBack').onclick=()=>{$('meForm').hidden=true;$('menu2').hidden=false;};
 $('b-back').onclick=()=>view(from);
