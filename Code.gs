@@ -87,7 +87,7 @@ function doPost(e) {
       case 'img': return json_(img_(q));
       case 'like': return json_(like_(q));
       case 'comment': return json_(comment_(q));
-      case 'teacher': return json_({ ok: pinOk_(q.pin) });
+      case 'teacher': return json_(teacherLogin_(q));
       case 'hide': return json_(hide_(q));
       case 'redraw': return json_(redraw_(q));
       case 'school': return json_(school_(q));
@@ -301,7 +301,7 @@ function save_(q) {
     for (let i = 1; i < v.length; i++) if (v[i][0] === q.editId) {
       const same = (a, b) => String(a).trim() === String(b).trim();
       const mine = same(v[i][2], q.maker) && same(v[i][19], q.ban) && same(v[i][20], q.num) && same(v[i][21], q.grade);
-      if (!mine && !pinOk_(q.pin)) return { ok: false, error: '내가 만든 시계만 고칠 수 있어요.' };
+      if (!mine && !canManage_(q.pin, v[i][25], v[i][21], v[i][19])) return { ok: false, error: '내가 만든 시계만 고칠 수 있어요.' };
       row[0] = q.editId; row[1] = v[i][1]; row[12] = v[i][12]; row[13] = v[i][13];
       if (!mine) { row[2] = v[i][2]; row[19] = v[i][19]; row[20] = v[i][20]; row[21] = v[i][21]; row[25] = v[i][25]; row[26] = v[i][26]; }   // 선생님이 고쳐도 만든 사람은 그대로
       sh.getRange(i + 1, 1, 1, row.length).setValues([row]); dirty_();
@@ -385,16 +385,84 @@ function pinOk_(pin) {
   return false;
 }
 
+/* ---------- 반별 선생님 ----------
+   선생님이 학교·학년·반·비밀번호를 넣으면 그 반 작품만 관리해요.
+   처음 들어온 선생님의 비밀번호로 그 반이 등록돼요(teachers 시트). 예람쌤 비밀번호(TEACHER_PIN)는 모든 반을 관리해요.
+   pin은 '학교\u0001학년\u0001반\u0001비밀번호' 꼴로 와요(예전처럼 비밀번호만 와도 돼요). */
+function teacherSheet_() {
+  const ss = store_().ss;
+  let sh = ss.getSheetByName('teachers');
+  if (!sh) { sh = ss.insertSheet('teachers'); sh.appendRow(['학교', '학년', '반', '비밀번호 암호', '등록 시각']); }
+  return sh;
+}
+function pinHash_(s, g, b, p) {
+  return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, 'gc|' + s + '|' + g + '|' + b + '|' + p, Utilities.Charset.UTF_8));
+}
+function masterOk_(p) { const real = PropertiesService.getScriptProperties().getProperty('TEACHER_PIN') || ''; return !!real && String(p || '') === real; }
+function splitPin_(pin) {
+  const a = String(pin || '').split('\u0001');
+  if (a.length < 4) return { p: a[0] };
+  return { s: a[0].trim(), g: String(a[1]).trim(), b: String(a[2]).trim(), p: a.slice(3).join('\u0001') };
+}
+function teacherAuth_(pin) {
+  if (!pin) return null;
+  const cache = CacheService.getScriptCache(), ck = 'ta_' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, String(pin), Utilities.Charset.UTF_8));
+  const hit = cache.get(ck); if (hit) return JSON.parse(hit);
+  const fails = Number(cache.get('pinfail') || 0);
+  if (fails >= 30) return null;                     // 10분에 30번 넘게 틀리면 잠깐 잠금
+  const x = splitPin_(pin);
+  let a = null;
+  if (masterOk_(x.p)) a = { all: true };
+  else if (x.s && x.g && x.b) {
+    const h = pinHash_(x.s, x.g, x.b, x.p);
+    if (teacherSheet_().getDataRange().getValues().some(r => String(r[0]).trim() === x.s && String(r[1]).trim() === x.g && String(r[2]).trim() === x.b && r[3] === h)) a = { s: x.s, g: x.g, b: x.b };
+  }
+  if (a) cache.put(ck, JSON.stringify(a), 600); else cache.put('pinfail', String(fails + 1), 600);
+  return a;
+}
+function canManage_(pin, school, grade, ban) {
+  const a = teacherAuth_(pin); if (!a) return false; if (a.all) return true;
+  const eq = (x, y) => String(x == null ? '' : x).trim() === String(y == null ? '' : y).trim();
+  return eq(school, a.s) && eq(grade, a.g) && eq(ban, a.b);
+}
+function itemManage_(pin, id) {
+  const a = teacherAuth_(pin); if (!a) return false; if (a.all) return true;
+  if (id.charAt(0) === 'i') { const r = invSheet_().getDataRange().getValues().find(r => r[0] === id); return !!r && canManage_(pin, r[2], r[3], r[4]); }
+  const r = rows_('clocks').find(r => r[0] === id); return !!r && canManage_(pin, r[25], r[21], r[19]);
+}
+function teacherLogin_(q) {
+  const x = splitPin_(q.pin);
+  if (masterOk_(x.p)) return { ok: true, all: true };
+  if (!x.s || !x.g || !x.b) return { ok: false, error: '학교·학년·반을 골라 주세요.' };
+  if (String(x.p).length < 4) return { ok: false, error: '비밀번호는 4자리 이상으로 해 주세요.' };
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    const sh = teacherSheet_(), v = sh.getDataRange().getValues();
+    const row = v.find(r => String(r[0]).trim() === x.s && String(r[1]).trim() === x.g && String(r[2]).trim() === x.b);
+    if (!row) {
+      if (!q.register) return { ok: false, need: 'register' };
+      sh.appendRow([x.s, x.g, x.b, pinHash_(x.s, x.g, x.b, x.p), new Date()]);
+      return { ok: true, created: true };
+    }
+    if (teacherAuth_(q.pin)) return { ok: true };
+    return { ok: false, error: '비밀번호가 맞지 않아요. 잊어버렸으면 예람쌤(dpfkadpfka@gmail.com)께 알려 주세요.' };
+  } finally { lock.releaseLock(); }
+}
+
 function hide_(q) {
-  if (!pinOk_(q.pin)) return { ok: false, error: '선생님 비밀번호가 맞지 않아요.' };
+  if (!teacherAuth_(q.pin)) return { ok: false, error: '선생님 비밀번호가 맞지 않아요.' };
   const inv = String(q.id).charAt(0) === 'i';
   const sh = inv ? invSheet_() : store_().ss.getSheetByName('clocks'), v = sh.getDataRange().getValues();
-  for (let i = 1; i < v.length; i++) if (v[i][0] === q.id) { sh.getRange(i + 1, inv ? 16 : 14).setValue('Y'); dirty_(); return { ok: true }; }
+  for (let i = 1; i < v.length; i++) if (v[i][0] === q.id) {
+    const ok = inv ? canManage_(q.pin, v[i][2], v[i][3], v[i][4]) : canManage_(q.pin, v[i][25], v[i][21], v[i][19]);
+    if (!ok) return { ok: false, error: '우리 반 작품만 지울 수 있어요.' };
+    sh.getRange(i + 1, inv ? 16 : 14).setValue('Y'); dirty_(); return { ok: true }; }
   return { ok: false, error: '작품을 찾지 못했어요.' };
 }
 
 function delComment_(q) {
-  if (!pinOk_(q.pin)) return { ok: false, error: '선생님 비밀번호가 맞지 않아요.' };
+  if (!teacherAuth_(q.pin)) return { ok: false, error: '선생님 비밀번호가 맞지 않아요.' };
+  if (!itemManage_(q.pin, String(q.id))) return { ok: false, error: '우리 반 작품의 댓글만 지울 수 있어요.' };
   const lock = LockService.getScriptLock(); lock.waitLock(10000);
   try {
     const sh = store_().ss.getSheetByName('comments'), v = sh.getDataRange().getValues();
@@ -411,7 +479,7 @@ function redraw_(q) {
   for (let i = 1; i < v.length; i++) if (v[i][0] === q.id) {
     const same = (a, b) => String(a).trim() === String(b).trim();
     const mine = same(v[i][2], q.maker) && same(v[i][19], q.ban) && same(v[i][20], q.num) && same(v[i][21], q.grade);
-    if (!mine && !pinOk_(q.pin)) return { ok: false, error: '내가 만든 작품만 바꿀 수 있어요.' };
+    if (!mine && !canManage_(q.pin, v[i][25], v[i][21], v[i][19])) return { ok: false, error: '내가 만든 작품만 바꿀 수 있어요.' };
     const f = share_(s.folder.createFile(Utilities.newBlob(Utilities.base64Decode(q.drawing), 'image/jpeg', q.id + '_설계도_바꿈_' + stamp_() + '.jpg')));
     sh.getRange(i + 1, 6).setValue(f.getId()); dirty_();
     return { ok: true, drawingId: f.getId() };
