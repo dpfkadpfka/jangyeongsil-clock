@@ -24,16 +24,22 @@ body.web #vClock{background:#eef2f6}
 #stage{position:relative;flex:1;width:100%;min-height:0;display:flex;align-items:center;justify-content:center}
 #stage svg{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
 #stage svg{border-radius:18px;box-shadow:0 4px 14px rgba(20,30,50,.22);background:#fff}
-#vClock{padding:6px}
+#vClock{padding:10px}
+/* 시계 창: 모두 보기·하나씩 보기 모두 테두리 있는 창으로 보여요 */
+body:not(.web) #vClock::before{content:"";position:absolute;inset:3px;z-index:-1;border-radius:18px;background:rgba(255,255,255,.9);border:1px solid rgba(120,135,155,.35);box-shadow:0 2px 8px rgba(20,30,50,.18)}
+body:not(.web) #vClock{isolation:isolate}
 #wall{flex:1;width:100%;min-height:0;display:grid;gap:8px;align-content:center;justify-content:center}
 .cell{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:0}
 .cell .cv{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
 .cell svg{max-width:100%;max-height:100%;border-radius:12px;box-shadow:0 3px 10px rgba(20,30,50,.2);background:#fff}
 .cell p{margin:4px 0 0;max-width:100%;padding:1px 8px;border-radius:99px;background:rgba(255,255,255,.92);font:600 12px/1.4 Allimjang,Freesentation,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 4px rgba(20,30,50,.15)}
-#grip{position:absolute;right:2px;bottom:2px;width:22px;height:22px;border-radius:6px;cursor:nwse-resize;-webkit-app-region:no-drag;opacity:0;transition:opacity .2s;
-  background:linear-gradient(135deg,transparent 45%,#8a96a6 45%,#8a96a6 52%,transparent 52%,transparent 62%,#8a96a6 62%,#8a96a6 69%,transparent 69%,transparent 79%,#8a96a6 79%,#8a96a6 86%,transparent 86%) rgba(255,255,255,.9)}
-#vClock:hover #grip{opacity:1}
-body.web #grip{display:none}
+body.web .rz{display:none}
+.rz{position:absolute;z-index:5;-webkit-app-region:no-drag}
+.rz[data-e=n],.rz[data-e=s]{left:14px;right:14px;height:8px;cursor:ns-resize}.rz[data-e=n]{top:0}.rz[data-e=s]{bottom:0}
+.rz[data-e=w],.rz[data-e=e]{top:14px;bottom:14px;width:8px;cursor:ew-resize}.rz[data-e=w]{left:0}.rz[data-e=e]{right:0}
+.rz[data-e=nw],.rz[data-e=ne],.rz[data-e=sw],.rz[data-e=se]{width:16px;height:16px}
+.rz[data-e=nw]{left:0;top:0;cursor:nwse-resize}.rz[data-e=se]{right:0;bottom:0;cursor:nwse-resize}
+.rz[data-e=ne]{right:0;top:0;cursor:nesw-resize}.rz[data-e=sw]{left:0;bottom:0;cursor:nesw-resize}
 #label{flex:none;margin-top:6px;max-width:96%;padding:4px 12px;border-radius:99px;background:rgba(255,255,255,.92);box-shadow:0 2px 8px rgba(20,30,50,.18);
   font:600 15px/1.3 Allimjang,Freesentation,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #label small{font:500 12px Freesentation,sans-serif;color:var(--sub);margin-left:6px}
@@ -100,7 +106,7 @@ footer{text-align:center;font-size:12px;color:var(--sub)}
 </head>
 <body>
 <section id="vClock" hidden>
-  <div id="stage"></div><div id="wall" hidden></div><div id="grip" title="끌어서 크기 조절"></div>
+  <div id="stage"></div><div id="wall" hidden></div><div class="rz" data-e="n"></div><div class="rz" data-e="s"></div><div class="rz" data-e="w"></div><div class="rz" data-e="e"></div><div class="rz" data-e="nw"></div><div class="rz" data-e="ne"></div><div class="rz" data-e="sw"></div><div class="rz" data-e="se"></div>
   <div id="label" hidden></div>
   <div id="tools">
     <button id="tPrev" title="이전 시계">◀</button><button id="tNext" title="다음 시계">▶</button>
@@ -127,7 +133,7 @@ footer{text-align:center;font-size:12px;color:var(--sub)}
       <div class="opt"><span>이름표 보이기 (시계 이름 · 만든 친구)</span><label class="sw"><input type="checkbox" id="oLabel"><span></span></label></div>
       <div class="opt desk" hidden><span>항상 다른 창 위에 띄우기</span><label class="sw"><input type="checkbox" id="oTop"><span></span></label></div>
       <div class="opt desk" hidden><span>컴퓨터 켤 때 저절로 켜기</span><label class="sw"><input type="checkbox" id="oAuto"><span></span></label></div>
-      <p class="hint">크기는 시계 오른쪽 아래 모서리를 끌어서 바꿔요. 시계를 끌면 자리를 옮길 수 있어요.</p>
+      <p class="hint">크기는 시계 창 테두리나 모서리를 끌어서 바꿔요. 시계를 끌면 자리를 옮길 수 있어요.</p>
     </div>
     <div class="box">
       <h2>우리 반 시계 <small id="pickInfo"></small></h2>
@@ -216,7 +222,7 @@ async function show(step){clearTimeout(timer);const L=ready();if(!L)return;
   try{await getImg(it.clockId);}catch(e){return msg('시계 그림을 불러오지 못했어요','인터넷 연결을 확인해 주세요.');}
   const c=clockOf(it);$('wall').hidden=true;$('stage').hidden=false;$('stage').innerHTML=clockSVG(c,false);
   const lb=$('label');lb.hidden=!S.label;lb.innerHTML=`${esc(it.name||'이름 없는 시계')}<small>${esc(it.num?it.num+'번 ':'')}${esc(it.maker||'')}</small>`;
-  if(D)D.clock(S.size,Math.round(S.size*c.h/c.w)+(S.label?42:0)+14);
+  if(D){if(S.ow)D.clock(S.ow,S.oh);else D.clock(S.size,Math.round(S.size*c.h/c.w)+(S.label?42:0)+14);}
   if(L.length>1)timer=setTimeout(()=>show(1),S.every*60000);}
 async function showAll(L){$('stage').hidden=true;$('label').hidden=true;const W=$('wall');W.hidden=false;
   if(D)D.clock(S.w,S.h);
@@ -231,12 +237,15 @@ function layout(){const W=$('wall');if(W.hidden)return;const n=W.children.length
 window.addEventListener('resize',layout);
 $('tPrev').onclick=()=>show(-1);$('tNext').onclick=()=>show(1);
 $('tSet').onclick=()=>openSet();
-// 오른쪽 아래 모서리를 끌어서 크기 조절
-(function(){const g=$('grip');let st=null;
-  g.addEventListener('pointerdown',e=>{e.preventDefault();g.setPointerCapture(e.pointerId);st={x:e.screenX,y:e.screenY,w:window.innerWidth,h:window.innerHeight};});
-  g.addEventListener('pointermove',e=>{if(!st||!D)return;const w=Math.max(160,st.w+e.screenX-st.x),h=Math.max(160,st.h+e.screenY-st.y);
-    if(S.view==='all'){S.w=w;S.h=h;D.clock(w,h);}else{S.size=w;const sv=$('stage').querySelector('svg');const ar=sv?sv.viewBox.baseVal.height/sv.viewBox.baseVal.width:1;D.clock(w,Math.round(w*ar)+(S.label?42:0)+14);}});
-  const end=()=>{if(st){st=null;save();}};g.addEventListener('pointerup',end);g.addEventListener('pointercancel',end);})();
+// 테두리·모서리를 끌어서 크기 조절 (새 앱: 창이 마우스를 직접 따라가요)
+if(D&&D.resizeStart){
+  const end=()=>D.resizeEnd();
+  document.querySelectorAll('.rz').forEach(el=>{el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();el.setPointerCapture(e.pointerId);D.resizeStart(el.dataset.e||'se');});
+    el.addEventListener('pointerup',end);el.addEventListener('lostpointercapture',end);});
+  window.addEventListener('pointerup',end);
+  D.onResized((w,h)=>{if(S.view==='all'){S.w=w;S.h=h;}else{S.ow=w;S.oh=h;}save();layout();});
+}else document.querySelectorAll('.rz').forEach(el=>el.remove());
+
 async function openClock(){$('vSet').hidden=true;$('vClock').hidden=false;
   if(D)D.setMode('clock');
   if(!loaded){msg('시계를 불러오고 있어요','<div class="dots" style="margin:6px auto 0"></div>');try{await load();}catch(e){return msg('시계를 불러오지 못했어요','인터넷 연결을 확인해 주세요. 5분 뒤 다시 해 볼게요.');}}
