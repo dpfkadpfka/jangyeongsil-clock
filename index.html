@@ -280,6 +280,18 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 .ver span{position:absolute;left:-6px;top:-6px;width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-size:13px;font-weight:800;display:grid;place-items:center}
 .ver.on{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,122,26,.25)}
 .ver.on span{background:var(--orange)}
+.menu2{display:grid;grid-template-columns:1fr 1fr;gap:18px;width:100%;margin-top:6px}
+.mbtn{display:grid;justify-items:center;gap:6px;border:0;border-radius:32px;padding:26px 18px 24px;cursor:pointer;font-family:var(--font);transition:transform .12s,box-shadow .12s;box-shadow:0 10px 0 rgba(0,0,0,.08)}
+.mbtn:active{transform:translateY(4px);box-shadow:0 6px 0 rgba(0,0,0,.08)}
+.mbtn img{width:130px;height:130px;object-fit:contain}
+.mbtn b{font-family:var(--title);font-weight:700;font-size:30px;color:var(--ink)}
+.mbtn span{font-weight:700;font-size:16px;color:rgba(31,38,51,.65)}
+.mbtn.make{background:var(--c-y)}.mbtn.gal{background:var(--c-s)}
+.mbtn.make{animation:nudge 2.4s ease-in-out infinite}
+@keyframes nudge{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
+.me-top{display:flex;align-items:center;justify-content:space-between}
+.me-top b{font-family:var(--title);font-size:24px;color:#4a3300}
+@media (max-width:640px){.menu2{grid-template-columns:1fr}.mbtn img{width:96px;height:96px}}
 .galsub{margin:0 0 18px;color:var(--muted);font-weight:700}
 @media (max-width:900px){.split,.final{grid-template-columns:1fr}.preview{max-width:420px;width:100%;margin:0 auto}}
 @media (max-width:640px){.me .f select{font-size:20px;padding-left:10px;padding-right:30px;background-position:right 8px center}.prog em{font-size:12px}.prog .n{width:38px;height:38px}.kinds.big{grid-template-columns:1fr}.kinds.big .kind svg{width:100px;height:100px}.who{display:none}.stepnav .btn{min-width:0;flex:1}}
@@ -301,7 +313,12 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
       <div class="hero-art"><img src="img/mascot-hello.webp" alt="시계 발명 도우미"></div>
       <h1>나도 장영실!<br><b>시계 발명가</b></h1>
       <p>내가 그린 시계를 AI가 진짜 시계처럼 만들어 줘요.</p>
-      <form class="me" id="meForm" autocomplete="off">
+      <div class="menu2" id="menu2">
+        <button class="mbtn make" id="b-start"><img src="img/kind-analog.webp" alt=""><b>시계 만들기</b><span>내 그림으로 시계를 발명해요</span></button>
+        <button class="mbtn gal" id="b-gal1"><img src="img/step-friends.webp" alt=""><b>시계 갤러리 구경하기</b><span>친구들이 만든 시계를 봐요</span></button>
+      </div>
+      <form class="me" id="meForm" autocomplete="off" hidden>
+        <div class="me-top"><b>나는 누구일까요?</b><button type="button" class="btn sm" id="meBack">← 처음으로</button></div>
         <div class="me-row">
           <label class="f"><span>학년</span><select id="f-grade"><option value="">고르기</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
           <label class="f"><span>반</span><select id="f-ban"><option value="">고르기</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option></select></label>
@@ -311,7 +328,6 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
         <button class="btn primary lg block now" type="submit">시작하기 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
         <div class="msg no" id="meMsg" hidden></div>
       </form>
-      <button class="btn ghost" id="b-gal1"><img class="bico" src="img/step-friends.webp" alt="">친구 작품 구경하기</button>
     </div>
   </section>
 
@@ -401,10 +417,10 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
       <div class="final">
         <article class="gitem solo" id="finalCard"></article>
         <div class="final-side">
-          <img class="final-ico" src="img/step-upload.webp" alt=""><button class="btn mint lg block now" id="b-save">친구 작품에 올리기</button>
+          <img class="final-ico" src="img/step-upload.webp" alt=""><button class="btn mint lg block now" id="b-save">시계 갤러리에 올리기</button>
           <div class="msg" id="saveMsg" hidden></div>
           <div class="done" id="doneBox" hidden>
-            <button class="btn primary lg block" id="b-gal2">친구 작품 보러 가기</button>
+            <button class="btn primary lg block" id="b-gal2">시계 갤러리 보러 가기</button>
             <button class="btn lg block" id="b-new">새 시계 또 만들기</button>
           </div>
         </div>
@@ -421,7 +437,7 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
   <section class="view" id="v-gal" hidden>
     <div class="galtop">
       <button class="btn" id="b-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>돌아가기</button>
-      <img class="ico big" src="img/step-friends.webp" alt=""><h2>친구 작품</h2>
+      <img class="ico big" src="img/step-friends.webp" alt=""><h2>시계 갤러리</h2>
       <button class="btn" id="b-refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>새로 보기</button>
     </div>
     <div class="tbar" id="tbar" hidden>선생님 모드예요. 작품과 댓글을 지울 수 있어요. <button class="btn sm" id="tOff">끄기</button></div>
@@ -510,7 +526,7 @@ async function cutWhite(dataUrl,max){const im=await loadImg(dataUrl);const sc=Ma
     if(x>0)st.push(i-1);if(x<W-1)st.push(i+1);if(y>0)st.push(i-W);if(y<H-1)st.push(i+W);}
   for(let i=0;i<W*H;i++){if(p[i*4+3]===0)continue;const x=i%W,y=(i/W)|0;let n=0;
     if(x>0&&p[(i-1)*4+3]===0)n++;if(x<W-1&&p[(i+1)*4+3]===0)n++;if(y>0&&p[(i-W)*4+3]===0)n++;if(y<H-1&&p[(i+W)*4+3]===0)n++;if(n)p[i*4+3]=Math.min(p[i*4+3],255-n*45);}
-  g.putImageData(D,0,0);return {src:c.toDataURL('image/png'),w:W,h:H};}
+  g.putImageData(D,0,0);let u=c.toDataURL('image/webp',.9);if(u.indexOf('data:image/webp')!==0)u=c.toDataURL('image/png');return {src:u,w:W,h:H};}
 
 
 const HANDS=['#23314d','#e5484d','#ff7a1a','#2f5fd0','#8b6cf0','#1f9d7a','#ff8ab1','#ffffff'];
@@ -533,13 +549,15 @@ $('meForm').addEventListener('submit',e=>{e.preventDefault();
   if(!name){showMsg('meMsg','이름을 써 주세요.');$('f-maker').focus();return;}
   hideMsg('meMsg');me={grade,ban,num,name};ls.set('gc-me',JSON.stringify(me));showWho();view('make');go(1);});
 $('b-gal1').onclick=()=>{from='start';view('gal');};
+$('b-start').onclick=()=>{$('menu2').hidden=true;$('meForm').hidden=false;setTimeout(()=>$('f-grade').focus(),50);};
+$('meBack').onclick=()=>{$('meForm').hidden=true;$('menu2').hidden=false;};
 $('b-back').onclick=()=>view(from);
 
 /* 단계 */
 const GUIDE={1:'안녕! 어떤 <em>시계</em>를 발명할지 골라 줘.',
   2:{a:'내가 그린 <em>시계 그림</em>을 넣어 줘.',b:'좋아! 파란 <em>AI 시계 만들기</em> 버튼을 눌러 봐.',c:'멋진 시계가 생겼어! <em>다음</em>을 눌러 줘.',w:'AI가 내 그림을 보고 <em>시계</em>를 그리는 중이야.'},
   3:'시계 바늘이나 숫자의 <em>색</em>을 골라 봐.',4:'내 시계의 <em>이름</em>과 <em>좋은 점</em>을 알려 줘.',
-  5:{a:'다 됐어! <em>친구 작품에 올리기</em>를 눌러 줘.',b:'짝짝짝! 친구들 시계도 <em>구경</em>해 봐.'}};
+  5:{a:'다 됐어! <em>시계 갤러리에 올리기</em>를 누르면 친구들도 볼 수 있어.',b:'짝짝짝! <em>시계 갤러리</em>에서 친구들 시계도 구경해 봐.'}};
 function say(t,pose){$('gStep').textContent=step+'단계';$('gText').innerHTML=t;const im=$('mascotImg'),src='img/mascot-'+(pose||'point')+'.webp';if(im&&!im.src.endsWith(src))im.src=src;}
 function canNext(){return step===1?!!kind:step===2?!!clock:step===3?true:step===4?!!$('f-name').value.trim():false;}
 function refresh(){
@@ -625,12 +643,12 @@ function drawFinal(){const name=$('f-name').value.trim(),feat=$('f-feat').value.
     <div class="ginfo"><div><b>${esc(name)}</b><span>${esc(me.grade)}학년 ${esc(me.ban)}반 ${esc(me.num)}번 ${esc(me.name)}</span></div></div>${feat?`<div class="feat solo-feat">${esc(feat)}</div>`:''}`;}
 $('b-save').onclick=async()=>{if(!clock||!me)return;const name=$('f-name').value.trim(),feature=$('f-feat').value.trim();
   const b=$('b-save');b.disabled=true;b.lastChild.textContent='보내는 중…';
-  try{const small=await shrinkData(drawing,800);
-    await api({action:'save',drawing:small.split(',')[1],clock:clock.src.split(',')[1],maker:me.name,grade:me.grade,ban:me.ban,num:me.num,name,feature,
+  try{const small=await shrinkData(drawing,720);
+    await api({action:'save',drawing:small.split(',')[1],clock:clock.src.split(',')[1],clockMime:clock.src.slice(5,clock.src.indexOf(';')),maker:me.name,grade:me.grade,ban:me.ban,num:me.num,name,feature,
       kind:clock.kind,cx:clock.cx,cy:clock.cy,r:clock.r,bx:clock.bx,by:clock.by,bw:clock.bw,bh:clock.bh,hand:clock.hand,min:clock.min,sec:clock.sec,size:clock.size||1,bg:'#ffffff'});
     saved=true;b.hidden=true;hideMsg('saveMsg');$('doneBox').hidden=false;refresh();}
   catch(err){showMsg('saveMsg',esc(err.message));}
-  finally{b.disabled=false;b.lastChild.textContent='친구 작품에 올리기';}};
+  finally{b.disabled=false;b.lastChild.textContent='시계 갤러리에 올리기';}};
 $('b-gal2').onclick=()=>{from='make';view('gal');};
 $('b-new').onclick=()=>{drawing=null;clock=null;kind=null;saved=false;
   document.querySelectorAll('.kind').forEach(x=>x.setAttribute('aria-pressed','false'));
@@ -668,7 +686,11 @@ function drawGallery(){const G=$('glist');
   G.querySelectorAll('[data-clock]').forEach(b=>b.onclick=()=>openItem(b.dataset.clock,'clock'));
   G.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>hideItem(b.dataset.del,b));}
 async function fetchImages(){const need=[];items.forEach(it=>[it.drawingId,it.clockId].forEach(id=>{if(id&&!imgCache[id]&&!need.includes(id))need.push(id);}));
-  for(let i=0;i<need.length;i+=6){try{const j=await api({action:'img',ids:need.slice(i,i+6)});
+  const slow=[];let n=0;
+  await Promise.all(need.map(async id=>{const src='https://lh3.googleusercontent.com/d/'+id+'=s900';
+    try{const im=await loadImg(src);imgCache[id]={src,w:im.naturalWidth,h:im.naturalHeight};if(++n%6===0)drawGallery();}catch(e){slow.push(id);}}));
+  drawGallery();
+  for(let i=0;i<slow.length;i+=6){try{const j=await api({action:'img',ids:slow.slice(i,i+6)});
     for(const [id,src] of Object.entries(j.images||{})){const im=await loadImg(src);imgCache[id]={src,w:im.naturalWidth,h:im.naturalHeight};}
     drawGallery();}catch(e){}}}
 
