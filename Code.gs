@@ -266,6 +266,7 @@ function findDial_(b64, mime) {
 function save_(q) {
   const s = store_();
   const ids = (q.drawingId || q.clockId) ? makeIds_() : {};
+  if (q.editId) rows_('clocks').forEach(r => { ids[r[5]] = 1; ids[r[6]] = 1; });
   const reuseD = q.drawingId && ids[q.drawingId], reuseC = q.clockId && ids[q.clockId];
   if ((!reuseD && !b64ok_(q.drawing)) || (!reuseC && !b64ok_(q.clock))) return { ok: false, error: '그림을 다시 만들어 주세요.' };
   const sh = s.ss.getSheetByName('clocks');
@@ -277,9 +278,24 @@ function save_(q) {
   const cm = ['image/webp', 'image/jpeg', 'image/png'].indexOf(q.clockMime) >= 0 ? q.clockMime : 'image/png';
   const c = reuseC ? { getId: () => q.clockId } : share_(s.folder.createFile(Utilities.newBlob(Utilities.base64Decode(q.clock), cm, id + '_시계_' + maker + '.' + cm.split('/')[1].replace('jpeg', 'jpg'))));
   const hex = v => /^#[0-9a-fA-F]{6}$/.test(String(v)) ? v : '#1b2433';
-  sh.appendRow([id, new Date(), maker, name, str_(q.feature, 80), d.getId(), c.getId(),
+  const row = [id, new Date(), maker, name, str_(q.feature, 80), d.getId(), c.getId(),
     num_(q.cx, 0, 1, 0.5), num_(q.cy, 0, 1, 0.5), num_(q.r, 0.05, 0.5, 0.3), hex(q.hand), hex(q.bg), str_(q.dev, 40), '',
-    q.kind === 'digital' ? 'digital' : 'analog', num_(q.bx, 0, 1, 0.25), num_(q.by, 0, 1, 0.38), num_(q.bw, 0, 1, 0.5), num_(q.bh, 0, 1, 0.24), str_(q.ban, 3), str_(q.num, 3), str_(q.grade, 2), hex(q.min), hex(q.sec), num_(q.size, 0.5, 1.5, 1)]);
+    q.kind === 'digital' ? 'digital' : 'analog', num_(q.bx, 0, 1, 0.25), num_(q.by, 0, 1, 0.38), num_(q.bw, 0, 1, 0.5), num_(q.bh, 0, 1, 0.24), str_(q.ban, 3), str_(q.num, 3), str_(q.grade, 2), hex(q.min), hex(q.sec), num_(q.size, 0.5, 1.5, 1)];
+  // 고치기: 만든 사람(학년·반·번호·이름이 같음)이나 선생님만, 같은 줄을 새 내용으로 바꿔요
+  if (q.editId) {
+    const v = sh.getDataRange().getValues();
+    for (let i = 1; i < v.length; i++) if (v[i][0] === q.editId) {
+      const same = (a, b) => String(a).trim() === String(b).trim();
+      const mine = same(v[i][2], q.maker) && same(v[i][19], q.ban) && same(v[i][20], q.num) && same(v[i][21], q.grade);
+      if (!mine && !pinOk_(q.pin)) return { ok: false, error: '내가 만든 시계만 고칠 수 있어요.' };
+      row[0] = q.editId; row[1] = v[i][1]; row[12] = v[i][12]; row[13] = v[i][13];
+      if (!mine) { row[2] = v[i][2]; row[19] = v[i][19]; row[20] = v[i][20]; row[21] = v[i][21]; }   // 선생님이 고쳐도 만든 사람은 그대로
+      sh.getRange(i + 1, 1, 1, row.length).setValues([row]);
+      return { ok: true, id: q.editId, edited: true };
+    }
+    return { ok: false, error: '작품을 찾지 못했어요.' };
+  }
+  sh.appendRow(row);
   return { ok: true, id: id };
 }
 
