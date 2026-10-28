@@ -695,7 +695,8 @@ $('meForm').addEventListener('submit',e=>{e.preventDefault();
   hideMsg('meMsg');me={school:school.name,schoolCode:school.code||'',schoolAddr:school.addr||'',grade,ban,num,name};ls.set('gc-me',JSON.stringify(me));showWho();view('make');go(1);});
 $('b-gal1').onclick=()=>{from='start';view('gal');};
 // 주소로 바로 가기: …/#gallery 는 시계 갤러리, …/#make 는 이름 쓰기부터
-function route(){const h=location.hash.replace('#','');
+function route(){const raw=location.hash.replace('#',''),h=raw.split('?')[0],qs=new URLSearchParams(raw.split('?')[1]||'');
+  if(qs.get('s')&&qs.get('g')&&qs.get('b')){linkPlace={school:qs.get('s'),grade:qs.get('g'),ban:qs.get('b')};galScope='class';}
   if(h==='gallery'){from='start';view('gal');}
   else if(h==='make'){view('start');$('menu2').hidden=true;$('meForm').hidden=false;}startMode();}
 window.addEventListener('hashchange',route);setTimeout(route,0);
@@ -859,7 +860,8 @@ function itemClock(it){const im=imgCache[it.clockId];if(!im)return null;return {
 // 갤러리 보기 범위: 우리 반 / 우리 학교 / 전체
 let galScope=null;
 let gqT=null;$('galSearch').addEventListener('input',()=>{clearTimeout(gqT);gqT=setTimeout(()=>{galQ=$('galSearch').value.trim();galLimit=24;drawGallery();},250);});
-function myPlace(){if(me&&me.school)return me;try{const m=JSON.parse(ls.get('gc-me','null'));if(m&&m.school)return m;}catch(e){}return null;}
+let linkPlace=null;
+function myPlace(){if(linkPlace)return linkPlace;if(me&&me.school)return me;try{const m=JSON.parse(ls.get('gc-me','null'));if(m&&m.school)return m;}catch(e){}return null;}
 let galQ='',galLimit=24,galIO=null;
 function shownItems(){const p=myPlace(),eq=(a,b)=>String(a??'').trim()===String(b??'').trim();
   let L=scoped(p,eq);const q=galQ.replace(/\s/g,'');
