@@ -57,20 +57,17 @@ function setup() {
 }
 
 function store_() {
+  // 원래 전시관 폴더·목록을 꼭 써요. 잠깐 못 열어도 새 빈 목록을 만들지 않고 다시 시도해요.
   const P = PropertiesService.getScriptProperties();
-  let folder, ss;
-  try { folder = DriveApp.getFolderById(P.getProperty('FOLDER_ID')); } catch (e) { folder = null; }
-  if (!folder) { folder = DriveApp.createFolder('그림 시계 전시관'); P.setProperty('FOLDER_ID', folder.getId()); }
-  try { ss = SpreadsheetApp.openById(P.getProperty('SHEET_ID')); } catch (e) { ss = null; }
-  if (!ss) {
-    ss = SpreadsheetApp.create('그림 시계 전시관 목록');
-    DriveApp.getFileById(ss.getId()).moveTo(folder);
-    const c = ss.getSheets()[0]; c.setName('clocks');
-    c.appendRow(['id', '올린 시각', '만든 사람', '시계 이름', '특징', 'drawingId', 'clockId', 'cx', 'cy', 'r', 'hand', 'bg', 'device', '숨기기(Y)', 'kind', 'bx', 'by', 'bw', 'bh', '반', '번호', '학년', '분침', '초침', '바늘크기', '학교', '학교코드']);
-    ss.insertSheet('likes').appendRow(['clockId', 'device', '시각']);
-    ss.insertSheet('comments').appendRow(['clockId', '이름', '댓글', '시각', 'device']);
-    P.setProperty('SHEET_ID', ss.getId());
+  const FOLDER = '1tESSCnyiIKKsZ_5dvqaFdeFKdPOWM_GU', SHEET = '1XEsIvHcBzd6sPFbuHlXC_ph-EXXSZB93yUl0BReptT0';
+  if (P.getProperty('FOLDER_ID') !== FOLDER) P.setProperty('FOLDER_ID', FOLDER);
+  if (P.getProperty('SHEET_ID') !== SHEET) P.setProperty('SHEET_ID', SHEET);
+  let folder = null, ss = null, err = null;
+  for (let t = 0; t < 4 && !(folder && ss); t++) {
+    try { if (!folder) folder = DriveApp.getFolderById(FOLDER); if (!ss) ss = SpreadsheetApp.openById(SHEET); }
+    catch (e) { err = e; Utilities.sleep(700 * (t + 1)); }
   }
+  if (!folder || !ss) throw new Error('지금 전시관이 잠깐 바빠요. 조금 뒤 다시 해 주세요.');
   return { folder: folder, ss: ss };
 }
 
