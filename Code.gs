@@ -601,3 +601,13 @@ function invGetApp_(q) {
   if (!invRows_().some(r => r[13] === id)) return { ok: false, error: '앱을 찾지 못했어요.' };
   return { ok: true, html: DriveApp.getFileById(id).getBlob().getDataAsString('UTF-8') };
 }
+
+/* 한 번만 실행: 예전에 올린 그림·시계 파일도 링크로 볼 수 있게(갤러리가 빨리 뜨도록) */
+function shareAllFiles() {
+  const ids = {};
+  rows_('clocks').forEach(r => { if (r[5]) ids[r[5]] = 1; if (r[6]) ids[r[6]] = 1; });
+  let n = 0;
+  Object.keys(ids).forEach(id => { try { const f = DriveApp.getFileById(id); if (f.getSharingAccess() !== DriveApp.Access.ANYONE_WITH_LINK) { share_(f); n++; } } catch (e) {} });
+  Logger.log('링크 공유로 바꾼 파일: ' + n + '개');
+  return n;
+}
