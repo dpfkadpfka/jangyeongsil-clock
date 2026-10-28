@@ -313,6 +313,8 @@ footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-we
 .schlist .none{padding:12px;color:var(--muted);font-weight:700}
 .schpick{display:flex;align-items:center;gap:10px;background:#fff;border-radius:18px;padding:12px 14px}
 .schpick b{font-size:20px;color:var(--ink)}.schpick small{color:var(--muted);font-weight:700;font-size:13px;flex:1}
+.gitem[data-open]{cursor:pointer}
+.gitem[data-open]:active{transform:scale(.99)}
 .galsub{margin:0 0 18px;color:var(--muted);font-weight:700}
 @media (max-width:900px){.split,.final{grid-template-columns:1fr}.preview{max-width:420px;width:100%;margin:0 auto}}
 @media (max-width:640px){.me .f select{font-size:20px;padding-left:10px;padding-right:30px;background-position:right 8px center}.prog em{font-size:12px}.prog .n{width:38px;height:38px}.kinds.big{grid-template-columns:1fr}.kinds.big .kind svg{width:100px;height:100px}.who{display:none}.stepnav .btn{min-width:0;flex:1}}
@@ -794,13 +796,13 @@ function drawGallery(){const G=$('glist');
   if(!items.length){G.innerHTML='<div class="empty"><b>아직 올라온 작품이 없어요</b>시계 만들기에서 첫 작품을 올려 보세요.</div>';return;}
   $('galSub').textContent=`작품 ${items.length}개 · 그림이나 시계를 누르면 크게 볼 수 있어요.`;
   G.innerHTML=items.map(it=>{const c=itemClock(it),d=imgCache[it.drawingId];
-    return `<article class="gitem"><div class="gpair">
+    return `<article class="gitem" data-open="${esc(it.id)}"><div class="gpair">
       <button class="gcell" data-draw="${esc(it.id)}"><div class="gimg">${d?`<img src="${d.src}" alt="${esc(it.maker)}의 그림">`:'<div class="dots"></div>'}</div><span class="gtag">그림</span></button>
       <button class="gcell" data-clock="${esc(it.id)}"><div class="gimg" data-live="${esc(it.id)}">${c?clockSVG(c):'<div class="dots"></div>'}</div><span class="gtag">시계</span></button></div>
       <div class="ginfo"><div><b>${esc(it.name||'이름 없는 시계')}</b><span>${it.school?esc(shortSchool(it.school))+' ':''}${it.grade?esc(it.grade)+'학년 ':''}${it.ban?esc(it.ban)+'반 '+esc(it.num)+'번 ':''}${esc(it.maker)}</span></div><div class="gstat"><button class="heart${it.liked?' on':''}" data-like="${esc(it.id)}" aria-label="좋아요">${it.liked?'❤️':'🤍'} ${it.likes}</button><span class="cmt">💬 ${it.comments.length}</span></div></div>${it.feature?`<p class="gfeat">${esc(it.feature)}</p>`:''}${PIN?`<button class="btn sm tdel" data-del="${esc(it.id)}">작품 지우기</button>`:''}</article>`;}).join('');
-  G.querySelectorAll('[data-draw]').forEach(b=>b.onclick=()=>openItem(b.dataset.draw,'drawing'));
-  G.querySelectorAll('[data-clock]').forEach(b=>b.onclick=()=>openItem(b.dataset.clock,'clock'));
-  G.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>hideItem(b.dataset.del,b));
+  G.querySelectorAll('[data-open]').forEach(a=>a.onclick=e=>{if(e.target.closest('button[data-like],button[data-del]'))return;
+    const d=e.target.closest('[data-draw]');openItem(a.dataset.open,d?'drawing':'clock');});
+  G.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{e.stopPropagation();hideItem(b.dataset.del,b);});
   G.querySelectorAll('[data-like]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleLike(b.dataset.like);});}
 // 좋아요: 누르자마자 숫자가 바뀌고(기다리지 않음), 서버에는 뒤에서 저장
 const liking={};
