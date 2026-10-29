@@ -377,8 +377,8 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--yellow);height:34px}
         <g id="wcMarks"></g>
         <!-- 잣대 -->
         <g id="wcRod">
-          <rect x="368" y="-150" width="12" height="150" rx="3" fill="#d4473a"/>
-          <rect x="354" y="-6" width="40" height="10" rx="3" fill="#8a5428"/>
+          <rect x="422" y="-150" width="12" height="150" rx="3" fill="#d4473a"/>
+          <rect x="408" y="-6" width="40" height="10" rx="3" fill="#8a5428"/>
         </g>
         <!-- 구슬 길 -->
         <path class="fg" d="M470 300 L560 432" stroke="#8a5428" stroke-width="8" stroke-linecap="round"/>
@@ -638,13 +638,13 @@ sunUpdate();
 
 /* ================= 물시계 ================= */
 const W={run:false,fast:false,big:false,night:false,level:0,real:0,bells:0,m:[false,false,false],ball:null,lastHour:0};
-const MAXH=6, BOT=448, TOP=292, HSTEP=(BOT-TOP)/MAXH;
+const MAXH=6, BOT=446, TOP=314, HSTEP=(BOT-TOP)/MAXH;
 (function(){
   const g=$('#wcMarks');
   for(let h=1;h<=MAXH;h++){
     const y=BOT-h*HSTEP;
     const l=document.createElementNS(NS,'line'); l.setAttribute('x1',336); l.setAttribute('x2',352); l.setAttribute('y1',y); l.setAttribute('y2',y); l.setAttribute('stroke','#1d2b38'); l.setAttribute('stroke-width',3); g.appendChild(l);
-    const t=document.createElementNS(NS,'text'); t.setAttribute('x',454); t.setAttribute('y',y+6); t.setAttribute('text-anchor','end'); t.setAttribute('font-family','HJiugae, sans-serif'); t.setAttribute('font-size','17'); t.setAttribute('fill','#1d2b38'); t.setAttribute('class','markLabel'); t.textContent=h+'시간'; g.appendChild(t);
+    const t=document.createElementNS(NS,'text'); t.setAttribute('x',357); t.setAttribute('y',y+5); t.setAttribute('text-anchor','start'); t.setAttribute('font-family','HJiugae, sans-serif'); t.setAttribute('font-size','15'); t.setAttribute('fill','#1d2b38'); t.setAttribute('class','markLabel'); t.textContent=h+'시간'; g.appendChild(t);
   }
 })();
 function dotsRender(){
