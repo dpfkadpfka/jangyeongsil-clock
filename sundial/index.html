@@ -5,6 +5,7 @@
 <style>
 /* 레이아웃: 위 상태바 · 가운데 실험 무대(+오른쪽 미션판) · 아래 장영실 말풍선 줄 */
 @font-face{font-family:"HJiugae";src:url("fonts/jiugae.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"HPres";src:url("fonts/freesentation-sb.woff2") format("woff2");font-weight:400 700;font-display:swap}
 @font-face{font-family:"HBareon";src:url("fonts/euiyeon.woff2") format("woff2");font-weight:400 700;size-adjust:145%;font-display:swap}
 :root{
   --sky1:#bfe7ff;
@@ -37,6 +38,9 @@ h1,h2,h3{margin:0;font-weight:400}
 
 .app{max-width:1280px;margin:0 auto;height:100%;display:grid;grid-template-rows:72px minmax(0,1fr) 140px}
 
+/* 버튼·숫자·표시처럼 또렷해야 하는 글자는 프리젠테이션체 */
+html body .btn,html body .title-pill,html body .step,html body .starpill,html body .prog,html body .qnum,html body .legend,html body .slider span,html body .readout small,html body .relic span span,html body .gb input,html body .gb-feel button,html body .gb-msg,html body .credit,html body .zoom-card p,html body .missions li::before{font-family:"HPres","HBareon","Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-weight:600}
+.btn.big{font-size:23px}
 /* 상태바 */
 .hud{display:flex;align-items:center;gap:12px}
 .round{width:52px;height:52px;border-radius:50%;border:0;background:var(--white);box-shadow:0 4px 0 var(--line);display:grid;place-items:center;flex:none}
