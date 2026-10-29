@@ -202,7 +202,7 @@ button:focus-visible,label:focus-visible,input:focus-visible,textarea:focus-visi
 .cms{display:grid;gap:8px;max-height:220px;overflow:auto}
 .cm{background:var(--bg2);border-radius:16px;padding:9px 14px;font-size:16px;font-weight:600}
 .cm b{font-weight:800;color:var(--brand-d);margin-right:8px}
-.cform{display:grid;grid-template-columns:100px minmax(0,1fr) auto;gap:8px}
+.cform{display:grid;grid-template-columns:minmax(100px,170px) minmax(0,1fr) auto;gap:8px}
 .cform input{font:inherit;font-size:17px;font-weight:700;padding:10px 14px;border-radius:999px;border:2px solid var(--line);background:var(--bg2);min-width:0;color:var(--ink)}
 
 footer{margin:44px 0 24px;color:#b3bac7;font-size:15px;text-align:center;font-weight:700}footer a{color:inherit;text-decoration:none}
@@ -572,6 +572,8 @@ button:focus-visible,label:focus-visible,input:focus-visible,textarea:focus-visi
 .f input:focus,.f textarea:focus{border-color:var(--mint)}
 @media (max-width:760px){.card-h .ico{width:40px;height:40px}.card{box-shadow:0 5px 0 var(--line)}}
 footer{color:#9aa8b5}
+.cform .cwho{align-self:center;justify-self:start;max-width:100%;padding:8px 14px;border-radius:999px;background:var(--bg2);font-weight:800;font-size:16px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cform:has(.cwho){grid-template-columns:auto minmax(0,1fr) auto}
 </style>
 </head>
 <body>
@@ -713,7 +715,9 @@ const ls={get:(k,d)=>{try{return localStorage.getItem(k)??d;}catch(e){return d;}
 let DEV=ls.get('gc-dev','');if(!DEV){DEV='d'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);ls.set('gc-dev',DEV);}
 
 // 좋아요 주인: 이름을 넣은 학생이면 학생 기준(공용 컴퓨터·기록 지워지는 컴퓨터에서도 유지), 아니면 이 기기 기준
-function cName(){let n='';try{n=localStorage.getItem('gc-cname')||'';if(!n){const m=(typeof me!=='undefined'&&me)||JSON.parse(localStorage.getItem('gc-me')||'null');n=m&&m.name||'';}}catch(e){}return n;}
+// 처음에 학교·이름을 넣은 학생은 그 이름으로 댓글을 남겨요
+function stu(){let m=null;try{m=(typeof me!=='undefined'&&me)||JSON.parse(localStorage.getItem('gc-me')||'null');}catch(e){}return m&&m.name?m:null;}
+function cName(){try{return localStorage.getItem('gc-cname')||'';}catch(e){return '';}}
 function devId(){let m=null;try{m=(typeof me!=='undefined'&&me)||JSON.parse(localStorage.getItem('gc-me')||'null');}catch(e){}
   if(!m||!m.name)return DEV;const s=[m.school,m.grade,m.ban,m.num,m.name].join('|');let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return 'u'+h.toString(36)+String(m.num||'')+String(m.ban||'');}
 
@@ -976,7 +980,7 @@ async function loadGallery(quiet){if(galBusy)return;galBusy=true;
   catch(err){if(!items.length)$('glist').innerHTML=`<div class="empty"><b>작품을 불러오지 못했어요</b>${esc(err.message)}</div>`;}
   finally{galBusy=false;}}
 $('b-refresh').onclick=()=>loadGallery();
-setInterval(()=>{if(!$('v-gal').hidden&&document.visibilityState==='visible')loadGallery(true);},15000);
+setInterval(()=>{if(!$('v-gal').hidden&&document.visibilityState==='visible')loadGallery(true);},30000);
 function drawGallery(){const G=$('glist');drawScope();const L=shownItems();
   if(!items.length){$('galSub').textContent='';G.innerHTML='<div class="empty"><b>아직 올라온 발명품이 없어요</b>발명하기에서 첫 발명품을 올려 보세요.</div>';return;}
   if(!L.length){$('galSub').textContent='';G.innerHTML=`<div class="empty"><b>${galQ?`"${esc(galQ)}" 발명품을 찾지 못했어요`:'여기에는 아직 발명품이 없어요'}</b>'전체'를 누르면 다른 친구들 발명품도 볼 수 있어요.</div>`;return;}
@@ -992,12 +996,16 @@ const liking={},pend={};
 // 새로 불러온 목록이 아직 옛날 값이면, 방금 누른 좋아요를 그대로 보여 줘요
 function applyPend(list){const now=Date.now();for(const id in pend){const p=pend[id],it=list.find(x=>x.id===id);
   if(!it||now>p.t){delete pend[id];continue;}if(!!it.liked===p.v){if(!liking[id])delete pend[id];continue;}it.liked=p.v;it.likes=Math.max(0,(+it.likes||0)+(p.v?1:-1));}}
-async function toggleLike(id){const it=items.find(x=>x.id===id);if(!it||liking[id])return;liking[id]=1;
-  const want=!it.liked;it.liked=want;it.likes=Math.max(0,(+it.likes||0)+(want?1:-1));pend[id]={v:want,t:Date.now()+45000};drawGallery();if(openIt&&openIt.id===id)renderModal();
-  let ok=false;for(let t=0;t<3&&!ok;t++){try{const j=await api({action:'like',id,want});ok=true;if(j.liked!==want){it.liked=j.liked;it.likes=Math.max(0,(+it.likes||0)+(j.liked?1:-1));pend[id].v=j.liked;}}
-    catch(e){await new Promise(r=>setTimeout(r,1500+t*1500));}}
-  if(!ok){it.liked=!want;it.likes=Math.max(0,(+it.likes||0)+(want?-1:1));delete pend[id];}
-  delete liking[id];galSig=sigOf(items);drawGallery();if(openIt&&openIt.id===id)renderModal();}
+async function toggleLike(id){const it=items.find(x=>x.id===id);if(!it)return;
+  const want=!it.liked;it.liked=want;it.likes=Math.max(0,(+it.likes||0)+(want?1:-1));pend[id]={v:want,t:Date.now()+180000};drawGallery();if(openIt&&openIt.id===id)renderModal();
+  if(liking[id])return;liking[id]=1;   // 이미 보내는 중이면, 끝난 뒤 마지막 상태로 한 번 더 맞춰요
+  // 서버가 바쁘면 실패해도 화면은 그대로 두고, 될 때까지(최대 3분) 뒤에서 다시 보내요
+  let last=null;for(let t=0;t<40;t++){const v=pend[id]?pend[id].v:want;
+    try{const j=await api({action:'like',id,want:v});last=j.liked;if(!pend[id]||pend[id].v===v)break;continue;}
+    catch(e){await new Promise(r=>setTimeout(r,Math.min(2000+t*1500,8000)));}}
+  delete liking[id];
+  if(last===null&&pend[id]){const it2=items.find(x=>x.id===id);if(it2&&it2.liked===pend[id].v){it2.liked=!it2.liked;it2.likes=Math.max(0,(+it2.likes||0)+(it2.liked?1:-1));}delete pend[id];}
+  galSig=sigOf(items);drawGallery();if(openIt&&openIt.id===id)renderModal();}
 async function hideItem(id,btn){if(btn.dataset.sure!=='1'){btn.dataset.sure='1';btn.textContent='정말 지울까요?';return;}
   btn.disabled=true;try{await api({action:'hide',id,pin:PIN});items=items.filter(x=>x.id!==id);closeModal();drawGallery();}catch(err){btn.disabled=false;btn.textContent=err.message;}}
 
@@ -1018,7 +1026,7 @@ function renderModal(){const it=openIt;if(!it)return;const M=$('modal');M.hidden
       ${it.feature?`<div class="feat"><small>이런 발명품이에요</small>${esc(it.feature)}</div>`:''}
       <div><button class="btn like" id="m-like" aria-pressed="${it.liked}">${it.liked?'❤️':'🤍'} 좋아요 ${it.likes}</button></div>
       <div><div class="lab">댓글 ${it.comments.length}</div><div class="cms">${it.comments.length?it.comments.map((x,i)=>`<div class="cm"><b>${esc(x.name)}</b>${esc(x.text)}${tcan(it)&&x.time?`<button class="cdel" data-ci="${i}">✕</button>`:''}</div>`).join(''):'<div class="cm" style="color:var(--muted)">첫 댓글을 남겨 보세요.</div>'}</div></div>
-      <form class="cform" id="m-form"><input id="m-cname" maxlength="12" placeholder="이름" value="${esc(cName())}"><input id="m-ctext" maxlength="80" placeholder="칭찬 한마디"><button class="btn primary sm" type="submit">남기기</button></form>
+      <form class="cform" id="m-form">${stu()?`<span class="cwho" title="처음에 넣은 이름으로 남겨요">${esc(stu().name)}</span>`:`<input id="m-cname" maxlength="12" placeholder="누가 쓰나요? (예: 민지 엄마)" value="${esc(cName())}">`}<input id="m-ctext" maxlength="80" placeholder="칭찬 한마디"><button class="btn primary sm" type="submit">남기기</button></form>
       <div class="msg no" id="m-msg" hidden></div>${tcan(it)?'<button class="btn sm tdel" id="m-del">작품 지우기</button>':''}</div></div>`;
   $('m-close').onclick=closeModal;
   M.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{mtab=b.dataset.t;renderModal();});
@@ -1026,7 +1034,7 @@ function renderModal(){const it=openIt;if(!it)return;const M=$('modal');M.hidden
   $('m-like').onclick=()=>toggleLike(it.id);
   if($('m-del'))$('m-del').onclick=()=>hideItem(it.id,$('m-del'));
   M.querySelectorAll('.cdel').forEach(b=>b.onclick=async()=>{const x=it.comments[+b.dataset.ci];try{await api({action:'delcomment',id:it.id,time:x.time,pin:PIN});it.comments.splice(+b.dataset.ci,1);renderModal();drawGallery();}catch(err){showMsg('m-msg',esc(err.message));}});
-  $('m-form').addEventListener('submit',async e=>{e.preventDefault();const name=$('m-cname').value.trim(),text=$('m-ctext').value.trim();try{if(name)localStorage.setItem('gc-cname',name);}catch(_){}
+  $('m-form').addEventListener('submit',async e=>{e.preventDefault();const name=(stu()?stu().name:$('m-cname').value).trim(),text=$('m-ctext').value.trim();try{if(name&&!stu())localStorage.setItem('gc-cname',name);}catch(_){}
     if(!name||!text){showMsg('m-msg','이름과 댓글을 모두 써 주세요.');return;}
     try{await api({action:'comment',id:it.id,name,text});it.comments.push({name,text,time:0});renderModal();drawGallery();}catch(err){showMsg('m-msg',esc(err.message));}});
   if(mtab==='app')(async()=>{const st=$('m-stage');try{const html=appCache[it.appId]||(appCache[it.appId]=(await api({action:'inv_getapp',id:it.appId})).html);
