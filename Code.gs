@@ -194,6 +194,7 @@ function gen_(parts, image, models, studioModels) {
   if (image === true) body.generationConfig = { responseModalities: ['TEXT', 'IMAGE'], imageConfig: { aspectRatio: '1:1' } };
   else if (image === 'wide') body.generationConfig = { responseModalities: ['TEXT', 'IMAGE'], imageConfig: { aspectRatio: '16:9' } };
   else if (image === 'text') body.generationConfig = { maxOutputTokens: 16000, temperature: 0.7 };
+  else if (image === 'app') body.generationConfig = { maxOutputTokens: 9000, temperature: 0.6 };
   else body.generationConfig = { responseMimeType: 'application/json' };
   const sa = sa_(), errs = [];
   if (sa) {
@@ -589,8 +590,9 @@ function invApp_(q) {
     '\n학생이 바라는 점: ' + str_(q.wish, 200) + (q.request ? '\n학생이 고쳐 달라고 한 것: ' + str_(q.request, 300) : '') +
     '\n\n규칙:\n- HTML 파일 하나(<!doctype html>부터)로만 대답해. 설명 글, 코드 블록 표시(```)는 쓰지 마.\n- CSS와 JavaScript는 파일 안에. 바깥 주소(CDN, 글꼴, 이미지 주소, fetch)는 절대 쓰지 마.\n' +
     '- 발명품 그림은 <img src="{{IMAGE}}">로 넣어(이 글자는 그대로 둬, 나중에 바뀜).\n- 기능마다 큰 버튼이 있고 누르면 그 기능이 화면에서 움직임·소리 없는 효과·말풍선으로 보여야 해. 2학년이 바로 알 수 있게 쉬운 한국어.\n' +
-    '- 휴대폰과 태블릿 화면에 맞게, 밝고 귀여운 색. 300줄 이내.';
-  const j = gen_([{ text: prompt }], 'text', INV_TEXT_MODELS, [TEXT_MODEL]);
+    '- 휴대폰과 태블릿 화면에 맞게, 밝고 귀여운 색. 짧고 깔끔하게 150줄 이내.';
+  // 앱은 빠른 모델부터 써서 기다리는 시간을 줄여요
+  const j = gen_([{ text: prompt }], 'app', ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3-flash-preview'], [TEXT_MODEL]);
   if (!j) return { ok: false, error: /429/.test(LAST_ERR) ? '지금 친구들이 많이 쓰고 있어요. 10초 뒤에 다시 해 봐요.' : '앱을 만들지 못했어요. 다시 눌러 주세요.' };
   let html = j.candidates[0].content.parts.map(p => p.text || '').join('');
   html = html.replace(/^[\s\S]*?(<!doctype html|<html)/i, '$1').replace(/```[\s\S]*$/, '').trim();
