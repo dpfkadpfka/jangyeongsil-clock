@@ -151,15 +151,9 @@ function makeIds_() {
 }
 
 function countToday_() {
-  const lock = LockService.getScriptLock(); lock.waitLock(10000);
-  try {
-    const P = PropertiesService.getScriptProperties();
-    const k = 'cnt_' + Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyyMMdd');
-    const n = Number(P.getProperty(k) || 0);
-    if (n >= MAX_MAKE_PER_DAY) return false;
-    P.setProperty(k, String(n + 1));
-    return true;
-  } finally { lock.releaseLock(); }
+  // 하루 개수 제한 없음(선생님 요청). 몇 개 만들었는지만 기록해요. 바쁠 때 기다리지 않게 잠금 없이 대충 셉니다.
+  try { const P = PropertiesService.getScriptProperties(), k = 'cnt_' + Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyyMMdd'); P.setProperty(k, String(Number(P.getProperty(k) || 0) + 1)); } catch (e) {}
+  return true;
 }
 
 let LAST_ERR = '';
@@ -521,13 +515,9 @@ const VEO_MODELS = ['veo-3.1-fast-generate-001', 'veo-3.1-generate-001', 'veo-3.
 const MAX_VIDEO_PER_DAY = 60, MAX_APP_PER_DAY = 300;
 
 function limit_(name, max) {
-  const lock = LockService.getScriptLock(); lock.waitLock(10000);
-  try {
-    const P = PropertiesService.getScriptProperties(), k = name + '_' + Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyyMMdd');
-    const n = Number(P.getProperty(k) || 0);
-    if (n >= max) return false;
-    P.setProperty(k, String(n + 1)); return true;
-  } finally { lock.releaseLock(); }
+  // 하루 개수 제한 없음(선생님 요청). 기록만 해요.
+  try { const P = PropertiesService.getScriptProperties(), k = name + '_' + Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyyMMdd'); P.setProperty(k, String(Number(P.getProperty(k) || 0) + 1)); } catch (e) {}
+  return true;
 }
 function invSheet_() {
   const ss = store_().ss;
