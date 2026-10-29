@@ -881,7 +881,7 @@ async function hideItem(id,btn){if(btn.dataset.sure!=='1'){btn.dataset.sure='1';
 let galSig='',galBusy=false;
 const sigOf=list=>JSON.stringify(list.map(x=>[x.id,x.likes,x.comments.length,x.drawingId,x.clockId,x.name,x.hand,x.min,x.sec,x.size,x.cx,x.cy]));
 async function loadGallery(quiet){if(galBusy)return;galBusy=true;
-  try{const j=await api({action:'list'}),list=(j.items||[]).sort((a,b)=>(+b.time||0)-(+a.time||0)),sig=sigOf(list);
+  try{const j=await api({action:'list'}),list=(j.items||[]).sort((a,b)=>(+b.time||0)-(+a.time||0));applyPend(list);const sig=sigOf(list);
     if(quiet===true&&sig===galSig)return;            // 바뀐 게 없으면 그대로
     const newCount=galSig?list.filter(x=>!items.some(y=>y.id===x.id)).length:0;
     items=list;galSig=sig;galLoaded=true;
@@ -933,12 +933,16 @@ function drawGallery(){const G=$('glist');drawScope();const list=shownItems();
   if($('galMore')){galIO=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){galIO.disconnect();galLimit+=24;drawGallery();}},{rootMargin:'400px'});galIO.observe($('galMore'));}
   G.querySelectorAll('[data-like]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleLike(b.dataset.like);});}
 // 좋아요: 누르자마자 숫자가 바뀌고(기다리지 않음), 서버에는 뒤에서 저장
-const liking={};
+const liking={},pend={};
+// 새로 불러온 목록이 아직 옛날 값이면, 방금 누른 좋아요를 그대로 보여 줘요
+function applyPend(list){const now=Date.now();for(const id in pend){const p=pend[id],it=list.find(x=>x.id===id);
+  if(!it||now>p.t){delete pend[id];continue;}if(!!it.liked===p.v){if(!liking[id])delete pend[id];continue;}it.liked=p.v;it.likes=Math.max(0,(+it.likes||0)+(p.v?1:-1));}}
 async function toggleLike(id){const it=items.find(x=>x.id===id);if(!it||liking[id])return;liking[id]=1;
-  it.liked=!it.liked;it.likes+=it.liked?1:-1;drawGallery();if(openIt&&openIt.id===id)renderModal();
-  try{const j=await api({action:'like',id});if(j.liked!==it.liked){it.liked=j.liked;it.likes+=j.liked?1:-1;}}
-  catch(e){it.liked=!it.liked;it.likes+=it.liked?1:-1;}
-  finally{delete liking[id];galSig=sigOf(items);drawGallery();if(openIt&&openIt.id===id)renderModal();}}
+  const want=!it.liked;it.liked=want;it.likes=Math.max(0,(+it.likes||0)+(want?1:-1));pend[id]={v:want,t:Date.now()+45000};drawGallery();if(openIt&&openIt.id===id)renderModal();
+  let ok=false;for(let t=0;t<3&&!ok;t++){try{const j=await api({action:'like',id,want});ok=true;if(j.liked!==want){it.liked=j.liked;it.likes=Math.max(0,(+it.likes||0)+(j.liked?1:-1));pend[id].v=j.liked;}}
+    catch(e){await new Promise(r=>setTimeout(r,1500+t*1500));}}
+  if(!ok){it.liked=!want;it.likes=Math.max(0,(+it.likes||0)+(want?-1:1));delete pend[id];}
+  delete liking[id];galSig=sigOf(items);drawGallery();if(openIt&&openIt.id===id)renderModal();}
 async function fetchImages(){const need=[];items.forEach(it=>[it.drawingId,it.clockId].forEach(id=>{if(id&&!imgCache[id]&&!need.includes(id))need.push(id);}));
   const slow=[];let n=0;
   await Promise.all(need.map(async id=>{const src='https://lh3.googleusercontent.com/d/'+id+'=s700-rw';

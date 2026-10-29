@@ -942,7 +942,7 @@ function drawScope(){const p=myPlace(),S=$('galScope');if(galScope===null)galSco
 $('galSearch').addEventListener('input',()=>{clearTimeout(gqT);gqT=setTimeout(()=>{galQ=$('galSearch').value.trim();galLimit=24;drawGallery();},250);});
 const sigOf=L=>JSON.stringify(L.map(x=>[x.id,x.likes,x.comments.length,x.name,x.imageId]));
 async function loadGallery(quiet){if(galBusy)return;galBusy=true;
-  try{const j=await api({action:'inv_list'}),L=(j.items||[]).sort((a,b)=>(+b.time||0)-(+a.time||0)),sig=sigOf(L);
+  try{const j=await api({action:'inv_list'}),L=(j.items||[]).sort((a,b)=>(+b.time||0)-(+a.time||0));applyPend(L);const sig=sigOf(L);
     if(quiet===true&&sig===galSig)return;const nw=galSig?L.filter(x=>!items.some(y=>y.id===x.id)).length:0;
     items=L;galSig=sig;if(openIt){const n=items.find(x=>x.id===openIt.id);if(n)openIt=n;}drawGallery();
     if(quiet===true&&nw>0){const t=$('newToast');t.textContent=`새 발명품 ${nw}개가 올라왔어요!`;t.hidden=false;clearTimeout(t._h);t._h=setTimeout(()=>t.hidden=true,4000);}}
@@ -961,10 +961,16 @@ function drawGallery(){const G=$('glist');drawScope();const L=shownItems();
   G.querySelectorAll('[data-like]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleLike(b.dataset.like);});
   G.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{e.stopPropagation();hideItem(b.dataset.del,b);});
   if(galIO)galIO.disconnect();if($('galMore')){galIO=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){galIO.disconnect();galLimit+=24;drawGallery();}},{rootMargin:'400px'});galIO.observe($('galMore'));}}
-const liking={};
-async function toggleLike(id){const it=items.find(x=>x.id===id);if(!it||liking[id])return;liking[id]=1;it.liked=!it.liked;it.likes+=it.liked?1:-1;drawGallery();if(openIt&&openIt.id===id)renderModal();
-  try{const j=await api({action:'like',id});if(j.liked!==it.liked){it.liked=j.liked;it.likes+=j.liked?1:-1;}}catch(e){it.liked=!it.liked;it.likes+=it.liked?1:-1;}
-  finally{delete liking[id];galSig=sigOf(items);drawGallery();if(openIt&&openIt.id===id)renderModal();}}
+const liking={},pend={};
+// 새로 불러온 목록이 아직 옛날 값이면, 방금 누른 좋아요를 그대로 보여 줘요
+function applyPend(list){const now=Date.now();for(const id in pend){const p=pend[id],it=list.find(x=>x.id===id);
+  if(!it||now>p.t){delete pend[id];continue;}if(!!it.liked===p.v){if(!liking[id])delete pend[id];continue;}it.liked=p.v;it.likes=Math.max(0,(+it.likes||0)+(p.v?1:-1));}}
+async function toggleLike(id){const it=items.find(x=>x.id===id);if(!it||liking[id])return;liking[id]=1;
+  const want=!it.liked;it.liked=want;it.likes=Math.max(0,(+it.likes||0)+(want?1:-1));pend[id]={v:want,t:Date.now()+45000};drawGallery();if(openIt&&openIt.id===id)renderModal();
+  let ok=false;for(let t=0;t<3&&!ok;t++){try{const j=await api({action:'like',id,want});ok=true;if(j.liked!==want){it.liked=j.liked;it.likes=Math.max(0,(+it.likes||0)+(j.liked?1:-1));pend[id].v=j.liked;}}
+    catch(e){await new Promise(r=>setTimeout(r,1500+t*1500));}}
+  if(!ok){it.liked=!want;it.likes=Math.max(0,(+it.likes||0)+(want?-1:1));delete pend[id];}
+  delete liking[id];galSig=sigOf(items);drawGallery();if(openIt&&openIt.id===id)renderModal();}
 async function hideItem(id,btn){if(btn.dataset.sure!=='1'){btn.dataset.sure='1';btn.textContent='정말 지울까요?';return;}
   btn.disabled=true;try{await api({action:'hide',id,pin:PIN});items=items.filter(x=>x.id!==id);closeModal();drawGallery();}catch(err){btn.disabled=false;btn.textContent=err.message;}}
 
