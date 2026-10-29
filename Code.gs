@@ -318,6 +318,7 @@ function rows_(name) {
 function dirty_() { CacheService.getScriptCache().removeAll(['rows_clocks', 'rows_likes', 'rows_comments', 'rows_inventions']); }
 
 function list_(q) {
+  dedupeComments_();
   const dev = str_(q.dev, 40);
   const likes = rows_('likes'), comments = rows_('comments');
   const items = rows_('clocks').filter(r => r[0] && String(r[13]).toUpperCase() !== 'Y').reverse().map(r => ({
@@ -367,8 +368,33 @@ function like_(q) {
 function comment_(q) {
   const id = str_(q.id, 40), name = str_(q.name, 12).trim(), text = str_(q.text, 80).trim();
   if (!id || !name || !text) return { ok: false, error: '이름과 댓글을 모두 써 주세요.' };
-  store_().ss.getSheetByName('comments').appendRow([id, name, text, new Date(), str_(q.dev, 40)]); dirty_();
-  return { ok: true };
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) return { ok: false, error: '잠시 뒤 다시 눌러 주세요.' };
+  try {
+    const sh = store_().ss.getSheetByName('comments'), last = sh.getLastRow();
+    // 같은 사람이 같은 작품에 같은 댓글을 이미 남겼으면 또 쓰지 않아요(느릴 때 여러 번 눌러도 하나만)
+    if (last > 1) { const n = Math.min(300, last - 1), v = sh.getRange(last - n + 1, 1, n, 3).getValues();
+      if (v.some(r => r[0] === id && String(r[1]).trim() === name && String(r[2]).trim() === text)) return { ok: true, dup: true }; }
+    sh.appendRow([id, name, text, new Date(), str_(q.dev, 40)]); dirty_();
+    return { ok: true };
+  } finally { lock.releaseLock(); }
+}
+
+// 한 번만: 그동안 여러 번 눌려서 똑같이 들어간 댓글(같은 작품·같은 이름·같은 글)을 하나만 남겨요
+function dedupeComments_() {
+  const P = PropertiesService.getScriptProperties();
+  if (P.getProperty('dedup_c1')) return;
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(200)) return;
+  try {
+    if (P.getProperty('dedup_c1')) return;
+    const sh = store_().ss.getSheetByName('comments'), v = sh.getDataRange().getValues(), head = v.shift();
+    const seen = {}, keep = [];
+    v.forEach(r => { if (!r[0]) return; const k = r[0] + '|' + String(r[1]).trim() + '|' + String(r[2]).trim(); if (seen[k]) return; seen[k] = 1; keep.push(r); });
+    const removed = v.length - keep.length;
+    if (removed > 0) { sh.getRange(2, 1, v.length, head.length).clearContent(); if (keep.length) sh.getRange(2, 1, keep.length, head.length).setValues(keep); dirty_(); }
+    P.setProperty('dedup_c1', removed + '개 지움 ' + new Date().toISOString());
+  } finally { lock.releaseLock(); }
 }
 
 /* ---------- 5) 선생님만: 작품·댓글 지우기 ----------
@@ -719,6 +745,7 @@ function invMakeIds_() {
   return sh.getDataRange().getValues().map(r => (String(r[7]).match(/\/d\/([\w-]+)/) || [])[1]).filter(Boolean);
 }
 function invList_(q) {
+  dedupeComments_();
   const dev = str_(q.dev, 40), likes = rows_('likes'), comments = rows_('comments');
   const items = invRows_().filter(r => r[0] && String(r[15]).toUpperCase() !== 'Y').reverse().map(r => ({
     id: r[0], time: new Date(r[1]).getTime(), school: r[2], grade: r[3], ban: r[4], num: r[5], maker: r[6], problem: r[7], wish: r[8], name: r[9], feature: r[10],
