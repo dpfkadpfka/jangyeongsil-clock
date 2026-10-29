@@ -1,0 +1,860 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="images/sun.webp"><meta property="og:title" content="해시계 물시계 실험실"><meta property="og:description" content="장영실과 함께 해시계와 물시계의 원리를 실험해 봐요."><meta property="og:image" content="images/jangyeongsil.webp">
+<title>해시계 물시계 실험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 레이아웃: 위 상태바 · 가운데 실험 무대(+오른쪽 미션판) · 아래 장영실 말풍선 줄 */
+@font-face{font-family:"HJiugae";src:url("fonts/jiugae.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"HBareon";src:url("fonts/bareon-r.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"HBareon";src:url("fonts/bareon-b.woff2") format("woff2");font-weight:700;font-display:swap}
+:root{
+  --sky1:#bfe7ff;
+  --sky2:#eaf7ff;
+  --ink:#24304a;
+  --sub:#62708c;
+  --white:#ffffff;
+  --line:#d8e6f3;
+  --blue:#2f80ed;
+  --blue-d:#1f62c4;
+  --yellow:#ffc531;
+  --yellow-d:#e09e00;
+  --green:#2bb673;
+  --green-d:#1d8a55;
+  --red:#ef5a5a;
+  --mint:#e6f8ef;
+  --cream:#fff6dc;
+  --f-title:"HJiugae","HBareon","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-ui:"HBareon","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  color-scheme:light;
+}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{font-synthesis:none;background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 55%,#fffaf0 100%);color:var(--ink);font-family:var(--f-ui);font-weight:700;font-size:18px;line-height:1.5;word-break:keep-all;-webkit-font-smoothing:antialiased;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0;box-sizing:border-box;overflow-x:hidden}
+button{font-family:var(--f-ui);cursor:pointer;color:inherit}
+button:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+img{display:block}
+h1,h2,h3{margin:0;font-weight:400}
+
+.app{max-width:1280px;margin:0 auto;height:100%;display:grid;grid-template-rows:72px minmax(0,1fr) 140px}
+
+/* 상태바 */
+.hud{display:flex;align-items:center;gap:12px}
+.round{width:52px;height:52px;border-radius:50%;border:0;background:var(--white);box-shadow:0 4px 0 var(--line);display:grid;place-items:center;flex:none}
+.round svg{width:26px;height:26px}
+.round:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.title-pill{background:var(--white);border-radius:999px;padding:10px 22px;box-shadow:0 4px 0 var(--line);font-family:var(--f-ui);font-weight:700;font-size:19px;white-space:nowrap;letter-spacing:-.01em}
+.map{display:flex;align-items:center;gap:6px;margin-left:auto;margin-right:auto}
+.step{width:40px;height:40px;border-radius:50%;border:3px solid var(--white);background:rgba(255,255,255,.6);font-family:var(--f-ui);font-weight:700;font-size:17px;color:var(--sub);display:grid;place-items:center;padding:0}
+.step.on{background:var(--blue);color:#fff;transform:scale(1.12);box-shadow:0 4px 10px rgba(47,128,237,.35)}
+.step.done{background:var(--green);color:#fff}
+.map .bar{width:22px;height:4px;border-radius:4px;background:rgba(255,255,255,.8)}
+.starpill{display:flex;align-items:center;gap:6px;background:var(--white);border-radius:999px;padding:6px 16px 6px 8px;box-shadow:0 4px 0 var(--line);font-family:var(--f-ui);font-weight:700;font-size:22px;font-variant-numeric:tabular-nums}
+.starpill svg{width:32px;height:32px}
+.starpill.pop{animation:pop .6s}
+@keyframes pop{30%{transform:scale(1.25) rotate(-4deg)}}
+
+/* 화면 */
+.screen{min-height:0;height:100%}
+.lesson{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;min-height:0}
+.main{display:flex;flex-direction:column;gap:12px;min-height:0;min-width:0}
+.fig{flex:1;min-height:240px;display:flex;justify-content:center;align-items:center}
+.stage-in{position:relative;height:100%;max-width:100%;border-radius:28px;overflow:hidden;border:6px solid var(--white);box-shadow:0 10px 24px rgba(36,48,74,.14);box-sizing:border-box}
+.stage-in svg{display:block;width:100%;height:100%;touch-action:none;user-select:none}
+.readout{position:absolute;left:14px;top:14px;background:var(--white);border-radius:18px;padding:6px 16px 8px;box-shadow:0 4px 0 rgba(36,48,74,.12);text-align:center}
+.readout small{display:block;font-size:13px;color:var(--sub)}
+.readout b{font-family:var(--f-title);font-weight:400;font-size:28px;color:var(--blue-d)}
+.controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center}
+.slider{display:flex;align-items:center;gap:10px;flex:1 1 320px;background:var(--white);border-radius:999px;padding:6px 18px;box-shadow:0 4px 0 var(--line)}
+.slider span{font-size:15px;color:var(--sub);white-space:nowrap}
+input[type=range]{flex:1;min-width:0;accent-color:var(--yellow);height:34px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:54px;padding:0 24px;border-radius:999px;border:0;background:var(--white);color:var(--ink);font-size:18px;font-weight:700;box-shadow:0 5px 0 var(--line);transition:transform .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--line)}
+.btn.yellow{background:var(--yellow);box-shadow:0 5px 0 var(--yellow-d)}
+.btn.blue{background:var(--blue);color:#fff;box-shadow:0 5px 0 var(--blue-d)}
+.btn.green{background:var(--green);color:#fff;box-shadow:0 5px 0 var(--green-d)}
+.btn.on{background:#24304a;color:#fff;box-shadow:0 5px 0 #111a2c}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.big{height:64px;padding:0 40px;font-size:22px}
+
+/* 미션판 */
+.board{background:var(--white);border-radius:26px;box-shadow:0 8px 0 var(--line);overflow:hidden;align-self:start}
+.board-head{background:var(--yellow);padding:12px 18px;display:flex;justify-content:space-between;align-items:center}
+.board-head h3{font-family:var(--f-title);font-size:26px}
+.prog{font-family:var(--f-ui);font-weight:700;font-size:17px}
+.missions{list-style:none;margin:0;padding:12px;display:flex;flex-direction:column;gap:8px;counter-reset:m}
+.missions li{counter-increment:m;display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:16px;font-size:17px;line-height:1.35;background:#f4f8fc}
+.missions li::before{content:counter(m);width:30px;height:30px;flex:none;border-radius:50%;background:var(--white);border:2px solid var(--line);display:grid;place-items:center;font-family:var(--f-ui);font-weight:700;font-size:15px}
+.missions li.cur{background:var(--cream);outline:3px solid var(--yellow)}
+.missions li.cur::before{background:var(--yellow);border-color:var(--yellow)}
+.missions li.ok{background:var(--mint);color:var(--green-d)}
+.missions li.ok::before{content:"✓";background:var(--green);border-color:var(--green);color:#fff}
+.missions li.lock{opacity:.45}
+.chk{display:none}
+.relic{display:flex;gap:10px;align-items:center;margin:0 12px 12px;padding:10px;border-radius:16px;border:2px dashed var(--line);background:none;width:calc(100% - 24px);text-align:left;box-sizing:border-box}
+.relic img{width:54px;height:54px;object-fit:contain;flex:none}
+.relic b{display:block;font-size:17px}
+.relic span span{font-size:13px;color:var(--sub)}
+.legend{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center;margin:0 12px 12px;padding:10px 12px;border-radius:16px;background:#f4f8fc;font-size:14px}
+.dots{display:flex;gap:4px}
+.dots i{width:18px;height:18px;border-radius:50%;background:#dfe8f2;display:inline-block}
+.dots.real i.f{background:#7d8aa5}
+.dots.wc i.f{background:var(--blue)}
+.dots.wc.bad i.f{background:var(--red)}
+
+/* 장영실 말풍선 줄 */
+.guide{display:flex;align-items:flex-end;gap:14px;position:relative;padding-bottom:12px}
+.guide .char{height:128px;width:auto;margin-bottom:-12px;flex:none;filter:drop-shadow(0 6px 8px rgba(36,48,74,.15))}
+.bubble{position:relative;flex:1;min-width:0;align-self:center;background:var(--white);border-radius:26px;padding:16px 24px;font-size:21px;line-height:1.5;box-shadow:0 6px 0 var(--line)}
+.bubble::before{content:"";position:absolute;left:-14px;bottom:26px;border:14px solid transparent;border-right-color:var(--white);border-left:0}
+.bubble.say{animation:say .35s ease-out}
+@keyframes say{0%{transform:scale(.96);opacity:.4}100%{transform:none;opacity:1}}
+.nextbtn{align-self:center;flex:none}
+.nextbtn.ready{animation:bounce 1.2s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* 표지 */
+.cover{position:relative;height:100%;border-radius:32px;overflow:hidden;border:6px solid var(--white);box-shadow:0 10px 24px rgba(36,48,74,.14);box-sizing:border-box;display:flex;align-items:center}
+.cover-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center bottom}
+.cover-text{position:relative;z-index:2;padding:0 6%;max-width:640px}
+.cover-text h1{font-family:var(--f-title);font-size:clamp(46px,7vw,92px);line-height:1.08;color:var(--ink);
+  -webkit-text-stroke:0;paint-order:stroke fill;text-shadow:0 0 0 #fff,-4px -4px 0 #fff,4px -4px 0 #fff,-4px 4px 0 #fff,4px 4px 0 #fff,0 -4px 0 #fff,0 4px 0 #fff,-4px 0 0 #fff,4px 0 0 #fff,0 10px 18px rgba(36,48,74,.18)}
+.cover-text h1 em{font-style:normal;color:var(--blue)}
+.cover-text p{display:inline-block;margin:16px 0 26px;background:rgba(255,255,255,.92);border-radius:999px;padding:8px 20px;font-size:19px}
+.cover-sun{position:absolute;right:30%;top:6%;width:120px;z-index:1;animation:float 4s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-10px) rotate(8deg)}}
+.cover-relics{position:absolute;right:5%;bottom:6%;display:flex;align-items:flex-end;gap:12px;z-index:2}
+.cover-relics img{width:clamp(130px,17vw,230px);height:auto;filter:drop-shadow(0 8px 10px rgba(36,48,74,.2))}
+
+/* 정리하기 */
+.single{user-select:none;-webkit-user-select:none;display:flex;flex-direction:column;gap:14px;max-width:1000px;margin:0 auto;width:100%;height:100%;box-sizing:border-box}
+.pile{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;min-height:150px;align-content:flex-start}
+.chip{display:flex;flex-direction:column;align-items:center;gap:6px;width:140px;padding:8px 8px 10px;border-radius:22px;background:var(--white);border:0;box-shadow:0 5px 0 var(--line);font-size:16px;touch-action:none;user-select:none;text-align:center;line-height:1.3}
+.chip img,.chip svg{-webkit-user-drag:none;pointer-events:none;width:100%;height:76px;object-fit:cover;border-radius:16px;background:#e3f1fb}
+.chip.sel{outline:4px solid var(--blue)}
+.chip.placed{width:auto;flex-direction:row;padding:5px 12px 5px 5px;cursor:default;font-size:14px;box-shadow:0 3px 0 var(--line)}
+.chip.placed img,.chip.placed svg{width:36px;height:36px;border-radius:10px}
+.chip.drag{position:fixed;z-index:20;pointer-events:none;transform:rotate(-4deg);box-shadow:0 16px 28px rgba(36,48,74,.25)}
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;min-height:0}
+.bin{border-radius:28px;padding:16px;min-height:180px;display:flex;flex-direction:column;gap:10px;border:4px dashed rgba(255,255,255,.9);transition:transform .15s}
+.bin[data-bin="o"]{background:#fff1c4}
+.bin[data-bin="x"]{background:#d6ecff}
+.bin h3{font-size:22px;font-weight:700;display:flex;gap:10px;align-items:center}
+.bin h3 img{width:56px;height:56px;object-fit:contain}
+.bin.hot{transform:scale(1.02);border-color:var(--blue);border-style:solid}
+.bin .slot{display:flex;flex-wrap:wrap;gap:8px}
+.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+/* 퀴즈 */
+.qcard{background:var(--white);border-radius:30px;box-shadow:0 8px 0 var(--line);padding:24px 28px;display:flex;flex-direction:column;gap:18px}
+.qtop{display:flex;align-items:center;gap:12px}
+.qnum{font-family:var(--f-ui);font-weight:700;font-size:17px;color:var(--blue);white-space:nowrap}
+.qbar{flex:1;height:14px;border-radius:99px;background:#eef3f9;overflow:hidden}
+.qbar i{display:block;height:100%;width:0;background:var(--yellow);border-radius:99px;transition:width .4s}
+.qtext{font-family:var(--f-title);font-size:clamp(28px,3.6vw,38px);text-align:center}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+.opt{display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 12px;border-radius:26px;background:#f6f9fd;border:4px solid transparent;font-family:var(--f-ui);font-weight:700;font-size:22px;box-shadow:0 5px 0 var(--line);transition:transform .1s}
+.opt img,.opt svg{width:110px;height:110px;object-fit:contain}
+.opt:hover{transform:translateY(-3px);border-color:#cfe2f7}
+.opt.right{border-color:var(--green);background:var(--mint)}
+.opt.wrong{border-color:var(--red);background:#ffecec;animation:shake .4s}
+.feedback{display:none}
+
+/* 마무리 + 방명록 */
+.endwrap{display:grid;grid-template-columns:320px minmax(0,1fr);gap:20px;height:100%;min-height:0}
+.gb{background:var(--white);border-radius:26px;box-shadow:0 8px 0 var(--line);overflow:hidden;display:flex;flex-direction:column;min-height:0}
+.gb-form{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-bottom:2px dashed var(--line)}
+.gb-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.gb input{flex:1;min-width:160px;height:50px;border-radius:16px;border:2px solid var(--line);padding:0 16px;font:inherit;font-size:18px;background:#f8fbfe;color:var(--ink)}
+.gb input:focus{outline:none;border-color:var(--blue);background:#fff}
+#gbName{flex:0 1 200px}
+.gb-stars{display:flex;gap:2px}
+.gb-stars button{border:0;background:none;padding:2px;width:40px;height:40px}
+.gb-stars svg{width:36px;height:36px;transition:transform .1s}
+.gb-stars button.off svg{filter:grayscale(1);opacity:.35}
+.gb-stars button:active svg{transform:scale(1.2)}
+.gb-feel{display:flex;gap:8px;flex-wrap:wrap}
+.gb-feel button{border:0;background:#eef5fc;border-radius:999px;padding:8px 14px;font-size:15px;font-weight:700}
+.gb-feel button:hover{background:#dcebfa}
+.gb-msg{margin:0;font-size:15px;color:var(--blue-d)}
+.gb-list{list-style:none;margin:0;padding:12px 16px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;overflow:auto;align-content:start;flex:1}
+.gb-list li{background:#fff8e3;border-radius:18px;padding:12px 14px;box-shadow:0 3px 0 #f1e2b5;animation:say .35s ease-out}
+.gb-list li:nth-child(3n+2){background:#e9f5ff;box-shadow:0 3px 0 #cfe4f6}
+.gb-list li:nth-child(3n){background:#eaf8f0;box-shadow:0 3px 0 #cdeadb}
+.gb-list b{font-size:16px}
+.gb-list .st{font-size:14px;color:#e0a000;margin-left:6px;letter-spacing:1px}
+.gb-list p{margin:4px 0 0;font-size:16px;font-weight:400;line-height:1.45;word-break:break-word}
+.gb-empty{grid-column:1/-1;text-align:center;color:var(--sub);font-weight:400;padding:20px 0;background:none!important;box-shadow:none!important}
+@media (max-width:900px){.endwrap{grid-template-columns:1fr}.gb-list{max-height:none}}
+.end{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;height:100%}
+.end svg.badge{width:min(260px,60%);height:auto;animation:float 3s ease-in-out infinite}
+.end h2{font-family:var(--f-title);font-size:40px}
+
+.zoom{position:fixed;inset:0;z-index:50;background:rgba(20,30,50,.6);display:grid;place-items:center;padding:24px}
+.zoom-card{background:#fff;border-radius:30px;max-width:620px;width:100%;overflow:hidden;box-shadow:0 10px 0 rgba(0,0,0,.1)}
+.zoom-card img{width:100%;max-height:56vh;object-fit:contain;background:#eef6fc}
+.zoom-card div{padding:18px 22px;display:flex;gap:12px;align-items:center;justify-content:space-between}
+.zoom-card b{font-family:var(--f-title);font-weight:400;font-size:28px;display:block}
+.zoom-card p{margin:4px 0 0;font-size:18px;color:var(--sub)}
+.credit{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:4px;font-size:11px;font-weight:400;color:var(--sub);opacity:.7}
+
+/* SVG 움직임 */
+#wcSvg .arm{transform-origin:586.7px 349px;transform:rotate(-32deg);transition:transform .12s,filter .6s}
+#wcSvg .arm.hit{transform:rotate(0deg)}
+#wcSvg .bell{transform-origin:722px 282px}
+#wcSvg .bell.ring{animation:ring .9s}
+@keyframes ring{15%{transform:rotate(14deg)}35%{transform:rotate(-12deg)}55%{transform:rotate(8deg)}75%{transform:rotate(-4deg)}}
+#cloud{transition:transform .9s ease,opacity .6s}
+.night-only{opacity:0;transition:opacity .6s}
+.is-night .night-only{opacity:1}
+.day-only{transition:opacity .6s}
+.is-night .day-only{opacity:0}
+.fg{transition:filter .6s}
+.is-night .fg{filter:brightness(.5) saturate(.75)}
+
+@media (max-width:900px){
+  html,body{height:auto}
+  .app{height:auto;grid-template-rows:auto auto auto;gap:12px;padding-block:10px 20px}
+  .hud{flex-wrap:wrap}
+  .map{order:3;width:100%;justify-content:center}
+  .lesson{grid-template-columns:1fr}
+  .fig{flex:none;min-height:0}
+  .stage-in{height:auto;width:100%}
+  .cover{min-height:540px;align-items:flex-start;padding-top:28px}
+  .cover-relics img{width:120px}
+  .guide .char{height:110px}
+  .bubble{font-size:18px;padding:12px 16px}
+  .guide{flex-wrap:wrap;padding-bottom:0}
+  .nextbtn{width:100%}
+  .bins{grid-template-columns:1fr}
+  .title-pill{font-size:18px;padding:6px 14px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21.1l1.4-7L2 9.3l7-.8z" fill="#f2b630" stroke="#c98f12" stroke-width="1.2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-speak" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#1d2b38"/><path d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12" stroke="#1d2b38" stroke-width="2" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 48 48"><g stroke="#e59a12" stroke-width="3" stroke-linecap="round"><path d="M24 3v6M24 39v6M3 24h6M39 24h6M9 9l4 4M35 35l4 4M9 39l4-4M35 13l4-4"/></g><circle cx="24" cy="24" r="10" fill="#f2b630"/></symbol>
+    <symbol id="i-rain" viewBox="0 0 48 48"><path d="M13 30a8 8 0 01-1-16 11 11 0 0121-3 8 8 0 012 19z" fill="#9aa8b4"/><g stroke="#3d8fd1" stroke-width="3" stroke-linecap="round"><path d="M16 35l-2 6M25 35l-2 6M34 35l-2 6"/></g></symbol>
+    <symbol id="i-moon" viewBox="0 0 48 48"><rect width="48" height="48" rx="10" fill="#1b2a52"/><path d="M30 10a14 14 0 1 0 8 22 11 11 0 0 1-8-22z" fill="#f6e7a6"/><circle cx="12" cy="12" r="1.6" fill="#fff"/><circle cx="16" cy="36" r="1.2" fill="#fff"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 48 48"><circle cx="34" cy="14" r="8" fill="#f2b630"/><path d="M12 38a9 9 0 01-1-18 12 12 0 0123-2 9 9 0 012 20z" fill="#8d9aa5"/></symbol>
+    <symbol id="i-morning" viewBox="0 0 48 48"><path d="M2 34h44" stroke="#2c8a68" stroke-width="3"/><path d="M12 34a12 12 0 0124 0z" fill="#f2b630"/><g stroke="#e59a12" stroke-width="3" stroke-linecap="round"><path d="M24 12v5M10 20l3 3M38 20l-3 3"/></g></symbol>
+    <symbol id="i-shadow" viewBox="0 0 48 48"><ellipse cx="24" cy="36" rx="20" ry="8" fill="#e6ddc9"/><path d="M24 36V12" stroke="#5b4630" stroke-width="3"/><path d="M24 36l16 4" stroke="#1d2b38" stroke-width="5" stroke-linecap="round" opacity=".55"/><circle cx="8" cy="10" r="6" fill="#f2b630"/></symbol>
+    <symbol id="i-drop" viewBox="0 0 48 48"><path d="M24 4C24 4 10 22 10 31a14 14 0 0028 0C38 22 24 4 24 4z" fill="#3d8fd1"/><path d="M17 31a7 7 0 004 6" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="i-ear" viewBox="0 0 48 48"><path d="M8 20c0-8 6-14 16-14s16 6 16 14" stroke="#5b4630" stroke-width="3" fill="none"/><path d="M14 18h20l-3 18H17z" fill="#c9a24a"/><circle cx="24" cy="40" r="3" fill="#8a6d2e"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 48 48"><path d="M24 6v4" stroke="#5b4630" stroke-width="3"/><path d="M12 34c2-3 3-6 3-12a9 9 0 0118 0c0 6 1 9 3 12z" fill="#e0a92c" stroke="#a87914" stroke-width="2"/><circle cx="24" cy="38" r="3.5" fill="#a87914"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 48 48"><rect x="6" y="10" width="36" height="30" rx="4" fill="#a7d8e6"/><path d="M16 4c2 4 2 6 0 10" stroke="#3d8fd1" stroke-width="3" fill="none"/><path d="M8 30h32" stroke="#fff" stroke-width="2"/></symbol>
+    <symbol id="sejong-face" viewBox="0 0 160 180">
+      <path d="M40 180c0-34 18-58 40-58s40 24 40 58z" fill="#2c8a68"/>
+      <path d="M80 122l-12 28h24z" fill="#f3f7f9"/>
+      <circle cx="80" cy="86" r="40" fill="#f3d2b3"/>
+      <path d="M42 70c2-28 18-44 38-44s36 16 38 44c-10-6-24-9-38-9s-28 3-38 9z" fill="#1d2b38"/>
+      <rect x="57" y="18" width="46" height="26" rx="12" fill="#1d2b38"/>
+      <ellipse cx="34" cy="62" rx="16" ry="7" fill="#1d2b38" transform="rotate(-18 34 62)"/>
+      <ellipse cx="126" cy="62" rx="16" ry="7" fill="#1d2b38" transform="rotate(18 126 62)"/>
+      <circle cx="66" cy="86" r="4" fill="#1d2b38"/><circle cx="94" cy="86" r="4" fill="#1d2b38"/>
+      <path d="M58 76q8-5 15 0M87 76q8-5 15 0" stroke="#1d2b38" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <circle cx="58" cy="98" r="6" fill="#f0a99a" opacity=".6"/><circle cx="102" cy="98" r="6" fill="#f0a99a" opacity=".6"/>
+      <path d="M68 104q12 10 24 0" stroke="#1d2b38" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M70 114q10 22 20 0" fill="#3b3b3b"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <header class="hud">
+    <button class="round" id="toHome" aria-label="처음으로"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5" fill="none" stroke="#24304a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 10v9.5h13V10" fill="none" stroke="#24304a" stroke-width="2.4" stroke-linejoin="round"/><path d="M10 19.5v-5h4v5" fill="none" stroke="#24304a" stroke-width="2.4" stroke-linejoin="round"/></svg></button>
+    <div class="title-pill" id="topTitle">해시계 물시계 실험실</div>
+    <nav class="map" aria-label="학습 단계">
+      <button class="step" data-step="sun" data-go="sun" aria-label="1단계 해시계">1</button><span class="bar"></span>
+      <button class="step" data-step="water" data-go="water" aria-label="2단계 물시계">2</button><span class="bar"></span>
+      <button class="step" data-step="sort" data-go="sort" aria-label="3단계 정리하기">3</button><span class="bar"></span>
+      <button class="step" data-step="quiz" data-go="quiz" aria-label="4단계 퀴즈">4</button>
+    </nav>
+    <div class="starpill" id="stars" aria-label="모은 별"><svg aria-hidden="true"><use href="#i-star"/></svg><span id="starCount">0</span></div>
+  </header>
+
+  <!-- 표지 -->
+  <section class="screen" id="s-home">
+    <div class="cover">
+      <img class="cover-bg" src="images/bg_sky.webp" alt="">
+      <img class="cover-sun" src="images/sun.webp" alt="">
+      <div class="cover-text">
+        <h1>해시계<br><em>물시계</em> 실험실</h1>
+        <p>옛날 사람들은 시계 없이 어떻게 시간을 알았을까?</p><br>
+        <button class="btn yellow big" data-go="sun">시작하기</button>
+      </div>
+      <div class="cover-relics"><img src="images/angbuilgu.webp" alt="앙부일구"><img src="images/jagyeongnu.webp" alt="자격루"></div>
+    </div>
+  </section>
+
+  <!-- 해시계 -->
+  <section class="screen lesson" id="s-sun" hidden>
+    <div class="main">
+      <div class="fig"><div class="stage-in" style="aspect-ratio:800/550">
+        <svg id="sunSvg" viewBox="0 0 800 550" role="img" aria-label="해와 해시계 그림자 실험">
+        <defs>
+          <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1">
+            <stop id="skyTop" offset="0" stop-color="#5fb6e4"/>
+            <stop id="skyBot" offset="1" stop-color="#cdeefa"/>
+          </linearGradient>
+          <radialGradient id="bowlG" cx=".5" cy=".4" r=".6">
+            <stop offset="0" stop-color="#f6efdf"/><stop offset="1" stop-color="#d9ccb0"/>
+          </radialGradient>
+        </defs>
+        <image href="images/bg_sky.webp" x="0" y="0" width="800" height="550" preserveAspectRatio="xMidYMid slice" class="day-only"/>
+        <image href="images/bg_night.webp" x="0" y="0" width="800" height="550" preserveAspectRatio="xMidYMid slice" class="night-only"/>
+        <defs><linearGradient id="duskG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#26306b"/><stop offset=".45" stop-color="#8a5a8c"/><stop offset=".62" stop-color="#ff9a52"/></linearGradient></defs>
+        <rect id="tint" width="800" height="550" fill="#e98f5a" fill-opacity="0"/>
+        <rect id="duskSky" width="800" height="550" fill="url(#duskG)" fill-opacity="0"/>
+        <path d="M70 300 A330 240 0 0 1 730 300" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="4 10" opacity=".85" class="day-only"/>
+        <g font-family="HJiugae, sans-serif" font-size="22" fill="#1d2b38" stroke="#ffffff" stroke-width="4" paint-order="stroke">
+          <text x="40" y="322">서쪽</text><text x="712" y="322">동쪽</text>
+        </g>
+        <path d="M0 352 Q400 330 800 352 V550 H0z" fill="#dccdab"/>
+        <path d="M0 352 Q400 330 800 352 V550 H0z" fill="#0d1b3d" fill-opacity=".55" class="night-only"/>
+        <!-- 앙부일구 -->
+        <rect id="dusk" width="800" height="550" fill="#1b2450" fill-opacity="0"/>
+        <image id="dialImg" class="fg" href="images/angbuilgu.webp" x="220.6" y="195.8" width="345" height="348.5"/>
+        <g id="hourMarks"></g>
+        <line id="shadow" x1="400" y1="283" x2="480" y2="283" stroke="#1d2b38" stroke-width="8" stroke-linecap="round" opacity=".55"/>
+        <!-- 영침 -->
+        <line x1="400" y1="283" x2="400" y2="230" stroke="#6b4a2a" stroke-width="6" stroke-linecap="round"/>
+        <circle cx="400" cy="230" r="5" fill="#d4473a"/>
+        <g id="sunG" style="cursor:grab">
+          <circle r="64" fill="transparent"/>
+          <image href="images/sun.webp" x="-58" y="-58" width="116" height="116"/>
+        </g>
+        <g id="cloud" style="transform:translate(400px,90px);opacity:0">
+          <image href="images/cloud.webp" x="-140" y="-150" width="280" height="280"/>
+        </g>
+        <text x="400" y="34" text-anchor="middle" font-family="HJiugae, sans-serif" font-size="22" fill="#1d2b38" stroke="#fff" stroke-width="4" paint-order="stroke" class="day-only" id="dragHint">해를 손가락으로 끌어 봐!</text>
+      </svg>
+        <div class="readout"><small>그림자 시계</small><b id="sunRead">아침 9시</b></div>
+      </div></div>
+      <div class="controls">
+        <div class="slider"><span>아침</span><input type="range" id="sunRange" min="7" max="17" step="0.05" value="9" aria-label="해 움직이기"><span>저녁</span></div>
+        <button class="btn" id="cloudBtn">구름 부르기</button>
+        <button class="btn" id="nightBtn">밤 되기</button>
+      </div>
+    </div>
+    <aside class="board">
+      <div class="board-head"><h3>미션</h3><span class="prog">0 / 4</span></div>
+      <ul class="missions" id="sunMissions">
+        <li><span class="chk"></span>그림자를 12시에 맞추기</li>
+        <li><span class="chk"></span>그림자를 제일 길게 만들기</li>
+        <li><span class="chk"></span>그림자를 3시에 맞추기</li>
+        <li><span class="chk"></span>구름이나 밤으로 바꿔 보기</li>
+      </ul>
+      <button class="relic" data-zoom="images/angbuilgu.webp" data-name="앙부일구" data-cap="솥처럼 생긴 해시계야. 세종대왕 때 장영실이 함께 만들었어."><img src="images/angbuilgu.webp" alt=""><span><b>앙부일구</b><span>눌러서 알아보기</span></span></button>
+    </aside>
+  </section>
+
+  <!-- 물시계 -->
+  <section class="screen lesson" id="s-water" hidden>
+    <div class="main">
+      <div class="fig"><div class="stage-in" style="aspect-ratio:800/480"><svg id="wcSvg" viewBox="0 0 800 480" role="img" aria-label="물시계 자격루 실험">
+        <image href="images/bg_sky.webp" x="0" y="0" width="800" height="480" preserveAspectRatio="xMidYMax slice" class="day-only"/>
+        <rect width="800" height="480" fill="#ffffff" fill-opacity=".5" class="day-only"/>
+        <image href="images/bg_night.webp" x="0" y="0" width="800" height="480" preserveAspectRatio="xMidYMax slice" class="night-only"/>
+        <rect class="fg" y="452" width="800" height="28" fill="#b59266"/>
+        <!-- 받침대 -->
+        <rect class="fg" x="70" y="168" width="155" height="284" fill="#b8743f" stroke="#8a5428" stroke-width="3"/>
+        <rect class="fg" x="225" y="276" width="111" height="176" fill="#c4834c" stroke="#8a5428" stroke-width="3"/>
+        <!-- 항아리 -->
+        <image class="fg" href="images/pot_big.webp" x="60" y="16" width="180" height="156.6"/>
+        <image class="fg" href="images/pot_small.webp" x="200" y="168" width="150" height="112.8"/>
+        <!-- 물받이 통 -->
+        <rect class="fg" x="336" y="290" width="124" height="162" rx="6" fill="#ffffff" fill-opacity=".85" stroke="#6b7d8c" stroke-width="4"/>
+        <rect id="wcWater" x="340" y="448" width="116" height="0" fill="#3d8fd1" opacity=".8"/>
+        <g id="wcMarks"></g>
+        <!-- 잣대 -->
+        <g id="wcRod">
+          <rect x="368" y="-150" width="12" height="150" rx="3" fill="#d4473a"/>
+          <rect x="354" y="-6" width="40" height="10" rx="3" fill="#8a5428"/>
+        </g>
+        <!-- 구슬 길 -->
+        <path class="fg" d="M470 300 L560 432" stroke="#8a5428" stroke-width="8" stroke-linecap="round"/>
+        <rect x="462" y="286" width="26" height="16" rx="4" fill="#6b4a2a"/>
+        <circle id="ball" cx="474" cy="294" r="11" fill="#c9cfd5" stroke="#6b7d8c" stroke-width="2" opacity="0"/>
+        <!-- 종 틀 -->
+        <path class="fg" d="M690 452 V282 H786 V452" stroke="#b8743f" stroke-width="9" fill="none"/>
+        <g class="bell fg">
+          <path d="M722 282v20" stroke="#6b4a2a" stroke-width="4"/>
+          <image href="images/bell.webp" x="687" y="298" width="70" height="84.5"/>
+        </g>
+        <!-- 인형 -->
+        <image class="fg" href="images/doll_body.webp" x="568" y="282" width="54" height="170"/>
+        <g class="arm fg" id="dollArm">
+          <image href="images/doll_arm.webp" x="579.6" y="333.1" width="120" height="45.4"/>
+        </g>
+        <g id="drops"></g>
+        <g font-family="HJiugae, sans-serif" font-size="17" fill="#ffffff" stroke="#3b2a1a" stroke-width="4" paint-order="stroke" text-anchor="middle" class="labels">
+          <text x="148" y="205">① 큰 물 항아리</text>
+          <text x="281" y="312">② 작은</text><text x="281" y="334">물 항아리</text>
+          <text x="398" y="473">③ 물받이 통</text>
+          <text x="690" y="473">④ 종 치는 인형</text>
+        </g>
+        <text id="dingText" x="650" y="250" text-anchor="middle" font-family="HJiugae, sans-serif" font-size="44" fill="#d4473a" opacity="0">땡!</text>
+      </svg></div></div>
+      <div class="controls">
+        <button class="btn blue" id="runBtn">물 나오기</button>
+        <button class="btn" id="fastBtn">빨리 보기</button>
+        <button class="btn" id="bigBtn">물 콸콸</button>
+        <button class="btn" id="wNightBtn">밤 되기</button>
+        <button class="btn" id="resetBtn">통 비우기</button>
+      </div>
+    </div>
+    <aside class="board">
+      <div class="board-head"><h3>미션</h3><span class="prog">0 / 3</span></div>
+      <ul class="missions" id="wMissions">
+        <li><span class="chk"></span>종이 3번 울리게 하기</li>
+        <li><span class="chk"></span>물 콸콸 부어 보기</li>
+        <li><span class="chk"></span>밤에도 되는지 보기</li>
+      </ul>
+      <div class="legend">
+        <span>진짜 시간</span><span class="dots real" id="dotsReal"></span>
+        <span>물시계 시간</span><span class="dots wc" id="dotsWc"></span>
+      </div>
+      <button class="relic" data-zoom="images/jagyeongnu.webp" data-name="자격루" data-cap="장영실이 만든 물시계야. 시간이 되면 인형이 종을 쳐서 알려 줬어."><img src="images/jagyeongnu.webp" alt=""><span><b>자격루</b><span>눌러서 알아보기</span></span></button>
+    </aside>
+  </section>
+
+  <!-- 정리하기 -->
+  <section class="screen" id="s-sort" hidden>
+    <div class="single">
+      <div class="pile" id="pile"></div>
+      <div class="bins">
+        <div class="bin" data-bin="o"><h3><img src="images/angbuilgu.webp" alt="">해시계로 알 수 있어</h3><div class="slot"></div></div>
+        <div class="bin" data-bin="x"><h3><img src="images/jagyeongnu.webp" alt="">물시계가 필요해</h3><div class="slot"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 퀴즈 -->
+  <section class="screen" id="s-quiz" hidden>
+    <div class="single">
+      <div class="qcard">
+        <div class="qtop"><span class="qnum" id="qNum"></span><div class="qbar"><i id="qBar"></i></div></div>
+        <h2 class="qtext" id="qText"></h2>
+        <div class="opts" id="qOpts"></div>
+        <p class="feedback" id="qFb"></p>
+        <div style="display:flex;justify-content:center"><button class="btn blue" id="qNext" hidden>다음 문제</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 마무리 -->
+  <section class="screen" id="s-end" hidden>
+    <div class="endwrap">
+      <div class="end">
+        <svg class="badge" viewBox="0 0 320 300" aria-hidden="true">
+          <path d="M110 200 L80 296 L120 272 L140 300 L160 210z M210 200 L240 296 L200 272 L180 300 L160 210z" fill="#2f80ed"/>
+          <circle cx="160" cy="130" r="118" fill="#ffc531"/>
+          <circle cx="160" cy="130" r="100" fill="#fff8e8"/>
+          <clipPath id="badgeClip"><circle cx="160" cy="100" r="60"/></clipPath>
+          <image href="images/jangyeongsil.webp" x="100" y="40" width="120" height="122.4" clip-path="url(#badgeClip)"/>
+          <text x="160" y="196" text-anchor="middle" font-family="HJiugae, sans-serif" font-size="26" fill="#24304a">나도 장영실!</text>
+          <text x="160" y="224" text-anchor="middle" font-family="HJiugae, sans-serif" font-size="19" fill="#2f80ed">시계 발명가</text>
+        </svg>
+        <h2 id="endText">별을 모았어!</h2>
+      </div>
+      <div class="gb">
+        <div class="board-head"><h3>방명록</h3><span class="prog" id="gbCount"></span></div>
+        <form class="gb-form" id="gbForm" autocomplete="off">
+          <div class="gb-row"><input id="gbName" maxlength="10" placeholder="이름이나 별명" aria-label="이름"><div class="gb-stars" id="gbStars" role="radiogroup" aria-label="별점"></div></div>
+          <div class="gb-feel" id="gbFeel"></div>
+          <div class="gb-row"><input id="gbText" maxlength="60" placeholder="오늘 실험 어땠어? 한 줄로 써 줘!" aria-label="후기"><button class="btn blue" id="gbSend" type="submit">남기기</button></div>
+          <p class="gb-msg" id="gbMsg" hidden></p>
+        </form>
+        <ul class="gb-list" id="gbList"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 장영실 말풍선 -->
+  <div class="guide">
+    <img class="char" src="images/jangyeongsil.webp" alt="장영실">
+    <div class="bubble" id="guideText" aria-live="polite"></div>
+    <button class="btn green big nextbtn" id="nextBtn">다음</button>
+    <button id="prevBtn" hidden></button><span id="pageNo" hidden></span>
+  </div>
+</div>
+<div class="credit">만든 사람 예람쌤(김예람) · dpfkadpfka@gmail.com</div>
+
+<div class="zoom" id="zoom" hidden>
+  <div class="zoom-card"><img id="zoomImg" alt=""><div><span><b id="zoomName"></b><p id="zoomCap"></p></span><button class="btn blue" id="zoomClose">닫기</button></div></div>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const NS='http://www.w3.org/2000/svg';
+let stars=0, current='home';
+const done={home:true,sun:false,water:false,sort:false,quiz:false};
+const ORDER=['home','sun','water','sort','quiz','end'];
+const TITLES={home:'해시계 물시계 실험실',sun:'해시계 실험',water:'물시계 실험',sort:'정리하기',quiz:'퀴즈',end:'다 했어요!'};
+
+/* ---------- 소리 ---------- */
+let ac=null;
+function actx(){ if(!ac){ try{ ac=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(ac&&ac.state==='suspended') ac.resume(); return ac; }
+function tone(f,dur,g,type,delay){ const a=actx(); if(!a) return; const t=a.currentTime+(delay||0); const o=a.createOscillator(), v=a.createGain(); o.type=type||'sine'; o.frequency.value=f; v.gain.setValueAtTime(g,t); v.gain.exponentialRampToValueAtTime(0.001,t+dur); o.connect(v); v.connect(a.destination); o.start(t); o.stop(t+dur+0.05); }
+function bell(){ tone(660,1.8,0.35); tone(1320,1.2,0.12); tone(1980,0.8,0.06); }
+function chime(){ tone(784,0.35,0.2,'triangle'); tone(1046,0.5,0.2,'triangle',0.12); }
+function buzz(){ tone(200,0.3,0.15,'square'); }
+
+/* ---------- 읽어 주기 ---------- */
+function say(text){ return; try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; u.rate=0.95; const v=speechSynthesis.getVoices().find(x=>x.lang&&x.lang.startsWith('ko')); if(v) u.voice=v; speechSynthesis.speak(u);}catch(e){} }
+function guide(text){ const g=$('#guideText'); g.textContent=text; g.classList.remove('say'); void g.offsetWidth; g.classList.add('say'); }
+
+function addStar(){ stars++; $('#starCount').textContent=stars; const s=$('#stars'); s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop'); chime(); }
+
+/* ---------- 화면 이동 ---------- */
+const intro={
+  home:'안녕! 나는 장영실이야. 옛날에는 시계가 없었는데, 사람들은 어떻게 시간을 알았을까? 같이 알아보자!',
+  sun:'해를 손가락으로 쭉 끌어 봐! 막대 그림자가 12시를 가리키게 만들 수 있을까?',
+  water:'물 나오기 버튼을 눌러 봐! 종이 3번 울릴 때까지 지켜보자.',
+  sort:'카드를 알맞은 상자로 옮겨 봐! 그때 해가 보이는지 생각해 보자.',
+  quiz:'이제 퀴즈야! 알맞은 그림을 눌러 봐.',
+  end:'와, 다 했어! 너도 이제 꼬마 장영실이야. 오늘 실험이 어땠는지 방명록에 한 줄 남겨 줄래?'
+};
+function go(id){
+  current=id;
+  const k=ORDER.indexOf(id); $('#prevBtn').disabled=k<=0; $('#nextBtn').disabled=k>=ORDER.length-1;
+  $('#nextBtn').classList.toggle('ready',!!done[id]); $('#nextBtn').hidden=(id==='home'||id==='end'||!done[id]); $('#topTitle').textContent=TITLES[id];
+  window.scrollTo(0,0);
+  $$('.screen').forEach(s=>s.hidden=(s.id!=='s-'+id));
+  $$('.step').forEach(s=>{ s.classList.toggle('on',s.dataset.step===id); s.classList.toggle('done',!!done[s.dataset.step]&&s.dataset.step!==id); });
+  if(id==='quiz') startQuiz();
+  if(id==='end'){ $('#endText').textContent='별 '+stars+'개를 모았어!'; gbLoad(); }
+  guide(intro[id]);
+}
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-go]'); if(b) go(b.dataset.go); });
+$('#toHome').addEventListener('click',()=>go('home'));
+
+/* ================= 해시계 ================= */
+const SUN={t:9,cloud:false,night:false,m:[false,false,false,false]};
+const sunSvg=$('#sunSvg'), sunG=$('#sunG'), shadow=$('#shadow');
+const CX=400, CY=283, RX=110, RY=66, LX=125, LY=80;
+// 시각 눈금
+(function(){
+  const g=$('#hourMarks');
+  for(let h=7;h<=17;h++){
+    const az=Math.PI*(h-6)/12, dx=Math.cos(az), dy=Math.sin(az);
+    const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',CX-dx*LX); t.setAttribute('y',CY-dy*LY+6);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('font-family','HJiugae, sans-serif');
+    t.setAttribute('font-size','15'); t.setAttribute('fill','#fff'); t.setAttribute('id','hm'+h);
+    t.setAttribute('stroke','#5b4630'); t.setAttribute('stroke-width','3'); t.setAttribute('paint-order','stroke');
+    t.textContent=(h>12?h-12:h)+'시';
+    g.appendChild(t);
+  }
+})();
+function timeWord(t){ const h=Math.round(t); const n=h>12?h-12:h; const w=t<10.5?'아침':t<13?'점심':t<15.8?'오후':'저녁'; return w+' '+n+'시'; }
+function mix(a,b,k){ const pa=a.match(/\w\w/g).map(x=>parseInt(x,16)), pb=b.match(/\w\w/g).map(x=>parseInt(x,16)); return '#'+pa.map((v,i)=>Math.round(v+(pb[i]-v)*k).toString(16).padStart(2,'0')).join(''); }
+function sunUpdate(){
+  const az=Math.PI*(SUN.t-6)/12;
+  const sx=400+330*Math.cos(az), sy=300-240*Math.sin(az);
+  sunG.setAttribute('transform','translate('+sx+','+sy+')');
+  const e=(10+55*Math.sin(az))*Math.PI/180;
+  const L=Math.min(1,0.4/Math.tan(e));
+  shadow.setAttribute('x2',CX-Math.cos(az)*L*RX); shadow.setAttribute('y2',CY-Math.sin(az)*L*RY);
+  const visible=!SUN.cloud&&!SUN.night;
+  shadow.style.opacity=visible?0.55:0; shadow.style.transition='opacity .6s';
+  // 하늘 색
+  const low=1-Math.sin(az), tint=$('#tint'), dk=Math.pow(Math.max(0,Math.min(1,1-Math.sin(az)/0.75)),1.2);
+  if(SUN.night){ tint.setAttribute('fill-opacity',0); }
+  else if(SUN.cloud){ tint.setAttribute('fill','#5f6f7c'); tint.setAttribute('fill-opacity',0.4); }
+  else { tint.setAttribute('fill-opacity',0); }
+  $('#duskSky').setAttribute('fill-opacity',(SUN.night||SUN.cloud)?0:0.72*dk);
+  $('#dusk').setAttribute('fill-opacity',SUN.night?0:0.42*dk);
+  $('#dialImg').style.filter=SUN.night?'brightness(.5) saturate(.75)':'brightness('+(1-0.5*dk)+') saturate('+(1-0.25*dk)+') sepia('+(0.25*dk)+')';
+  sunG.style.opacity=SUN.night?0:1; sunG.style.transition='opacity .6s';
+  sunSvg.classList.toggle('is-night',SUN.night);
+  if(SUN.cloud){ $('#cloud').style.transform='translate('+sx+'px,'+(sy+6)+'px)'; }
+  // 가까운 눈금 강조
+  const hr=Math.round(SUN.t);
+  for(let h=7;h<=17;h++){ const el=$('#hm'+h); el.setAttribute('fill',(visible&&h===hr)?'#f2b630':'#fff'); el.setAttribute('font-size',(visible&&h===hr)?'20':'15'); }
+  $('#sunRead').textContent=visible?timeWord(SUN.t):'그림자가 없어!';
+  $('#sunRange').value=SUN.t;
+}
+function setMission(listSel,i){ const ul=$(listSel), li=ul.querySelectorAll('li'); li[i].classList.add('ok'); const pr=ul.closest('.board').querySelector('.prog'); if(pr) pr.textContent=ul.querySelectorAll('li.ok').length+' / '+li.length; markMissions(listSel); }
+function markMissions(listSel){ const li=[...$(listSel).querySelectorAll('li')]; const cur=li.findIndex(x=>!x.classList.contains('ok')); li.forEach((x,i)=>{ x.classList.toggle('cur',i===cur); x.classList.toggle('lock',cur>-1&&i>cur); }); }
+function sunCur(){ return SUN.m.indexOf(false); }
+// 손을 뗐을 때만, 지금 미션 하나만 확인
+let lastT=null;
+function sunCheck(){
+  if(lastT!==null&&Math.abs(lastT-SUN.t)<0.01) return; lastT=SUN.t;
+  const vis=!SUN.cloud&&!SUN.night, m=SUN.m, c=sunCur();
+  if(!vis) return;
+  if(c===0){ if(Math.abs(SUN.t-12)<0.3){ m[0]=true; setMission('#sunMissions',0); addStar(); guide('맞았어! 점심에는 해가 제일 높아서 그림자가 제일 짧아. 이번엔 그림자를 제일 길게 만들어 봐!'); }
+    else guide('지금 그림자는 '+timeWord(SUN.t)+'야. 해를 조금 더 옮겨서 12시에 맞춰 봐!'); }
+  else if(c===1){ if(SUN.t<7.5||SUN.t>16.5){ m[1]=true; setMission('#sunMissions',1); addStar(); guide('잘했어! 해가 낮으면 그림자가 길어져. 이번엔 그림자를 3시에 맞춰 봐!'); }
+    else guide('아직 그림자가 짧아. 해를 땅 쪽으로 더 내려 봐!'); }
+  else if(c===2){ if(Math.abs(SUN.t-15)<0.3){ m[2]=true; setMission('#sunMissions',2); addStar(); unlockSky(); guide('좋아! 해가 움직이면 그림자는 반대쪽으로 가. 이제 구름 부르기나 밤 되기를 눌러 봐!'); }
+    else guide('지금 그림자는 '+timeWord(SUN.t)+'야. 3시에 맞춰 볼까?'); }
+}
+function unlockSky(){ $('#cloudBtn').disabled=false; $('#nightBtn').disabled=false; }
+let dragging=false;
+function svgPt(svg,e){ const p=svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); }
+function sunFromPointer(e){
+  const p=svgPt(sunSvg,e);
+  let az=Math.atan2((300-p.y)/240,(p.x-400)/330);
+  if(az<0) az=(p.x>400)?Math.PI/12:Math.PI*11/12;
+  az=Math.max(Math.PI/12,Math.min(Math.PI*11/12,az));
+  SUN.t=6+12*az/Math.PI; sunUpdate();
+}
+sunSvg.addEventListener('pointerdown',e=>{ if(SUN.night) return; dragging=true; sunSvg.setPointerCapture(e.pointerId); $('#dragHint').style.opacity=0; sunFromPointer(e); });
+sunSvg.addEventListener('pointermove',e=>{ if(dragging) sunFromPointer(e); });
+sunSvg.addEventListener('pointerup',()=>{ if(dragging){ dragging=false; sunCheck(); } });
+sunSvg.addEventListener('pointercancel',()=>dragging=false);
+$('#sunRange').addEventListener('input',e=>{ SUN.t=parseFloat(e.target.value); sunUpdate(); });
+$('#sunRange').addEventListener('change',()=>sunCheck());
+function noShadow(){
+  if(sunCur()!==3) return;
+  SUN.m[3]=true; setMission('#sunMissions',3); addStar();
+  guide('어? 그림자가 없어졌어! 이러면 시간을 알 수 없겠지? 그래서 물시계가 필요했어. 다음을 눌러 봐!');
+  ready(); done.sun=true;
+}
+$('#cloudBtn').addEventListener('click',()=>{
+  SUN.cloud=!SUN.cloud; $('#cloudBtn').classList.toggle('on',SUN.cloud); $('#cloudBtn').textContent=SUN.cloud?'구름 보내기':'구름 부르기';
+  $('#cloud').style.opacity=SUN.cloud?1:0;
+  sunUpdate();
+  if(SUN.cloud) noShadow();
+});
+$('#nightBtn').addEventListener('click',()=>{
+  SUN.night=!SUN.night; $('#nightBtn').classList.toggle('on',SUN.night); $('#nightBtn').textContent=SUN.night?'낮 되기':'밤 되기';
+  sunUpdate(); if(SUN.night) noShadow();
+});
+$('#cloudBtn').disabled=true; $('#nightBtn').disabled=true; markMissions('#sunMissions');
+sunUpdate();
+
+/* ================= 물시계 ================= */
+const W={run:false,fast:false,big:false,night:false,level:0,real:0,bells:0,m:[false,false,false],ball:null,lastHour:0};
+const MAXH=6, BOT=448, TOP=292, HSTEP=(BOT-TOP)/MAXH;
+(function(){
+  const g=$('#wcMarks');
+  for(let h=1;h<=MAXH;h++){
+    const y=BOT-h*HSTEP;
+    const l=document.createElementNS(NS,'line'); l.setAttribute('x1',336); l.setAttribute('x2',352); l.setAttribute('y1',y); l.setAttribute('y2',y); l.setAttribute('stroke','#1d2b38'); l.setAttribute('stroke-width',3); g.appendChild(l);
+    const t=document.createElementNS(NS,'text'); t.setAttribute('x',454); t.setAttribute('y',y+6); t.setAttribute('text-anchor','end'); t.setAttribute('font-family','HJiugae, sans-serif'); t.setAttribute('font-size','17'); t.setAttribute('fill','#1d2b38'); t.setAttribute('class','markLabel'); t.textContent=h+'시간'; g.appendChild(t);
+  }
+})();
+function dotsRender(){
+  const r=$('#dotsReal'), w=$('#dotsWc');
+  r.innerHTML=''; w.innerHTML='';
+  for(let i=1;i<=MAXH;i++){ const a=document.createElement('i'); if(W.real>=i-0.001) a.className='f'; r.appendChild(a); const b=document.createElement('i'); if(Math.floor(W.level+1e-6)>=i) b.className='f'; w.appendChild(b); }
+  w.classList.toggle('bad',Math.floor(W.level)>Math.floor(W.real)+0);
+}
+const drops=[]; let dropAcc=0;
+function spawnDrop(){
+  drops.push({x:237,y:150,ty:186,vy:0,from:1});
+  drops.push({x:341,y:262,ty:BOT-W.level*HSTEP,vy:0,from:2});
+}
+function strike(h){
+  const arm=$('#dollArm'), b=$('.bell'), d=$('#dingText');
+  arm.classList.add('hit'); setTimeout(()=>arm.classList.remove('hit'),220);
+  b.classList.remove('ring'); void b.getBBox(); b.classList.add('ring');
+  d.style.transition='none'; d.style.opacity=1; requestAnimationFrame(()=>{ d.style.transition='opacity 1s'; d.style.opacity=0; });
+  bell();
+  W.bells++;
+  if(W.big&&W.m[0]&&!W.m[1]){ W.m[1]=true; setMission('#wMissions',1); addStar(); $('#wNightBtn').disabled=false;
+    guide('어? 진짜 시간보다 종이 더 빨리 울려! 물이 똑같은 빠르기로 떨어져야 시간이 맞아. 이제 밤 되기를 눌러 봐!'); }
+  else if(W.big) guide('물이 너무 빨리 차서 종이 자꾸 일찍 울려.');
+  else if(W.bells>=3&&!W.m[0]){ W.m[0]=true; setMission('#wMissions',0); addStar(); $('#bigBtn').disabled=false; guide('종이 3번 울렸어! 사람이 안 봐도 인형이 시간을 알려 주는 거야. 이번엔 물 콸콸을 눌러 봐!'); }
+  else guide('땡! 물이 한 칸 차면 구슬이 굴러가서 인형이 종을 쳐. ('+W.bells+'번)');
+  checkWaterDone();
+}
+function checkWaterDone(){ if(W.m[0]&&W.m[2]&&!done.water){ done.water=true; ready(); } }
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(0.05,(now-last)/1000); last=now;
+  if(current==='water'){
+    if(W.drain){ W.level=Math.max(0,W.level-2.5*dt); if(W.level<=0){ W.drain=false; W.real=0; W.lastHour=0; dotsRender(); } }
+    else if(W.run&&W.level<MAXH){
+      const realRate=(1/7)*(W.fast?4:1);
+      W.real=Math.min(MAXH,W.real+realRate*dt);
+      W.level=Math.min(MAXH,W.level+realRate*(W.big?3:1)*dt);
+      const hNow=Math.floor(W.level+1e-6);
+      if(hNow>W.lastHour){ W.lastHour=hNow; W.ball={p:0,h:hNow}; }
+      dropAcc+=dt*(W.big?9:3)*(W.fast?2:1);
+      while(dropAcc>1){ dropAcc-=1; spawnDrop(); }
+      if(W.level>=MAXH){ W.drain=true; setTimeout(()=>guide('통이 꽉 찼어! 물을 비우고 다시 채울게.'),1400); }
+      dotsRender();
+    }
+    // 물방울
+    const g=$('#drops'); g.innerHTML='';
+    for(let i=drops.length-1;i>=0;i--){ const d=drops[i]; d.vy+=900*dt; d.y+=d.vy*dt; if(d.y>=d.ty){ drops.splice(i,1); continue; }
+      const c=document.createElementNS(NS,'path'); c.setAttribute('d','M'+d.x+' '+(d.y-7)+' q5 8 0 12 q-5 -4 0 -12z'); c.setAttribute('fill','#3d8fd1'); g.appendChild(c); }
+    // 물받이 통
+    const wy=BOT-W.level*HSTEP;
+    const wr=$('#wcWater'); wr.setAttribute('y',wy); wr.setAttribute('height',Math.max(0,BOT-wy));
+    $('#wcRod').setAttribute('transform','translate(0,'+wy+')');
+    // 구슬
+    const ball=$('#ball');
+    if(W.ball){ W.ball.p+=dt*(W.fast?2.2:1.1); const p=Math.min(1,W.ball.p);
+      ball.setAttribute('cx',474+(556-474)*p); ball.setAttribute('cy',294+(424-294)*p); ball.setAttribute('opacity',1);
+      if(p>=1){ const h=W.ball.h; W.ball=null; ball.setAttribute('opacity',0); strike(h); } }
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+$('#runBtn').addEventListener('click',()=>{
+  actx();
+  if(W.drain) return;
+  if(W.big&&!W.run){ W.level=Math.min(W.level,W.real); }
+  W.run=!W.run; $('#runBtn').classList.toggle('on',W.run); $('#runBtn').textContent=W.run?'멈추기':'물 나오기';
+  if(W.run&&W.bells===0&&!W.big) guide('물이 똑똑 떨어져서 통에 차오르고 있어. 빨간 막대가 올라가는 거 보여?');
+});
+$('#fastBtn').addEventListener('click',()=>{ W.fast=!W.fast; $('#fastBtn').classList.toggle('on',W.fast); });
+$('#bigBtn').addEventListener('click',()=>{
+  W.big=!W.big; $('#bigBtn').classList.toggle('on',W.big); $('#bigBtn').textContent=W.big?'물 똑똑':'물 콸콸';
+  if(W.big){ guide('물을 콸콸 부었어! 오른쪽의 진짜 시간과 물시계 시간을 비교해 봐.'); if(!W.run) $('#runBtn').click(); }
+  else guide('물이 다시 똑똑 떨어져. 장영실은 항아리를 여러 개 이어서 물이 똑같이 떨어지게 했어.');
+});
+$('#resetBtn').addEventListener('click',()=>{ W.level=0; W.real=0; W.lastHour=0; W.ball=null; drops.length=0; dotsRender(); guide('통을 비웠어. 다시 물 나오기를 눌러 봐!'); });
+$('#wNightBtn').addEventListener('click',()=>{
+  W.night=!W.night; $('#wcSvg').classList.toggle('is-night',W.night);
+  $('#wNightBtn').classList.toggle('on',W.night); $('#wNightBtn').textContent=W.night?'낮 되기':'밤 되기';
+  if(W.night){ if(W.m[1]&&!W.m[2]){ W.m[2]=true; setMission('#wMissions',2); addStar(); } guide('깜깜한 밤에도 물은 똑똑 떨어지지? 그래서 물시계는 밤에도 시간을 알려 줘! 다음을 눌러 봐.'); if(!W.run&&W.level<MAXH) $('#runBtn').click(); checkWaterDone(); }
+});
+$('#bigBtn').disabled=true; $('#wNightBtn').disabled=true; markMissions('#wMissions');
+dotsRender();
+
+/* ================= 정리 놀이 ================= */
+const CARDS=[
+  {t:'해가 쨍쨍한 낮',i:'images/sun.webp',a:'o'},
+  {t:'비 오는 날',i:'i-rain',a:'x'},
+  {t:'깜깜한 밤',i:'images/bg_night.webp',a:'x'},
+  {t:'구름이 해를 가린 날',i:'images/cloud.webp',a:'x'},
+  {t:'맑은 아침',i:'images/bg_sky.webp',a:'o'}
+];
+let placed=0, selChip=null;
+function ic(x){ return x.indexOf('/')>-1 ? '<img src="'+x+'" alt="">' : '<svg aria-hidden="true"><use href="#'+x+'"/></svg>'; }
+function buildSort(){
+  const pile=$('#pile'); pile.innerHTML=''; placed=0; $$('.bin .slot').forEach(s=>s.innerHTML='');
+  CARDS.slice().sort(()=>Math.random()-.5).forEach(c=>{
+    const b=document.createElement('button'); b.className='chip'; b.dataset.a=c.a;
+    b.innerHTML=ic(c.i)+c.t; pile.appendChild(b); bindChip(b);
+  });
+}
+function tryPlace(chip,bin){
+  if(chip.dataset.a===bin.dataset.bin){
+    chip.classList.remove('sel'); chip.classList.add('placed'); chip.disabled=true; bin.querySelector('.slot').appendChild(chip); placed++; chime();
+    if(placed===CARDS.length){ addStar(); done.sort=true; ready(); guide('다 맞혔어! 해가 없으면 해시계를 쓸 수 없어서 물시계가 필요했던 거야. 다음을 눌러 봐!'); }
+    else guide('맞았어! 다음 카드도 옮겨 봐.');
+  } else {
+    buzz(); chip.classList.add('shake'); setTimeout(()=>chip.classList.remove('shake'),400);
+    guide(chip.dataset.a==='x'?'그때 해가 보여? 해가 없으면 그림자도 없어.':'해가 보이면 그림자가 생겨. 해시계로 알 수 있어!');
+  }
+  selChip=null;
+}
+function bindChip(b){
+  let sx=null,sy=0,moved=false,ghost=null;
+  b.querySelectorAll('img').forEach(im=>im.draggable=false);
+  b.addEventListener('dragstart',e=>e.preventDefault());
+  function clean(){ if(ghost){ ghost.remove(); ghost=null; } document.querySelectorAll('.chip.drag').forEach(x=>x.remove()); b.style.opacity=''; $$('.bin').forEach(x=>x.classList.remove('hot')); sx=null; moved=false; }
+  b.addEventListener('pointerdown',e=>{ if(b.disabled) return; e.preventDefault(); clean(); sx=e.clientX; sy=e.clientY; try{ b.setPointerCapture(e.pointerId); }catch(_){} });
+  b.addEventListener('pointermove',e=>{
+    if(b.disabled||sx==null) return;
+    if(!moved&&Math.hypot(e.clientX-sx,e.clientY-sy)>8){ moved=true; ghost=b.cloneNode(true); ghost.classList.remove('sel'); ghost.classList.add('drag'); document.body.appendChild(ghost); b.style.opacity=.3; }
+    if(moved&&ghost){ ghost.style.left=(e.clientX-70)+'px'; ghost.style.top=(e.clientY-50)+'px';
+      const el=document.elementFromPoint(e.clientX,e.clientY); $$('.bin').forEach(x=>x.classList.toggle('hot',!!el&&x.contains(el))); }
+  });
+  b.addEventListener('pointerup',e=>{
+    if(b.disabled||sx==null){ clean(); return; }
+    const wasMoved=moved; clean();
+    if(wasMoved){ const el=document.elementFromPoint(e.clientX,e.clientY); const bin=el&&el.closest('.bin'); if(bin) tryPlace(b,bin); }
+    else { $$('.chip.sel').forEach(x=>x.classList.remove('sel')); selChip=b; b.classList.add('sel'); guide('이제 알맞은 상자를 눌러 봐!'); }
+  });
+  b.addEventListener('pointercancel',clean);
+  b.addEventListener('lostpointercapture',()=>{ if(sx!=null&&moved) clean(); });
+}
+$$('.bin').forEach(bin=>bin.addEventListener('click',()=>{ if(selChip) tryPlace(selChip,bin); }));
+buildSort();
+
+/* ================= 퀴즈 ================= */
+const QUIZ=[
+  {q:'해시계는 무엇을 보고 시간을 알까?',o:[['그림자','images/angbuilgu.webp'],['물','images/pot_big.webp'],['종소리','images/bell.webp']],a:0,ex:'해가 만든 그림자를 보고 시간을 알아.'},
+  {q:'점심때 그림자는 어떨까?',o:[['제일 짧아','images/sun.webp'],['제일 길어','i-morning']],a:0,ex:'점심에는 해가 제일 높이 떠서 그림자가 제일 짧아.'},
+  {q:'깜깜한 밤에 쓸 수 있는 시계는?',o:[['해시계','images/angbuilgu.webp'],['물시계','images/jagyeongnu.webp']],a:1,ex:'물은 밤에도 똑똑 떨어지니까 물시계는 밤에도 쓸 수 있어.'},
+  {q:'물시계가 시간을 잘 맞히려면 물이 어떻게 떨어져야 할까?',o:[['한꺼번에 콸콸','i-rain'],['똑같이 똑똑','i-drop']],a:1,ex:'물이 늘 똑같은 빠르기로 떨어져야 시간이 맞아.'},
+  {q:'종을 쳐서 스스로 시간을 알려 주는 물시계 이름은?',o:[['자격루','images/jagyeongnu.webp'],['앙부일구','images/angbuilgu.webp'],['측우기','i-gauge']],a:0,ex:'자격루는 장영실이 만든 물시계야.'}
+];
+let qi=0;
+function startQuiz(){ qi=0; showQ(); }
+function showQ(){
+  const Q=QUIZ[qi];
+  $('#qNum').textContent=(qi+1)+'번 문제'; guide(qi===0?intro.quiz:'다음 문제야! 잘 읽고 골라 봐.'); $('#qText').textContent=Q.q; $('#qFb').textContent=''; $('#qFb').className='feedback'; $('#qBar').style.width=(qi/QUIZ.length*100)+'%'; $('#qNext').hidden=true;
+  const box=$('#qOpts'); box.innerHTML='';
+  Q.o.forEach(([t,icn],i)=>{ const b=document.createElement('button'); b.className='opt'; b.innerHTML=ic(icn)+t;
+    b.addEventListener('click',()=>{
+      if(box.dataset.lock) return;
+      if(i===Q.a){ box.dataset.lock=1; b.classList.add('right'); addStar(); $('#qFb').className='feedback good'; $('#qBar').style.width=((qi+1)/QUIZ.length*100)+'%'; $('#qFb').textContent='딩동댕! '+Q.ex; guide('딩동댕! '+Q.ex); $('#qNext').hidden=false; $('#qNext').textContent=qi<QUIZ.length-1?'다음 문제':'결과 보기'; }
+      else { b.classList.add('wrong'); buzz(); $('#qFb').className='feedback bad'; $('#qFb').textContent='다시 생각해 볼까?'; guide('음, 다시 생각해 볼까? 다른 그림을 눌러 봐.'); }
+    }); box.appendChild(b); });
+  delete box.dataset.lock;
+}
+$('#qNext').addEventListener('click',()=>{ qi++; if(qi<QUIZ.length) showQ(); else { done.quiz=true; go('end'); } });
+
+document.addEventListener('click',e=>{ const z=e.target.closest('[data-zoom]'); if(z){ $('#zoomImg').src=z.dataset.zoom; $('#zoomName').textContent=z.dataset.name||''; $('#zoomCap').textContent=z.dataset.cap||''; $('#zoom').hidden=false; } });
+$('#zoom').addEventListener('click',e=>{ if(e.target.id==='zoom'||e.target.id==='zoomClose') $('#zoom').hidden=true; });
+
+function ready(){ done[current]=true; $('#nextBtn').hidden=false; $('#nextBtn').classList.add('ready'); }
+$('#prevBtn').addEventListener('click',()=>{ const k=ORDER.indexOf(current); if(k>0) go(ORDER[k-1]); });
+$('#nextBtn').addEventListener('click',()=>{ const k=ORDER.indexOf(current); if(k<ORDER.length-1) go(ORDER[k+1]); });
+/* ================= 방명록 ================= */
+// 학생용 주소에 올린 뒤, 방명록 저장용 구글 앱스 스크립트 주소를 여기에 넣어요.
+const GB_URL='';
+let gbStar=5, gbTimer=null;
+(function(){
+  const st=$('#gbStars');
+  for(let i=1;i<=5;i++){ const b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label','별 '+i+'개'); b.innerHTML='<svg aria-hidden="true"><use href="#i-star"/></svg>'; b.onclick=()=>{ gbStar=i; paintStars(); }; st.appendChild(b); }
+  const feels=['재미있었어','신기했어','어려웠어','또 하고 싶어','장영실 최고!'];
+  const fe=$('#gbFeel'); feels.forEach(f=>{ const b=document.createElement('button'); b.type='button'; b.textContent=f; b.onclick=()=>{ const t=$('#gbText'); t.value=(t.value?t.value+' ':'')+f; t.focus(); }; fe.appendChild(b); });
+  paintStars();
+})();
+function paintStars(){ [...$('#gbStars').children].forEach((b,i)=>b.classList.toggle('off',i>=gbStar)); }
+function gbOnline(){ return GB_URL.indexOf('http')===0 && !/claude|claudeusercontent/.test(location.hostname); }
+function gbMsg(t){ const m=$('#gbMsg'); m.textContent=t; m.hidden=!t; }
+async function gbApi(body){ const r=await fetch(GB_URL,{method:'POST',body:JSON.stringify(body)}); const j=await r.json(); if(!j.ok) throw new Error(j.error||'잠시 뒤 다시 해 줘.'); return j; }
+function gbRender(items){
+  const ul=$('#gbList'); ul.innerHTML='';
+  $('#gbCount').textContent=items.length?items.length+'개':'';
+  if(!items.length){ const li=document.createElement('li'); li.className='gb-empty'; li.textContent='아직 남긴 글이 없어. 첫 번째로 남겨 볼래?'; ul.appendChild(li); return; }
+  items.forEach(x=>{ const li=document.createElement('li'); const b=document.createElement('b'); b.textContent=x.name; const st=document.createElement('span'); st.className='st'; st.textContent='★'.repeat(Math.max(1,Math.min(5,+x.star||5))); const p=document.createElement('p'); p.textContent=x.text; li.append(b,st,p); ul.appendChild(li); });
+}
+async function gbLoad(){
+  if(!gbOnline()){ gbRender([]); gbMsg('방명록은 학생용 주소에서 열면 다른 친구들 글과 함께 보여요.'); return; }
+  try{ const j=await gbApi({action:'gb_list'}); gbRender(j.items||[]); }catch(e){ gbMsg('방명록을 불러오지 못했어. 잠시 뒤 다시 열어 줘.'); }
+  clearInterval(gbTimer); gbTimer=setInterval(()=>{ if(current==='end') gbApi({action:'gb_list'}).then(j=>gbRender(j.items||[])).catch(()=>{}); },15000);
+}
+$('#gbForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const name=$('#gbName').value.trim(), text=$('#gbText').value.trim();
+  if(!name){ gbMsg('이름이나 별명을 써 줘!'); $('#gbName').focus(); return; }
+  if(!text){ gbMsg('한 줄 후기를 써 줘! 아래 단어를 눌러도 돼.'); $('#gbText').focus(); return; }
+  if(!gbOnline()){ gbMsg('지금은 미리보기라서 저장되지 않아. 학생용 주소에서 남겨 줘!'); return; }
+  const btn=$('#gbSend'); btn.disabled=true; gbMsg('');
+  try{ await gbApi({action:'gb_add',name,text,star:gbStar}); $('#gbText').value=''; addStar(); guide('고마워! '+name+'의 글이 방명록에 올라갔어.'); const j=await gbApi({action:'gb_list'}); gbRender(j.items||[]); }
+  catch(err){ gbMsg(err.message||'저장하지 못했어. 다시 눌러 줘.'); }
+  btn.disabled=false;
+});
+
+function boot(d){ d=d||{};
+  if(d.stars){ stars=d.stars; $('#starCount').textContent=stars; }
+  if(d.done) Object.assign(done,d.done);
+  if(d.sunM){ d.sunM.forEach((v,i)=>{ if(v&&!SUN.m[i]){ SUN.m[i]=true; setMission('#sunMissions',i); } }); if(SUN.m[2]) unlockSky(); }
+  if(d.wM){ d.wM.forEach((v,i)=>{ if(v&&!W.m[i]){ W.m[i]=true; setMission('#wMissions',i); } }); if(W.m[0]) $('#bigBtn').disabled=false; if(W.m[1]) $('#wNightBtn').disabled=false; }
+  go(d.screen||'home');
+}
+try{ window.claude?.hot?.snapshot?.(()=>({screen:current,stars,done:Object.assign({},done),sunM:SUN.m.slice(),wM:W.m.slice()})); }catch(e){}
+if(window.claude?.hot?.ready) window.claude.hot.ready(boot); else boot(window.claude?.hot?.data ?? {});
+})();
+</script>
+
+</html>
