@@ -853,8 +853,9 @@ function showApp(html){const R=$('appRes');R.hidden=false;
     <form class="fixbar" id="fixForm"><input id="fixIn" maxlength="200" placeholder="고치고 싶은 점을 말해요 (예: 버튼을 더 크게)"><button class="btn primary" type="submit">고쳐 줘</button></form>`;
   R.querySelector('iframe').srcdoc=html.split('{{IMAGE}}').join(img);
   $('fixForm').addEventListener('submit',e=>{e.preventDefault();const t=$('fixIn').value.trim();if(t)makeApp(t);});}
-async function makeApp(request){if(busy)return;busy=true;hideMsg('buildMsg');const B=$('b-app');B.disabled=true;B.textContent='AI가 만드는 중… (30초쯤)';refresh();
-  try{const j=await api({action:'inv_app',idea:ideaNow,wish:$('f-wish').value.trim(),request:request||'',...who()});app={html:j.html,id:j.id};showApp(j.html);$('bcApp').classList.add('done');
+async function apiRetry(body,onWait){for(let t=0;;t++){try{return await api(body);}catch(err){if(!/한꺼번에|많이|붐|잠시|10초/.test(err.message)||t>=6)throw err;if(onWait)onWait();await sleep(4000+Math.random()*5000+t*1500);}}}
+async function makeApp(request){if(busy)return;busy=true;hideMsg('buildMsg');const B=$('b-app');B.disabled=true;B.textContent='AI가 만드는 중… (20초쯤)';refresh();
+  try{const j=await apiRetry({action:'inv_app',idea:ideaNow,wish:$('f-wish').value.trim(),request:request||'',...who()},()=>B.textContent='차례를 기다리는 중…');app={html:j.html,id:j.id};showApp(j.html);$('bcApp').classList.add('done');
     setTimeout(()=>$('appRes').scrollIntoView({behavior:'smooth',block:'start'}),200);}
   catch(err){showMsg('buildMsg',esc(err.message));}
   finally{busy=false;B.disabled=false;B.textContent=app?'앱 새로 만들기':'앱 만들기';refresh();}}
@@ -862,10 +863,10 @@ $('b-app').onclick=()=>makeApp('');
 async function makeVid(){if(busy)return;const p=chosenPic();if(!p||!p.src)return;busy=true;hideMsg('buildMsg');const B=$('b-vid');B.disabled=true;B.textContent='영상 준비 중…';refresh();
   const R=$('vidRes');R.hidden=false;R.innerHTML='<div class="wait" style="position:relative;min-height:220px;border-radius:20px"><img src="ilab/mascot-think.webp" alt=""><strong>AI가 영상을 만들고 있어요</strong><div class="bar"><i></i></div><span>1~2분쯤 걸려요. 기다리는 동안 앱도 만들어 봐요!</span></div>';
   try{const img=await shrink(p.src,1024,'image/png');
-    const s=await api({action:'inv_video',image:b64(img),mime:'image/png',idea:ideaNow,...who()});
+    const s=await apiRetry({action:'inv_video',image:b64(img),mime:'image/png',idea:ideaNow,...who()},()=>B.textContent='차례를 기다리는 중…');
     B.textContent='영상 만드는 중…';busy=false;refresh();
-    for(let t=0;t<40;t++){await new Promise(r=>setTimeout(r,8000));
-      const c=await api({action:'inv_video_check',op:s.op,model:s.model,...who()});
+    for(let t=0;t<70;t++){await new Promise(r=>setTimeout(r,t<3?12000:4000));
+      let c;try{c=await api({action:'inv_video_check',op:s.op,model:s.model,...who()});}catch(e){if(t<60&&/한꺼번에|많이|붐|잠시|인터넷|서버/.test(e.message))continue;throw e;}
       if(c.done){const bin=atob(c.video),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
         const url=URL.createObjectURL(new Blob([u],{type:c.mime}));vid={id:c.id,url};
         R.innerHTML=`<video class="vid" src="${url}" controls autoplay loop muted playsinline></video>`;$('bcVid').classList.add('done');return;}}
