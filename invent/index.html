@@ -749,7 +749,11 @@ $('b-start').onclick=()=>{$('menu2').hidden=true;$('meForm').hidden=false;startM
 $('meBack').onclick=()=>{$('meForm').hidden=true;$('menu2').hidden=false;startMode();};
 $('b-gal1').onclick=()=>{from='start';view('gal');};
 $('b-back').onclick=()=>view(from);
-function route(){const h=location.hash.replace('#','');if(h==='gallery'){from='start';view('gal');}else if(h==='make'){view('start');$('menu2').hidden=true;$('meForm').hidden=false;}startMode();}
+var linkPlace=null;
+// 반 갤러리 링크: #gallery?s=학교&g=학년&b=반 → 로그인 없이 그 반 발명품이 바로 보여요
+function route(){const raw=location.hash.replace('#',''),h=raw.split('?')[0],qs=new URLSearchParams(raw.split('?')[1]||'');
+  if(qs.get('s')&&qs.get('g')&&qs.get('b')){linkPlace={school:qs.get('s'),grade:qs.get('g'),ban:qs.get('b')};galScope='class';}
+  if(h==='gallery'){from='start';view('gal');}else if(h==='make'){view('start');$('menu2').hidden=true;$('meForm').hidden=false;}startMode();}
 window.addEventListener('hashchange',route);setTimeout(route,0);
 
 /* ---------- 학교 찾기 + 나는 누구 ---------- */
@@ -962,7 +966,7 @@ teacherBar();
 
 /* ---------- 발명 갤러리 ---------- */
 let items=[],galSig='',galBusy=false,galScope=null,galQ='',galLimit=24,galIO=null,gqT=null;
-function myPlace(){const t=tinfo();if(t&&!t.all)return {school:t.s,grade:t.g,ban:t.b};if(me&&me.school)return me;try{const m=JSON.parse(ls.get('gc-me','null'));if(m&&m.school)return m;}catch(e){}return null;}
+function myPlace(){if(linkPlace)return linkPlace;const t=tinfo();if(t&&!t.all)return {school:t.s,grade:t.g,ban:t.b};if(me&&me.school)return me;try{const m=JSON.parse(ls.get('gc-me','null'));if(m&&m.school)return m;}catch(e){}return null;}
 const eq=(a,b)=>String(a??'').trim()===String(b??'').trim();
 function shownItems(){const p=myPlace();let L=items;
   if(p&&galScope==='school')L=L.filter(x=>eq(x.school,p.school));else if(p&&galScope==='class')L=L.filter(x=>eq(x.school,p.school)&&eq(x.grade,p.grade)&&eq(x.ban,p.ban));
