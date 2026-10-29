@@ -761,7 +761,7 @@ $('meForm').addEventListener('submit',e=>{e.preventDefault();
   if(!ban){showMsg('meMsg','몇 반인지 골라 주세요.');return;}
   if(!num){showMsg('meMsg','번호를 골라 주세요.');return;}
   if(!name){showMsg('meMsg','이름을 써 주세요.');$('f-maker').focus();return;}
-  hideMsg('meMsg');me={school:school.name,schoolCode:school.code||'',schoolAddr:school.addr||'',grade,ban,num,name};ls.set('gc-me',JSON.stringify(me));showWho();view('make');go(1);});
+  hideMsg('meMsg');me={school:school.name,schoolCode:school.code||'',schoolAddr:school.addr||'',grade,ban,num,name};ls.set('gc-me',JSON.stringify(me));showWho();view('make');if(!restoreDraft())go(1);});
 const who=()=>({school:me.school,schoolCode:me.schoolCode,grade:me.grade,ban:me.ban,num:me.num,maker:me.name});
 
 /* ---------- 만들기 단계 ---------- */
@@ -787,7 +787,7 @@ function refresh(){document.querySelectorAll('#prog li').forEach((li,i)=>li.clas
   if(step===4){const any=pics.some(p=>p&&p.loading);g=any?g.a:g.b;if(any)pose='think';}
   if(step===5&&busy)pose='think';
   if(step===6){g=saved?g.b:g.a;if(saved)pose='cheer';else $('b-save').classList.add('now');}
-  if(step===1)pose='hello';say(g,pose);}
+  if(step===1)pose='hello';say(g,pose);saveDraft();}
 function go(n){step=n;document.querySelectorAll('.step').forEach(el=>el.hidden=+el.dataset.s!==n);
   if(n===2)$('probShow').innerHTML=`<small>불편한 일</small>${esc($('f-prob').value.trim())}`;
   if(n===3&&!chatLog.length)startChat();
@@ -799,7 +799,7 @@ $('b-prev').onclick=()=>{if(step>1)go(step-1);};
 
 /* 3단계: AI 친구와 대화 */
 function addMsg(whoS,text){chatLog.push({who:whoS,text});drawChat();}
-function drawChat(typing){const C=$('chat');
+function drawChat(typing){const C=$('chat');saveDraft();
   C.innerHTML=chatLog.map(m=>m.who==='me'?`<div class="msg-me">${esc(m.text)}</div>`:`<div class="msg-ai"><img src="ilab/ai-friend.webp" alt=""><div>${esc(m.text)}</div></div>`).join('')+
     (ideaList&&!ideaNow?`<div class="ideas">${ideaList.map((d,i)=>ideaCard(d,i)).join('')}</div>`:'')+
     (typing?'<div class="msg-ai"><img src="ilab/ai-friend.webp" alt=""><div class="typing"><i></i><i></i><i></i></div></div>':'');
@@ -862,7 +862,8 @@ async function makeApp(request){if(busy)return;busy=true;hideMsg('buildMsg');con
 $('b-app').onclick=()=>makeApp('');
 async function makeVid(){if(busy)return;const p=chosenPic();if(!p||!p.src)return;busy=true;hideMsg('buildMsg');const B=$('b-vid');B.disabled=true;B.textContent='영상 준비 중…';refresh();
   const R=$('vidRes');R.hidden=false;R.innerHTML='<div class="wait" style="position:relative;min-height:220px;border-radius:20px"><img src="ilab/mascot-think.webp" alt=""><strong>AI가 영상을 만들고 있어요</strong><div class="bar"><i></i></div><span>1~2분쯤 걸려요. 기다리는 동안 앱도 만들어 봐요!</span></div>';
-  try{const img=await shrink(p.src,1024,'image/png');
+  try{let srcD=p.src;if(!/^data:/.test(srcD)){const g=await api({action:'img',ids:[p.id]});srcD=(g.images||{})[p.id];if(!srcD)throw new Error('그림을 불러오지 못했어요. 그림을 다시 골라 주세요.');}
+    const img=await shrink(srcD,1024,'image/png');
     const s=await apiRetry({action:'inv_video',image:b64(img),mime:'image/png',idea:ideaNow,...who()},()=>B.textContent='차례를 기다리는 중…');
     B.textContent='영상 만드는 중…';busy=false;refresh();
     for(let t=0;t<70;t++){await new Promise(r=>setTimeout(r,t<3?12000:4000));
@@ -892,7 +893,28 @@ $('b-gal2').onclick=()=>{from='make';view('gal');};
 $('b-new').onclick=()=>{chatLog=[];ideaNow=null;ideaList=null;pics=[null,null,null];picOn=-1;ref=null;app=null;vid=null;saved=false;
   ['f-prob','f-wish','f-title','f-desc'].forEach(id=>$(id).value='');document.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed','false'));
   $('appRes').hidden=true;$('vidRes').hidden=true;$('bcApp').classList.remove('done');$('bcVid').classList.remove('done');$('b-save').hidden=false;$('doneBox').hidden=true;
-  $('refInfo').textContent='넣으면 AI가 내 그림을 보고 그려요';go(1);};
+  $('refInfo').textContent='넣으면 AI가 내 그림을 보고 그려요';try{localStorage.removeItem(DKEY);}catch(e){}go(1);};
+
+
+/* ---------- 하던 발명 이어 하기: 새로고침해도 내용이 남아요 ---------- */
+var DKEY='inv-draft';
+function meKey(){return me?[me.school,me.grade,me.ban,me.num,me.name].join('|'):'';}
+var dT=null;
+function saveDraft(){clearTimeout(dT);dT=setTimeout(()=>{if(!me)return;try{
+  localStorage.setItem(DKEY,JSON.stringify({k:meKey(),t:Date.now(),step,saved,prob:$('f-prob').value,wish:$('f-wish').value,title:$('f-title').value,desc:$('f-desc').value,
+    chatLog:chatLog.slice(-30),ideaNow,ideaList,picOn,pics:pics.map(p=>p&&p.id?{id:p.id}:null),
+    app:app&&app.id?{id:app.id,html:(app.html||'').length<80000?app.html:''}:null,vid:vid&&vid.id?{id:vid.id}:null}));}catch(e){}},300);}
+['f-prob','f-wish','f-title','f-desc'].forEach(id=>$(id).addEventListener('input',saveDraft));
+function restoreDraft(){let d=null;try{d=JSON.parse(localStorage.getItem(DKEY)||'null');}catch(e){}
+  if(!d||d.k!==meKey()||d.saved||Date.now()-d.t>3*864e5||!(d.step>1||(d.prob||'').trim()))return false;
+  $('f-prob').value=d.prob||'';$('f-wish').value=d.wish||'';$('f-title').value=d.title||'';$('f-desc').value=d.desc||'';
+  chatLog=d.chatLog||[];ideaNow=d.ideaNow||null;ideaList=d.ideaList||null;
+  pics=(d.pics||[null,null,null]).map(p=>p&&p.id?{id:p.id,src:driveImg(p.id)}:null);picOn=pics[d.picOn]?d.picOn:pics.findIndex(Boolean);
+  app=d.app||null;if(app){if(app.html)showApp(app.html);$('bcApp').classList.add('done');}
+  vid=d.vid||null;if(vid){const V=$('vidRes');V.hidden=false;V.innerHTML=`<iframe class="vid" src="https://drive.google.com/file/d/${esc(vid.id)}/preview" allow="autoplay" style="width:100%;aspect-ratio:16/9;border:0;border-radius:20px"></iframe>`;$('bcVid').classList.add('done');}
+  drawChat();drawPics();go(Math.max(1,Math.min(+d.step||1,6)));
+  const t=$('newToast');if(t){t.textContent='하던 발명을 이어서 해요!';t.hidden=false;clearTimeout(t._h);t._h=setTimeout(()=>t.hidden=true,3500);}
+  return true;}
 
 /* ---------- 선생님 모드 ---------- */
 let PIN='';try{PIN=sessionStorage.getItem('gc-pin')||'';}catch(e){}
