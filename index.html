@@ -691,7 +691,11 @@ let editId='',drawingId='',me=null,drawing=null,clock=null,kind=null,step=1,save
 
 /* 화면 전환 */
 function startMode(){const st=!$('v-start').hidden,form=!$('meForm').hidden;document.body.classList.toggle('is-start',st);document.body.classList.toggle('is-form',st&&form);}
-function view(v){['start','make','gal'].forEach(k=>$('v-'+k).hidden=k!==v);setTimeout(startMode,0);window.scrollTo(0,0);if(v==='gal')loadGallery();}
+// 주소창도 화면에 맞게: 첫 화면 / #make / #gallery(반을 알면 반 링크로) — 주소를 복사해 바로 보낼 수 있어요
+function syncUrl(v){try{let h='';if(v==='make')h='#make';else if(v==='gal'){const p=typeof myPlace==='function'?myPlace():null;
+  h='#gallery'+(p&&p.school&&p.grade&&p.ban?'?s='+encodeURIComponent(p.school)+'&g='+encodeURIComponent(p.grade)+'&b='+encodeURIComponent(p.ban):'');}
+  if(location.hash!==h&&decodeURIComponent(location.hash)!==decodeURIComponent(h))history.pushState(null,'',location.pathname+location.search+h);}catch(e){}}
+function view(v){syncUrl(v);['start','make','gal'].forEach(k=>$('v-'+k).hidden=k!==v);setTimeout(startMode,0);window.scrollTo(0,0);if(v==='gal')loadGallery();}
 const shortSchool=n=>String(n||'').replace(/등학교$/,'').replace(/학교$/,'');
 function showWho(){const w=$('who');if(me){w.hidden=false;w.textContent=`${me.school?shortSchool(me.school)+' ':''}${me.grade}학년 ${me.ban}반 ${me.num}번 ${me.name}`;}else w.hidden=true;}
 
@@ -1016,7 +1020,9 @@ function renderModal(){const it=openIt;if(!it)return;const M=$('modal');M.hidden
   $('m-like').onclick=()=>toggleLike(it.id);
   $('m-form').addEventListener('submit',async e=>{e.preventDefault();const name=(stu()?stu().name:$('m-cname').value).trim(),text=$('m-ctext').value.trim();try{if(name&&!stu())localStorage.setItem('gc-cname',name);}catch(_){}
     if(!name||!text){showMsg('m-msg','이름과 댓글을 모두 써 주세요.');return;}
-    try{await api({action:'comment',id:it.id,name,text});it.comments.push({name,text,time:0});renderModal();drawGallery();}catch(err){showMsg('m-msg',esc(err.message));}});
+    const sb=$('m-form').querySelector('button[type=submit]');if(sb.disabled)return;sb.disabled=true;sb.textContent='남기는 중…';
+    let done=false;for(let t=0;t<4&&!done;t++){try{const j=await api({action:'comment',id:it.id,name,text});done=true;if(!j.dup)it.comments.push({name,text,time:0});}catch(err){if(t===3)showMsg('m-msg',esc(err.message));else await new Promise(r=>setTimeout(r,2000+t*1500));}}
+    if(done){renderModal();drawGallery();}else{sb.disabled=false;sb.textContent='남기기';}});
   bindDigits();}
 
 // 디지털 숫자용: 그림마다 설정을 붙여 둬요

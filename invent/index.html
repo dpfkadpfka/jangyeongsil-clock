@@ -571,6 +571,9 @@ button:focus-visible,label:focus-visible,input:focus-visible,textarea:focus-visi
 .feat{background:var(--lemon-l);color:var(--navy)}
 .f input:focus,.f textarea:focus{border-color:var(--mint)}
 @media (max-width:760px){.card-h .ico{width:40px;height:40px}.card{box-shadow:0 5px 0 var(--line)}}
+.mseg,.mtabs{background:#fff;box-shadow:inset 0 0 0 2px var(--line)}
+.mseg button,.mtabs button{color:var(--muted)}
+.mseg button[aria-pressed="true"],.mtabs button[aria-pressed="true"],.mtabs button.on{background:var(--mint);color:#fff}
 footer{color:#9aa8b5}
 .cform .cwho{align-self:center;justify-self:start;max-width:100%;padding:8px 14px;border-radius:999px;background:var(--bg2);font-weight:800;font-size:16px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cform:has(.cwho){grid-template-columns:auto minmax(0,1fr) auto}
@@ -742,7 +745,11 @@ const whoLine=x=>`${x.school?shortSchool(x.school)+' ':''}${x.grade?x.grade+'학
 /* ---------- 화면 전환 ---------- */
 let me=null,from='start';
 function startMode(){const st=!$('v-start').hidden,form=!$('meForm').hidden;document.body.classList.toggle('is-start',st);document.body.classList.toggle('is-form',st&&form);}
-function view(v){['start','make','gal'].forEach(k=>$('v-'+k).hidden=k!==v);window.scrollTo(0,0);setTimeout(startMode,0);if(v==='gal')loadGallery();}
+// 주소창도 화면에 맞게: 첫 화면 / #make / #gallery(반을 알면 반 링크로) — 주소를 복사해 바로 보낼 수 있어요
+function syncUrl(v){try{let h='';if(v==='make')h='#make';else if(v==='gal'){const p=typeof myPlace==='function'?myPlace():null;
+  h='#gallery'+(p&&p.school&&p.grade&&p.ban?'?s='+encodeURIComponent(p.school)+'&g='+encodeURIComponent(p.grade)+'&b='+encodeURIComponent(p.ban):'');}
+  if(location.hash!==h&&decodeURIComponent(location.hash)!==decodeURIComponent(h))history.pushState(null,'',location.pathname+location.search+h);}catch(e){}}
+function view(v){syncUrl(v);['start','make','gal'].forEach(k=>$('v-'+k).hidden=k!==v);window.scrollTo(0,0);setTimeout(startMode,0);if(v==='gal')loadGallery();}
 function showWho(){const w=$('who');if(me){w.hidden=false;w.textContent=whoLine({...me,maker:me.name});}else w.hidden=true;}
 document.querySelector('.brand').onclick=()=>{closeModal();$('meForm').hidden=true;$('menu2').hidden=false;view('start');};
 $('b-start').onclick=()=>{$('menu2').hidden=true;$('meForm').hidden=false;startMode();};
@@ -1040,7 +1047,9 @@ function renderModal(){const it=openIt;if(!it)return;const M=$('modal');M.hidden
   M.querySelectorAll('.cdel').forEach(b=>b.onclick=async()=>{const x=it.comments[+b.dataset.ci];try{await api({action:'delcomment',id:it.id,time:x.time,pin:PIN});it.comments.splice(+b.dataset.ci,1);renderModal();drawGallery();}catch(err){showMsg('m-msg',esc(err.message));}});
   $('m-form').addEventListener('submit',async e=>{e.preventDefault();const name=(stu()?stu().name:$('m-cname').value).trim(),text=$('m-ctext').value.trim();try{if(name&&!stu())localStorage.setItem('gc-cname',name);}catch(_){}
     if(!name||!text){showMsg('m-msg','이름과 댓글을 모두 써 주세요.');return;}
-    try{await api({action:'comment',id:it.id,name,text});it.comments.push({name,text,time:0});renderModal();drawGallery();}catch(err){showMsg('m-msg',esc(err.message));}});
+    const sb=$('m-form').querySelector('button[type=submit]');if(sb.disabled)return;sb.disabled=true;sb.textContent='남기는 중…';
+    let done=false;for(let t=0;t<4&&!done;t++){try{const j=await api({action:'comment',id:it.id,name,text});done=true;if(!j.dup)it.comments.push({name,text,time:0});}catch(err){if(t===3)showMsg('m-msg',esc(err.message));else await new Promise(r=>setTimeout(r,2000+t*1500));}}
+    if(done){renderModal();drawGallery();}else{sb.disabled=false;sb.textContent='남기기';}});
   if(mtab==='app')(async()=>{const st=$('m-stage');try{const html=appCache[it.appId]||(appCache[it.appId]=(await api({action:'inv_getapp',id:it.appId})).html);
       if(openIt!==it||mtab!=='app')return;st.innerHTML='<iframe sandbox="allow-scripts" title="발명품 앱"></iframe>';st.querySelector('iframe').srcdoc=html.split('{{IMAGE}}').join(driveImg(it.imageId));}
     catch(err){st.innerHTML=`<div class="empty">${esc(err.message)}</div>`;}})();}
