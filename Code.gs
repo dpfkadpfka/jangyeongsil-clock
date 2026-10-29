@@ -355,12 +355,18 @@ function img_(q) {
 function like_(q) {
   const id = str_(q.id, 40), dev = str_(q.dev, 40);
   if (!id || !dev) return { ok: false };
-  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  const want = q.want === undefined ? null : !!q.want;   // 새 앱: 바라는 상태를 보내요(두 번 가도 뒤집히지 않음)
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(25000)) return { ok: false, error: '잠시 뒤 다시 눌러 주세요.' };
   try {
     const sh = store_().ss.getSheetByName('likes'), v = sh.getDataRange().getValues();
-    for (let i = v.length - 1; i >= 1; i--) if (v[i][0] === id && v[i][1] === dev) { sh.deleteRow(i + 1); dirty_(); return { ok: true, liked: false }; }
-    sh.appendRow([id, dev, new Date()]); dirty_();
-    return { ok: true, liked: true };
+    let row = -1;
+    for (let i = v.length - 1; i >= 1; i--) if (v[i][0] === id && v[i][1] === dev) { row = i + 1; break; }
+    const now = row > 0, next = want === null ? !now : want;
+    if (next && !now) sh.appendRow([id, dev, new Date()]);
+    if (!next && now) sh.deleteRow(row);
+    if (next !== now) dirty_();
+    return { ok: true, liked: next };
   } finally { lock.releaseLock(); }
 }
 
