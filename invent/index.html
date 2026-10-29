@@ -820,14 +820,27 @@ $('chatForm').addEventListener('submit',e=>{e.preventDefault();const t=$('chatIn
 
 /* 4단계: 그림 3장 */
 const PIC_LBL=['진짜 제품','쓰는 모습','그림책'];
-function drawPics(){$('pics').innerHTML=pics.map((p,i)=>`<button type="button" class="pic${picOn===i?' on':''}" data-i="${i}">${p&&p.src?`<img src="${p.src}" alt="">`:`<div class="wait2">${p&&p.err?'😢 '+esc(p.err)+'<span class="btn sm" data-redo="'+i+'">다시</span>':'<div class="dots"></div>그리는 중…'}</div>`}<span class="lbl">${PIC_LBL[i]}</span></button>`).join('');
+function drawPics(){$('pics').innerHTML=pics.map((p,i)=>`<button type="button" class="pic${picOn===i?' on':''}" data-i="${i}">${p&&p.src?`<img src="${p.src}" alt="">`:`<div class="wait2">${p&&p.err?'😢 '+esc(p.err)+'<span class="btn sm" data-redo="'+i+'">다시</span>':'<div class="dots"></div>'+esc((p&&p.msg)||'그리는 중…')}</div>`}<span class="lbl">${PIC_LBL[i]}</span></button>`).join('');
   $('pics').querySelectorAll('.pic').forEach(b=>b.onclick=e=>{const i=+b.dataset.i;if(e.target.closest('[data-redo]')){drawOne(i);return;}if(pics[i]&&pics[i].src){picOn=i;drawPics();refresh();}});}
-async function drawOne(i){pics[i]={loading:true};drawPics();refresh();
-  try{const j=await api({action:'inv_image',style:i,idea:ideaNow,ref:ref?b64(ref):'',refMime:ref?mimeOf(ref):'',...who()});
-    pics[i]={src:`data:${j.mime};base64,${j.image}`,id:j.id};if(picOn<0)picOn=i;}
-  catch(err){pics[i]={err:err.message.slice(0,40)};}
-  drawPics();refresh();}
-function drawAll(){picOn=-1;pics=[null,null,null];drawPics();[0,1,2].forEach((i,k)=>setTimeout(()=>drawOne(i),k*800));}
+// 붐빌 때는 아이가 다시 누르지 않아도 잠깐 기다렸다가 저절로 다시 그려요
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let drawRun=0;
+async function drawOne(i,run){pics[i]={loading:true,msg:'그리는 중…'};drawPics();refresh();
+  for(let t=0;t<8;t++){
+    try{const j=await api({action:'inv_image',style:i,idea:ideaNow,ref:ref?b64(ref):'',refMime:ref?mimeOf(ref):'',...who()});
+      if(run!==undefined&&run!==drawRun)return;
+      pics[i]={src:`data:${j.mime};base64,${j.image}`,id:j.id};if(picOn<0)picOn=i;drawPics();refresh();return true;}
+    catch(err){if(run!==undefined&&run!==drawRun)return;
+      const busy=/한꺼번에|많이|붐|잠시|다시 눌러/.test(err.message);
+      if(!busy||t===7){pics[i]={err:err.message.slice(0,40)};drawPics();refresh();return false;}
+      pics[i]={loading:true,msg:'친구들이 많이 그리고 있어서 차례를 기다려요…'};drawPics();
+      await sleep(5000+Math.random()*7000+t*2000);
+      pics[i]={loading:true,msg:'그리는 중…'};drawPics();}}}
+// 3장을 한꺼번에 보내지 않고 한 장씩 차례로 그려요(반 전체가 동시에 해도 덜 막혀요)
+async function drawAll(){picOn=-1;pics=[null,null,null];const run=++drawRun;
+  [0,1,2].forEach(i=>pics[i]={loading:true,msg:i?'앞 그림 다음에 그려요':'그리는 중…'});drawPics();refresh();
+  await sleep(Math.random()*2500);
+  for(const i of [0,1,2]){if(run!==drawRun)return;await drawOne(i,run);}}
 $('b-pics').onclick=()=>{if(pics.some(p=>p&&p.loading))return;app=null;vid=null;drawAll();};
 $('f-ref').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
   try{ref=await fileToJpeg(f,900);$('refInfo').innerHTML=`<img src="${ref}" alt=""> 내 그림을 넣었어요. '다시 그리기'를 누르면 이 그림을 보고 그려요.`;}catch(err){$('refInfo').textContent='그림을 열지 못했어요.';}});
