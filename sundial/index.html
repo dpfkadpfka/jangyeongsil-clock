@@ -57,6 +57,9 @@ html body .btn,html body .title-pill,html body .step,html body .starpill,html bo
 .starpill.pop{animation:pop .6s}
 @keyframes pop{30%{transform:scale(1.25) rotate(-4deg)}}
 
+.yr{width:52px;height:52px;flex:none;border-radius:14px;overflow:hidden;box-shadow:0 4px 0 var(--line);background:#fff}
+.yr img{width:100%;height:100%}
+@media (max-width:900px){.yr{width:44px;height:44px}}
 /* 화면 */
 .screen{min-height:0;height:100%}
 .lesson{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;min-height:0}
@@ -279,6 +282,7 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--yellow);height:34px}
       <button class="step" data-step="quiz" data-go="quiz" aria-label="4단계 퀴즈">4</button>
     </nav>
     <div class="starpill" id="stars" aria-label="모은 별"><svg aria-hidden="true"><use href="#i-star"/></svg><span id="starCount">0</span></div>
+    <span class="yr" title="만든 사람 예람쌤"><img src="images/yeram-logo.png" alt="예람쌤"></span>
   </header>
 
   <!-- 표지 -->
