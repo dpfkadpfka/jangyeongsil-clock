@@ -603,6 +603,10 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwR3HEKVpni8dYBeX7pR
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let DEV='';try{DEV=localStorage.getItem('gc-dev')||'';if(!DEV){DEV='d'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem('gc-dev',DEV);}}catch(e){DEV='d'+Math.random().toString(36).slice(2,10);}
+
+// 좋아요 주인: 이름을 넣은 학생이면 학생 기준(공용 컴퓨터·기록 지워지는 컴퓨터에서도 유지), 아니면 이 기기 기준
+function devId(){let m=null;try{m=(typeof me!=='undefined'&&me)||JSON.parse(localStorage.getItem('gc-me')||'null');}catch(e){}
+  if(!m||!m.name)return DEV;const s=[m.school,m.grade,m.ban,m.num,m.name].join('|');let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return 'u'+h.toString(36)+String(m.num||'')+String(m.ban||'');}
 const ls={get:(k,d)=>{try{return localStorage.getItem(k)??d;}catch(e){return d;}},set:(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}}};
 
 // 로고: logo.png가 있으면 그걸 쓰고, 없으면 그림 로고를 그대로 써요
@@ -610,7 +614,7 @@ const ls={get:(k,d)=>{try{return localStorage.getItem(k)??d;}catch(e){return d;}
 
 async function api(body){
   if(SCRIPT_URL.indexOf('http')!==0)throw new Error('선생님: index.html에 앱스 스크립트 주소를 넣어 주세요.');
-  let r;try{r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(Object.assign({dev:DEV},body))});}
+  let r;try{r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(Object.assign({dev:devId()},body))});}
   catch(e){throw new Error(/claude|claudeusercontent/.test(location.hostname)?'미리보기 화면에서는 AI 서버에 연결할 수 없어요. 선생님이 올린 학생용 주소에서 해 주세요.':'인터넷 연결을 확인하고 다시 눌러 주세요.');}
   let j;try{j=await r.json();}catch(e){throw new Error('서버 대답을 읽지 못했어요. 잠시 뒤 다시 해 주세요.');}if(!j.ok)throw new Error(j.error||'잠시 뒤 다시 해 주세요.');return j;}
 
