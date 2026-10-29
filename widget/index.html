@@ -35,6 +35,7 @@ body:not(.web) #vClock{isolation:isolate}
 .cell p{margin:4px 0 0;max-width:100%;padding:1px 8px;border-radius:99px;background:rgba(255,255,255,.92);font:600 12px/1.4 Allimjang,Freesentation,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 4px rgba(20,30,50,.15)}
 body.jsmove #vClock,body.jsmove .top{-webkit-app-region:no-drag}
 body.jsmove #vClock{cursor:grab}
+#upd{position:absolute;left:10px;right:10px;bottom:10px;z-index:70;padding:8px 12px;border-radius:12px;background:#2f7bf6;color:#fff;font:700 13px/1.4 Freesentation,sans-serif;text-align:center;text-decoration:none;box-shadow:0 3px 10px rgba(20,30,50,.25);-webkit-app-region:no-drag}
 body.web .rz,body.web #tools .desk{display:none}
 .rz{position:fixed;z-index:50;-webkit-app-region:no-drag}
 .rz[data-e=n],.rz[data-e=s]{left:20px;right:20px;height:10px;cursor:ns-resize}.rz[data-e=n]{top:0}.rz[data-e=s]{bottom:0}
@@ -116,6 +117,7 @@ footer{text-align:center;font-size:12px;color:var(--sub)}
   <div id="stage"></div><div id="wall" hidden></div>
   <div id="label" hidden></div>
   <div id="tools"><button id="tPrev" title="이전 시계"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><button id="tNext" title="다음 시계"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button><button id="tReload" title="새로고침"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button><button id="tPin" class="desk" title="항상 위에 고정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l-1 6 3 3H7l3-3z"/><path d="M12 13v7"/></svg></button><button id="tSet" title="설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><i class="sep desk"></i><button id="tMin" class="desk" title="최소화"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h12"/></svg></button><button id="tMax" class="desk" title="최대화"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></button><button id="tClose" class="desk x" title="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
+<a id="upd" href="https://dpfkadpfka.github.io/jangyeongsil-clock/widget/ClassClock-Setup.exe" target="_blank" hidden>새 버전이 나왔어요 · 눌러서 새로 설치하면 테두리로 크기를 바꿀 수 있어요</a>
 </section>
 
 <section id="vSet" hidden>
@@ -250,6 +252,8 @@ if(D){const pinUI=v=>{$('tPin').classList.toggle('on',v);$('tPin').title=v?'항�
   $('tMin').onclick=()=>D.win('min');$('tMax').onclick=()=>D.win('max');$('tClose').onclick=()=>D.win('close');
   if(D.onMaxed)D.onMaxed(v=>{$('tMax').title=v?'원래 크기로':'최대화';$('tMax').classList.toggle('on',v);setTimeout(layout,60);});}
 // 테두리·모서리를 끌어서 크기 조절 (새 앱: 창이 마우스를 직접 따라가요)
+// 예전 앱(창 옮기기를 직접 못 하는 판)이면 새 버전 받기 안내를 띄워요
+if(D&&!D.canMove)document.getElementById('upd').hidden=false;
 if(D&&D.resizeStart){
   // 윈도우에서는 창이 커지는 동안 마우스 잡기가 풀릴 수 있어서, 마우스 단추를 뗐는지로만 끝내요
   let rzOn=false;const end=()=>{if(rzOn){rzOn=false;D.resizeEnd();}};
