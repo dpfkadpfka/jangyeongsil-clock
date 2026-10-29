@@ -585,22 +585,83 @@ function invImage_(q) {
   return { ok: true, image: out.data, mime: out.mime, id: f.getId() };
 }
 
-// 3) 바이브코딩: 발명품을 눌러 볼 수 있는 작은 웹앱(한 파일 HTML)
+// 발명품 체험 앱: 디자인은 고정된 틀, AI는 내용(이름·기능·효과·말)만 채워요
+const APP_EFFECTS = ['bounce', 'spin', 'shake', 'grow', 'glow', 'wiggle', 'fly', 'flip', 'rainbow', 'pulse'];
+const APP_THEMES = { mint: ['#2f9e7e', '#e3f4ec'], sky: ['#2f7bf6', '#e4efff'], peach: ['#f2865e', '#fff0e8'], lemon: ['#d9a400', '#fff6d6'], lilac: ['#8a63e8', '#f0eaff'], coral: ['#e5576a', '#ffe8ec'] };
+function appHtml_(d, maker) {
+  const th = APP_THEMES[d.color] || APP_THEMES.mint;
+  const data = JSON.stringify({ title: d.title, tagline: d.tagline, features: d.features, hello: d.hello }).replace(/</g, '\\u003c');
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const F = 'https://dpfkadpfka.github.io/jangyeongsil-clock/fonts/';
+  return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(d.title) + '</title>\n' +
+  '<!--SPEC:' + JSON.stringify(d).replace(/--/g, '- -') + '-->\n<style>\n' +
+  '@font-face{font-family:A;src:url(' + F + 'allimjang-b.woff2) format("woff2");font-weight:700}@font-face{font-family:P;src:url(' + F + 'freesentation-700.woff2) format("woff2");font-weight:700}@font-face{font-family:P;src:url(' + F + 'freesentation-800.woff2) format("woff2");font-weight:800}\n' +
+  ':root{--c:' + th[0] + ';--l:' + th[1] + ';--ink:#22314a}*{box-sizing:border-box}html,body{margin:0;min-height:100%}\n' +
+  'body{font-family:P,"Malgun Gothic",sans-serif;color:var(--ink);background:radial-gradient(circle at 20% 0%,#fff 0,var(--l) 55%,var(--l) 100%);padding:18px 16px 22px;-webkit-user-select:none;user-select:none}\n' +
+  '.wrap{max-width:560px;margin:0 auto;display:grid;gap:14px}\n' +
+  'header{text-align:center}h1{font-family:A,P,sans-serif;font-size:clamp(28px,7vw,40px);margin:0;line-height:1.15;letter-spacing:-.02em}\n' +
+  '.tag{display:inline-block;margin-top:8px;background:#fff;border-radius:999px;padding:6px 16px;font-weight:800;font-size:15px;color:var(--c);box-shadow:0 3px 0 rgba(0,0,0,.06)}\n' +
+  '.stage{position:relative;background:#fff;border-radius:28px;padding:22px 16px 18px;box-shadow:0 8px 0 rgba(0,0,0,.06);overflow:hidden;transition:background .4s}\n' +
+  '.stage.on{background:var(--l)}\n' +
+  '.bub{position:relative;margin:0 auto 12px;max-width:92%;background:var(--ink);color:#fff;border-radius:18px;padding:10px 16px;font-weight:800;font-size:17px;text-align:center;min-height:44px;display:flex;align-items:center;justify-content:center;transition:transform .25s}\n' +
+  '.bub::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-8px;border:8px solid transparent;border-top-color:var(--ink);border-bottom:0}\n' +
+  '.bub.pop{animation:pop .35s}\n' +
+  '.pic{display:flex;justify-content:center;align-items:center;height:min(52vw,250px)}.pic img{display:block;max-width:100%;height:100%;width:auto;object-fit:contain;border-radius:18px;filter:drop-shadow(0 10px 14px rgba(0,0,0,.15));animation:idle 3s ease-in-out infinite}\n' +
+  '.state{width:max-content;margin:12px auto 0;background:var(--c);color:#fff;border-radius:999px;padding:4px 14px;font-weight:800;font-size:14px;visibility:hidden}.state.show{visibility:visible}\n' +
+  '.btns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}\n' +
+  '.btns button{font:inherit;border:0;border-radius:22px;background:#fff;padding:14px 10px 12px;display:grid;justify-items:center;gap:4px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.08);transition:transform .1s,box-shadow .1s,background .2s;color:var(--ink)}\n' +
+  '.btns button:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.08)}\n' +
+  '.btns button.on{background:var(--c);color:#fff}\n' +
+  '.btns .e{font-size:34px;line-height:1}.btns b{font-size:18px;font-weight:800}.btns small{font-size:13px;opacity:.75;font-weight:700}\n' +
+  'footer{text-align:center;font-size:13px;font-weight:700;opacity:.6}\n' +
+  '.spark{position:absolute;pointer-events:none;font-size:22px;animation:spark .9s ease-out forwards}\n' +
+  '@keyframes idle{50%{transform:translateY(-6px)}}@keyframes pop{0%{transform:scale(.8)}70%{transform:scale(1.06)}100%{transform:scale(1)}}\n' +
+  '@keyframes spark{from{transform:translate(0,0) scale(.6);opacity:1}to{transform:translate(var(--x),var(--y)) scale(1.2);opacity:0}}\n' +
+  '@keyframes bounce{0%,100%{transform:translateY(0)}30%{transform:translateY(-38px)}55%{transform:translateY(0)}75%{transform:translateY(-14px)}}\n' +
+  '@keyframes spin{to{transform:rotate(360deg)}}@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-12px)}40%,80%{transform:translateX(12px)}}\n' +
+  '@keyframes grow{50%{transform:scale(1.25)}}@keyframes glow{50%{filter:drop-shadow(0 0 22px gold) brightness(1.2)}}@keyframes wiggle{25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}\n' +
+  '@keyframes fly{40%{transform:translateY(-70px) rotate(-6deg)}100%{transform:translateY(0)}}@keyframes flip{to{transform:rotateY(360deg)}}@keyframes rainbow{to{filter:hue-rotate(360deg) drop-shadow(0 10px 14px rgba(0,0,0,.15))}}\n' +
+  '@keyframes pulse{25%,75%{transform:scale(1.12)}50%{transform:scale(.95)}}\n' +
+  '</style></head><body><div class="wrap">\n' +
+  '<header><h1>' + esc(d.title) + '</h1><div class="tag">' + esc(d.tagline) + '</div></header>\n' +
+  '<section class="stage" id="stage"><div class="bub" id="bub">' + esc(d.hello) + '</div><div class="pic"><img id="img" src="{{IMAGE}}" alt=""></div><div class="state" id="state">.</div></section>\n' +
+  '<section class="btns" id="btns"></section>\n' +
+  (maker ? '<footer>발명한 사람 ' + esc(maker) + '</footer>\n' : '') +
+  '</div><script>\nconst D=' + data + ';\n' +
+  'const $=id=>document.getElementById(id),img=$("img"),bub=$("bub"),st=$("stage"),sv=$("state");let on=-1;\n' +
+  'function say(t){bub.textContent=t;bub.classList.remove("pop");void bub.offsetWidth;bub.classList.add("pop");}\n' +
+  'function spark(e){const r=st.getBoundingClientRect();for(let i=0;i<10;i++){const s=document.createElement("span");s.className="spark";s.textContent=["✨","⭐","💫","🌟"][i%4];s.style.left=(r.width/2-11)+"px";s.style.top=(r.height/2)+"px";const a=Math.random()*Math.PI*2,d=70+Math.random()*80;s.style.setProperty("--x",Math.cos(a)*d+"px");s.style.setProperty("--y",Math.sin(a)*d+"px");st.appendChild(s);setTimeout(()=>s.remove(),950);}}\n' +
+  'function run(i){const f=D.features[i];img.style.animation="none";void img.offsetWidth;const dur={spin:1,flip:1.1,rainbow:2,fly:1.2}[f.effect]||.9;img.style.animation=f.effect+" "+dur+"s ease-in-out"+(f.effect==="rainbow"?" 1":"");\n' +
+  '  setTimeout(()=>{img.style.animation="";},dur*1000+50);say(f.say);spark();\n' +
+  '  document.querySelectorAll(".btns button").forEach((b,k)=>b.classList.toggle("on",k===i&&on!==i));if(on===i){on=-1;st.classList.remove("on");sv.classList.remove("show");}else{on=i;st.classList.add("on");sv.textContent=f.emoji+" "+f.name+" 켜짐";sv.classList.add("show");}}\n' +
+  '$("btns").innerHTML=D.features.map((f,i)=>`<button type="button" data-i="${i}"><span class="e">${f.emoji}</span><b>${f.name}</b><small>${f.hint||""}</small></button>`).join("");\n' +
+  'document.querySelectorAll(".btns button").forEach(b=>b.onclick=()=>run(+b.dataset.i));\n' +
+  '</' + 'script></body></html>';
+}
+
+// 3) 바이브코딩: 발명품을 눌러 볼 수 있는 앱. AI는 내용만 JSON으로, 화면은 위의 고정 틀로 만들어요(빠르고 늘 깔끔)
 function invApp_(q) {
-  if (!limit_('app', MAX_APP_PER_DAY)) return { ok: false, error: '오늘 만들 수 있는 앱을 다 만들었어요. 내일 다시 해요.' };
+  limit_('app', MAX_APP_PER_DAY);
   const idea = q.idea || {};
-  const prompt = '초등학교 2학년 학생의 발명품을 실제로 눌러 보며 체험하는 작은 웹앱을 만들어 줘.\n' +
+  let prev = null; try { if (q.prev) prev = JSON.parse(String(q.prev).slice(0, 6000)); } catch (e) {}
+  const prompt = '초등학교 2학년 학생의 발명품을 눌러 보며 체험하는 앱의 내용을 JSON으로 만들어 줘.\n' +
     '발명품 이름: ' + str_(idea.title, 30) + '\n설명: ' + str_(idea.desc, 300) + '\n기능: ' + (Array.isArray(idea.features) ? idea.features.slice(0, 5).map(x => str_(x, 60)).join(' / ') : '') +
-    '\n학생이 바라는 점: ' + str_(q.wish, 200) + (q.request ? '\n학생이 고쳐 달라고 한 것: ' + str_(q.request, 300) : '') +
-    '\n\n규칙:\n- HTML 파일 하나(<!doctype html>부터)로만 대답해. 설명 글, 코드 블록 표시(```)는 쓰지 마.\n- CSS와 JavaScript는 파일 안에. 바깥 주소(CDN, 글꼴, 이미지 주소, fetch)는 절대 쓰지 마.\n' +
-    '- 발명품 그림은 <img src="{{IMAGE}}">로 넣어(이 글자는 그대로 둬, 나중에 바뀜).\n- 기능마다 큰 버튼이 있고 누르면 그 기능이 화면에서 움직임·소리 없는 효과·말풍선으로 보여야 해. 2학년이 바로 알 수 있게 쉬운 한국어.\n' +
-    '- 휴대폰과 태블릿 화면에 맞게, 밝고 귀여운 색. 짧고 깔끔하게 150줄 이내.';
-  // 앱은 빠른 모델부터 써서 기다리는 시간을 줄여요
-  const j = gen_([{ text: prompt }], 'app', ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3-flash-preview'], [TEXT_MODEL]);
+    '\n학생이 바라는 점: ' + str_(q.wish, 200) +
+    (prev ? '\n\n지금 앱 내용(이걸 바탕으로 고쳐): ' + JSON.stringify(prev) : '') +
+    (q.request ? '\n학생이 고쳐 달라고 한 것(꼭 반영): ' + str_(q.request, 300) : '') +
+    '\n\n형식: {"title":"발명품 이름(12자 이내)","tagline":"한 줄 소개(20자 이내)","hello":"처음 말풍선(25자 이내)","color":"mint|sky|peach|lemon|lilac|coral 중 하나",' +
+    '"features":[{"name":"기능 이름(8자 이내)","emoji":"이모지 1개","hint":"버튼 아래 작은 설명(12자 이내)","effect":"' + APP_EFFECTS.join('|') + ' 중 하나","say":"눌렀을 때 말풍선(30자 이내, 신나게)"}]}\n' +
+    '규칙: features는 3~6개, 기능마다 effect를 서로 다르게, 2학년이 바로 아는 쉬운 말, 존댓말 대신 친구 말투.';
+  const j = gen_([{ text: prompt }], false, ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3-flash-preview'], [TEXT_MODEL]);
   if (!j) return { ok: false, error: /429/.test(LAST_ERR) ? '지금 친구들이 많이 쓰고 있어요. 10초 뒤에 다시 해 봐요.' : '앱을 만들지 못했어요. 다시 눌러 주세요.' };
-  let html = j.candidates[0].content.parts.map(p => p.text || '').join('');
-  html = html.replace(/^[\s\S]*?(<!doctype html|<html)/i, '$1').replace(/```[\s\S]*$/, '').trim();
-  if (!/<html|<body|<div/i.test(html)) return { ok: false, error: '앱을 만들지 못했어요. 다시 눌러 주세요.' };
+  let d = null;
+  try { const t = j.candidates[0].content.parts.map(p => p.text || '').join(''); d = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1)); } catch (e) {}
+  if (!d || !Array.isArray(d.features) || !d.features.length) return { ok: false, error: '앱을 만들지 못했어요. 다시 눌러 주세요.' };
+  const clean = (v, n) => str_(v, n).replace(/[<>]/g, '');
+  d = { title: clean(d.title || idea.title, 20), tagline: clean(d.tagline, 30), hello: clean(d.hello || '버튼을 눌러 봐!', 40), color: APP_THEMES[d.color] ? d.color : 'mint',
+    features: d.features.slice(0, 6).map((f, i) => ({ name: clean(f.name, 12), emoji: clean(f.emoji, 4) || '✨', hint: clean(f.hint, 16),
+      effect: APP_EFFECTS.indexOf(f.effect) >= 0 ? f.effect : APP_EFFECTS[i % APP_EFFECTS.length], say: clean(f.say, 50) })) };
+  const html = appHtml_(d, str_(q.maker, 12));
   const f = share_(store_().folder.createFile(Utilities.newBlob(html, 'text/html', stamp_() + '_발명앱_' + whoStr_(q) + '.html')));
   invLog_(q, '앱', f.getId(), str_(idea.title, 30));
   return { ok: true, html: html, id: f.getId() };
