@@ -488,20 +488,28 @@ function redraw_(q) {
 /* ---------- 7) 학교 찾기: 나이스 교육정보 개방 포털(학교 기본정보) ----------
    [스크립트 속성]에 NEIS_KEY(인증키)를 넣으면 더 많은 결과가 나와요. 없어도 5개까지는 돼요. */
 function school_(q) {
-  const name = str_(q.q, 30).trim();
+  const name = str_(q.q, 30).trim().replace(/\s+/g, '');
   if (name.length < 2) return { ok: true, schools: [] };
-  const cache = CacheService.getScriptCache(), ck = 'sch_' + Utilities.base64EncodeWebSafe(name).slice(0, 200);
+  // 캐시 이름: 한글이 깨지지 않게 글자를 UTF-8로 바꿔 지문(MD5)으로 만들어요
+  const cache = CacheService.getScriptCache(), ck = 'sch2_' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, name, Utilities.Charset.UTF_8));
   const hit = cache.get(ck);
   if (hit) return { ok: true, schools: JSON.parse(hit) };
   const key = PropertiesService.getScriptProperties().getProperty('NEIS_KEY') || '';
-  const url = 'https://open.neis.go.kr/hub/schoolInfo?Type=json&pIndex=1&pSize=' + (key ? 30 : 5) + (key ? '&KEY=' + encodeURIComponent(key) : '') + '&SCHUL_NM=' + encodeURIComponent(name);
-  const r = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  // 인증키가 없으면 한 번에 5개만 와서, "부천북" → "부천북초등학교"처럼 이름을 늘린 검색도 같이 해요
+  const v = [name];
+  if (/초$/.test(name)) v.push(name + '등학교');
+  else if (/중$/.test(name)) v.push(name + '학교');
+  else if (/고$/.test(name)) v.push(name + '등학교');
+  else if (!/학교$/.test(name)) v.push(name + '초등학교', name + '중학교');
+  const urls = v.map(n => ({ url: 'https://open.neis.go.kr/hub/schoolInfo?Type=json&pIndex=1&pSize=' + (key ? 30 : 5) + (key ? '&KEY=' + encodeURIComponent(key) : '') + '&SCHUL_NM=' + encodeURIComponent(n), muteHttpExceptions: true }));
   let rows = [];
-  try { const j = JSON.parse(r.getContentText()); rows = (j.schoolInfo && j.schoolInfo[1] && j.schoolInfo[1].row) || []; } catch (e) {}
-  const order = k => /초등/.test(k) ? 0 : /중학/.test(k) ? 1 : 2;
-  const list = rows.map(x => ({ name: x.SCHUL_NM, code: x.ATPT_OFCDC_SC_CODE + '-' + x.SD_SCHUL_CODE, kind: x.SCHUL_KND_SC_NM,
-    region: x.LCTN_SC_NM, addr: String(x.ORG_RDNMA || '').split(' ').slice(0, 3).join(' ') }))
-    .sort((a, b) => order(a.kind) - order(b.kind));
+  try { UrlFetchApp.fetchAll(urls).forEach(r => { try { const j = JSON.parse(r.getContentText()); rows = rows.concat((j.schoolInfo && j.schoolInfo[1] && j.schoolInfo[1].row) || []); } catch (e) {} }); } catch (e) {}
+  const seen = {}, order = k => /초등/.test(k) ? 0 : /중학/.test(k) ? 1 : 2;
+  const score = n => n === name ? 0 : n.indexOf(name) === 0 ? 1 : n.indexOf(name) >= 0 ? 2 : 3;
+  const list = rows.filter(x => { const k = x.ATPT_OFCDC_SC_CODE + '-' + x.SD_SCHUL_CODE; if (seen[k]) return false; seen[k] = 1; return true; })
+    .map(x => ({ name: x.SCHUL_NM, code: x.ATPT_OFCDC_SC_CODE + '-' + x.SD_SCHUL_CODE, kind: x.SCHUL_KND_SC_NM,
+      region: x.LCTN_SC_NM, addr: String(x.ORG_RDNMA || '').split(' ').slice(0, 3).join(' ') }))
+    .sort((a, b) => score(a.name) - score(b.name) || order(a.kind) - order(b.kind)).slice(0, 12);
   if (list.length) cache.put(ck, JSON.stringify(list), 21600);
   return { ok: true, schools: list };
 }
