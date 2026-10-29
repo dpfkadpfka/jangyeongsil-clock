@@ -867,8 +867,8 @@ function showApp(html){const R=$('appRes');R.hidden=false;
   R.querySelector('iframe').srcdoc=html.split('{{IMAGE}}').join(img);
   $('fixForm').addEventListener('submit',e=>{e.preventDefault();const t=$('fixIn').value.trim();if(t)makeApp(t);});}
 async function apiRetry(body,onWait){for(let t=0;;t++){try{return await api(body);}catch(err){if(!/한꺼번에|많이|붐|잠시|10초/.test(err.message)||t>=6)throw err;if(onWait)onWait();await sleep(4000+Math.random()*5000+t*1500);}}}
-async function makeApp(request){if(busy)return;busy=true;hideMsg('buildMsg');const B=$('b-app');B.disabled=true;B.textContent='AI가 만드는 중… (20초쯤)';refresh();
-  try{const j=await apiRetry({action:'inv_app',idea:ideaNow,wish:$('f-wish').value.trim(),request:request||'',...who()},()=>B.textContent='차례를 기다리는 중…');app={html:j.html,id:j.id};showApp(j.html);$('bcApp').classList.add('done');
+async function makeApp(request){if(busy)return;busy=true;hideMsg('buildMsg');const B=$('b-app');B.disabled=true;B.textContent='AI가 만드는 중… (10초쯤)';refresh();
+  try{const j=await apiRetry({action:'inv_app',idea:ideaNow,wish:$('f-wish').value.trim(),request:request||'',prev:request&&app&&app.html?((app.html.match(/<!--SPEC:([\s\S]*?)-->/)||[])[1]||''):'',...who()},()=>B.textContent='차례를 기다리는 중…');app={html:j.html,id:j.id};showApp(j.html);$('bcApp').classList.add('done');
     setTimeout(()=>$('appRes').scrollIntoView({behavior:'smooth',block:'start'}),200);}
   catch(err){showMsg('buildMsg',esc(err.message));}
   finally{busy=false;B.disabled=false;B.textContent=app?'앱 새로 만들기':'앱 만들기';refresh();}}
